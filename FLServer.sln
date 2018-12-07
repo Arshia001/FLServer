@@ -17,13 +17,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{9089A3
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{72D4B17A-D1CA-48E3-9DF5-87BED006B0D3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bond", "..\bond-8.0.0\cs\src\core\Bond.csproj", "{43CBBA9B-C4BC-4E64-8733-7B72562D2E91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bond", "..\OrleansLibraries-Core\ThirdParty\bond-8.0.0\cs\src\core\Bond.csproj", "{43CBBA9B-C4BC-4E64-8733-7B72562D2E91}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IO", "..\bond-8.0.0\cs\src\io\IO.csproj", "{2E6E238C-9017-445C-9611-66DA780609BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IO", "..\OrleansLibraries-Core\ThirdParty\bond-8.0.0\cs\src\io\IO.csproj", "{2E6E238C-9017-445C-9611-66DA780609BE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "reflection", "..\bond-8.0.0\cs\src\reflection\reflection.csproj", "{40452223-3A34-4841-9A69-E0B6640B4108}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "reflection", "..\OrleansLibraries-Core\ThirdParty\bond-8.0.0\cs\src\reflection\reflection.csproj", "{40452223-3A34-4841-9A69-E0B6640B4108}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Attributes", "..\bond-8.0.0\cs\src\attributes\Attributes.csproj", "{92915BD9-8AB1-4E4D-A2AC-95BBF4F82D89}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Attributes", "..\OrleansLibraries-Core\ThirdParty\bond-8.0.0\cs\src\attributes\Attributes.csproj", "{92915BD9-8AB1-4E4D-A2AC-95BBF4F82D89}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrleansBondUtils", "..\OrleansLibraries-Core\OrleansBondUtils\OrleansBondUtils.csproj", "{6A557F00-BBDE-4F47-91BC-2995844AFC79}"
 EndProject
