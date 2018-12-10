@@ -7,11 +7,23 @@ using System.Threading.Tasks;
 namespace FLGrains
 {
     class SaveStateOnDeactivateGrain<TState> : Grain<TState>
-        where TState: new()
+        where TState : new()
     {
+        bool isStateCleared = false;
+
+
         public override Task OnDeactivateAsync()
         {
-            return WriteStateAsync();
+            if (isStateCleared)
+                return base.OnDeactivateAsync();
+
+            return WriteStateAsync().ContinueWith(t => base.OnDeactivateAsync()).Unwrap();
+        }
+
+        protected override Task ClearStateAsync()
+        {
+            isStateCleared = true;
+            return base.ClearStateAsync();
         }
     }
 }

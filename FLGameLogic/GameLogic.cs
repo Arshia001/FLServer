@@ -4,16 +4,14 @@ using System.Linq;
 
 namespace FLGameLogic
 {
-    public class GameLogic
+    public abstract class GameLogic
     {
-        //?? does not support immediate lookup of round details
-        List<WordCategory> categories;
-        List<List<Tuple<string, byte>>>[] playerAnswers; // player no. -> turn no. -> (answer, score)*
-        List<uint>[] playerScores;
-        DateTime[] turnEndTimes;
+        protected List<List<WordScorePair>>[] playerAnswers; // player no. -> turn no. -> (answer, score)*
+        protected List<uint>[] playerScores;
+        protected DateTime[] turnEndTimes;
 
 
-        public IReadOnlyList<WordCategory> Categories => categories;
+        public abstract int NumRounds { get; }
 
         public int RoundNumber => playerScores == null ? 0 :
             playerScores[0].Count == playerScores[1].Count ? playerScores[0].Count + (turnEndTimes.Any(t => t > DateTime.Now) ? -1 : 0) :
@@ -21,15 +19,14 @@ namespace FLGameLogic
 
         public int FirstTurnThisRound => RoundNumber % 2; // player 0 gets round zero, player 1 gets round 1, etc.
 
-        public int Turn => PlayerTookTurn(FirstTurnThisRound, RoundNumber) ? 1 - FirstTurnThisRound : FirstTurnThisRound;
+        public int Turn => PlayerStartedTurn(FirstTurnThisRound, RoundNumber) ? 1 - FirstTurnThisRound : FirstTurnThisRound;
 
-        public bool Finished => categories.Count <= RoundNumber;
+        public bool Finished => NumRounds <= RoundNumber;
 
 
-        public GameLogic(IEnumerable<WordCategory> categories)
+        protected GameLogic()
         {
-            this.categories = categories.ToList();
-            playerAnswers = new[] { new List<List<Tuple<string, byte>>>(), new List<List<Tuple<string, byte>>>() };
+            playerAnswers = new[] { new List<List<WordScorePair>>(), new List<List<WordScorePair>>() };
             playerScores = new[] { new List<uint>(), new List<uint>() };
             turnEndTimes = new DateTime[2];
         }
@@ -37,15 +34,21 @@ namespace FLGameLogic
 
         public IReadOnlyList<uint> GetPlayerScores(int player) => playerScores[player];
 
-        public IReadOnlyList<Tuple<string, byte>> GetPlayerAnswers(int player, int round) => playerAnswers[player][round];
+        public IReadOnlyList<WordScorePair> GetPlayerAnswers(int player, int round) => playerAnswers[player][round];
 
-        public IReadOnlyList<IReadOnlyList<Tuple<string, byte>>> GetPlayerAnswers(int player) => playerAnswers[player];
+        public IReadOnlyList<IReadOnlyList<WordScorePair>> GetPlayerAnswers(int player) => playerAnswers[player];
 
         public DateTime GetTurnEndTime(int player) => turnEndTimes[player];
 
-        public int NumTurnsTakenBy(int playerIndex) => playerScores[playerIndex].Count;
+        public bool IsTurnInProgress(int player) => turnEndTimes[player] > DateTime.Now;
 
-        public bool PlayerTookTurn(int index, int round) => playerScores[index].Count > round;
+        public int NumTurnsTakenBy(int player) => playerScores[player].Count + (turnEndTimes[player] > DateTime.Now ? -1 : 0);
+
+        public int NumTurnsTakenByIncludingCurrent(int player) => playerScores[player].Count;
+
+        public bool PlayerStartedTurn(int index, int round) => playerScores[index].Count > round;
+
+        public bool PlayerFinishedTurn(int index, int round) => playerScores[index].Count > round + 1 || playerScores[index].Count > round && turnEndTimes[index] < DateTime.Now;
 
         public byte GetNumRoundsWon(int player)
         {
@@ -61,53 +64,36 @@ namespace FLGameLogic
             return result;
         }
 
-        public StartRoundResult StartRound(int player, TimeSpan turnTime, out string category)
+        protected void RegisterPlayedWordInternal(int player, string word, byte score)
         {
-            category = "";
-
-            if (Finished)
-                return StartRoundResult.Error_GameFinished;
-
-            if (PlayerTookTurn(player, RoundNumber))
-                return StartRoundResult.Error_PlayerAlreadyTookTurn;
-
-            if (Turn != player)
-                return StartRoundResult.Error_NotThisPlayersTurn;
-
-            category = categories[RoundNumber].CategoryName;
-
-            turnEndTimes[player] = DateTime.Now + turnTime;
-            playerScores[player].Add(0);
-            playerAnswers[player].Add(new List<Tuple<string, byte>>());
-
-            return StartRoundResult.Success;
-        }
-
-        public PlayWordResult PlayWord(int player, string word, out uint totalScore, out sbyte thisWordScore, out string corrected)
-        {
-            totalScore = 0;
-            thisWordScore = 0;
-            corrected = null;
-
-            if (turnEndTimes[player] < DateTime.Now)
-                return PlayWordResult.Error_TurnOver;
-
-            if (categories[RoundNumber].WordCorrections.TryGetValue(word, out corrected))
-                word = corrected;
-
-            var duplicate = playerAnswers[player][RoundNumber].Any(t => t.Item1 == word);
-            byte score = 0;
-            if (!duplicate)
-                categories[RoundNumber].WordsAndScores.TryGetValue(word, out score);
-
-            playerAnswers[player][RoundNumber].Add(Tuple.Create(word, score));
+            playerAnswers[player][RoundNumber].Add(new WordScorePair(word, score));
             if (score > 0)
                 playerScores[player][RoundNumber] += score;
+        }
 
-            totalScore = playerScores[player][RoundNumber];
-            thisWordScore = duplicate ? (sbyte)-1 : (sbyte)score;
+        public void ForceEndTurn(int player)
+        {
+            var now = DateTime.Now;
+            if (turnEndTimes[player] > now)
+                turnEndTimes[player] = now;
+        }
 
-            return PlayWordResult.Success;
+        protected void RestoreGameState(IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes)
+        {
+            playerAnswers[0] = wordsPlayed[0].Select(r => r.ToList()).ToList();
+            playerScores[0] = wordsPlayed[0].Select(r => (uint)r.Sum(t => (int)t.score)).ToList();
+
+            playerAnswers[1] = wordsPlayed[1].Select(r => r.ToList()).ToList();
+            playerScores[1] = wordsPlayed[1].Select(r => (uint)r.Sum(t => (int)t.score)).ToList();
+
+            if (turnEndTimes != null)
+            {
+                if (turnEndTimes[0] != null)
+                    this.turnEndTimes[0] = turnEndTimes[0].Value;
+
+                if (turnEndTimes[1] != null)
+                    this.turnEndTimes[1] = turnEndTimes[1].Value;
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using FLGrainInterfaces;
+﻿using FLGameLogic;
+using FLGrainInterfaces;
 using LightMessage.Common.Messages;
 using LightMessage.OrleansUtils.GrainInterfaces;
 using LightMessage.OrleansUtils.Grains;
@@ -59,6 +60,13 @@ namespace FLGrains
             return Success(Param.UInt(totalScore), Param.Int(thisWordScore), Param.String(corrected));
         }
 
+        [MethodName("endr")]
+        public async Task<EndPointFunctionResult> EndRound(EndPointFunctionParams args)
+        {
+            var opponentWords = await GrainFactory.GetGrain<IGame>(args.Args[0].AsGuid.Value).EndRound(args.ClientID);
+            return Success(Param.Array(opponentWords.Select(ws => ws.ToParam())));
+        }
+
         [MethodName("info")]
         public async Task<EndPointFunctionResult> GetGameInfo(EndPointFunctionParams args)
         {
@@ -77,6 +85,31 @@ namespace FLGrains
             return Success(gameInfos.Select(gi => Param.Array(gi.ToParams(GrainFactory))));
         }
 
-        //?? push updates about opponent moves and game state changes to players
+
+        public async Task SendOpponentJoined(Guid playerID, Guid gameID, Guid opponentID)
+        {
+            if (await IsConnected(playerID))
+                await SendMessage(playerID, "opjoin", Param.Guid(gameID), Param.String(opponentID.ToString()));
+            else
+                SendPush();
+        }
+
+        public async Task SendOpponentTurnEnded(Guid playerID, Guid gameID, uint roundNumber, IEnumerable<WordScorePair> wordsPlayed)
+        {
+            if (await IsConnected(playerID))
+                await SendMessage(playerID, "opround", Param.Guid(gameID), Param.UInt(roundNumber), Param.Array(wordsPlayed.Select(ws => ws.ToParam())));
+            else
+                SendPush();
+        }
+
+        public async Task SendGameEnded(Guid playerID, Guid gameID, uint myScore, uint theirScore)
+        {
+            if (await IsConnected(playerID))
+                await SendMessage(playerID, "gameend", Param.Guid(gameID), Param.UInt(myScore), Param.UInt(theirScore));
+            else
+                SendPush();
+        }
+
+        void SendPush() { } //?? stub
     }
 }

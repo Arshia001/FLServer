@@ -1,4 +1,5 @@
-﻿using LightMessage.Common.Messages;
+﻿using FLGameLogic;
+using LightMessage.Common.Messages;
 using Orleans;
 using Orleans.Concurrency;
 using System;
@@ -17,28 +18,32 @@ namespace FLGrainInterfaces
         Finished
     }
 
+    public static class WordScorePairExtensions
+    {
+        public static Param ToParam(this WordScorePair ws) => Param.Array(Param.String(ws.word), Param.UInt(ws.score));
+    }
+
+    //?? rework according to new client-side logic
     [Immutable]
     public class GameInfo
     {
-        public EGameState GameState { get; set; }
         public Guid OtherPlayerID { get; set; }
         public byte NumRounds { get; set; }
         public List<string> Categories { get; set; }
-        public List<List<(string word, byte score)>> MyWordsPlayed { get; set; }
-        public List<List<(string word, byte score)>> TheirWordsPlayed { get; set; }
-        public bool MyTurn { get; set; } //?? share game logic between client and server, move this to client, AFTER PROTOTYPE PHASE! NOT NOW!!!!!!
+        public IReadOnlyList<IReadOnlyList<WordScorePair>> MyWordsPlayed { get; set; }
+        public IReadOnlyList<IReadOnlyList<WordScorePair>> TheirWordsPlayed { get; set; }
+        public DateTime MyTurnEndTime { get; set; }
 
         public IEnumerable<Param> ToParams(IGrainFactory grainFactory)
         {
             return new[]
             {
-                Param.UInt((ulong)GameState),
                 Param.String(OtherPlayerID.ToString()), //?? player name
                 Param.UInt(NumRounds),
                 Param.Array(Categories.Select(c => Param.String(c))),
                 Param.Array(MyWordsPlayed.Select(
                     turnWords => Param.Array(turnWords.Select(
-                        wordScore => Param.Array(Param.String(wordScore.word), Param.UInt(wordScore.score))
+                        wordScore => wordScore.ToParam()
                     ))
                 )),
                 TheirWordsPlayed == null ? Param.Array() : Param.Array(TheirWordsPlayed.Select(
@@ -46,7 +51,7 @@ namespace FLGrainInterfaces
                         wordScore => Param.Array(Param.String(wordScore.word), Param.UInt(wordScore.score))
                     ))
                 )),
-                Param.Boolean(MyTurn)
+                Param.DateTime(MyTurnEndTime)
             };
         }
     }
@@ -84,6 +89,7 @@ namespace FLGrainInterfaces
         Task<(Guid opponentID, byte numRounds)> AddSecondPlayer(Guid playerTwoID);
         Task<(string category, TimeSpan turnTime)> StartRound(Guid id);
         Task<(uint totalScore, sbyte thisWordScore, string corrected)> PlayWord(Guid id, string word);
+        Task<IEnumerable<WordScorePair>> EndRound(Guid playerID); // Returns words opponent played this round, if they took their turn already
 
         Task<GameInfo> GetGameInfo(Guid playerID);
         Task<SimplifiedGameInfo> GetSimplifiedGameInfo(Guid playerID);

@@ -17,20 +17,22 @@ namespace FLGrains
         //public List<HashSet<string>>[] PlayerAnswers { get; set; } // player no. -> turn no. -> answers //?? does bond support lists?
         //public List<uint>[] PlayerScores { get; set; }
         public Guid[] PlayerIDs { get; set; }
+        public int[] LastProcessedEndTurns { get; set; } = new int[2]; //?? use to reprocess turn end notifications in case grain goes down
         //public DateTime[] TurnEndTimes { get; set; }
     }
 
     class Game : SaveStateOnDeactivateGrain<GameState>, IGame
     {
-        class EndTurnTimerData
+        class EndRoundTimerData
         {
             public int playerIndex;
+            public int roundIndex;
             public IDisposable timerHandle;
         }
 
 
         readonly IDisposable[] turnTimers = new IDisposable[2]; //?? restore timers when activating
-        GameLogic gameLogic;
+        GameLogicServer gameLogic;
 
 
         int NumJoinedPlayers => State.PlayerIDs == null || State.PlayerIDs.Length == 0 ? 0 :
@@ -39,6 +41,9 @@ namespace FLGrains
 
         public override Task OnActivateAsync()
         {
+            //?? restore game state from grain state
+            //?? register turn end timers if any
+            //?? record active turn end timers in state so we can register even if turn time already passed
             if (State.CategoryNames != null && State.CategoryNames.Length > 0)
             {
                 var categories = new List<WordCategory>();
@@ -88,7 +93,7 @@ namespace FLGrains
                         }
                     });
 
-                gameLogic = new GameLogic(categories); //?? restore game state from grain state
+                gameLogic = new GameLogicServer(categories); //?? restore game state from grain state
             }
 
             return Task.CompletedTask;
@@ -147,21 +152,23 @@ namespace FLGrains
                 }
             });
 
-            gameLogic = new GameLogic(categories);
+            gameLogic = new GameLogicServer(categories);
 
             State.PlayerIDs = new[] { playerOneID, Guid.Empty };
 
             return Task.FromResult((byte)State.CategoryNames.Length);
         }
 
-        public Task<(Guid opponentID, byte numRounds)> AddSecondPlayer(Guid playerTwoID)
+        public async Task<(Guid opponentID, byte numRounds)> AddSecondPlayer(Guid playerTwoID)
         {
             if (State.PlayerIDs[0] == playerTwoID)
                 throw new Exception("Player cannot join game with self");
 
             State.PlayerIDs[1] = playerTwoID;
 
-            return Task.FromResult((State.PlayerIDs[0], (byte)State.CategoryNames.Length));
+            await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentJoined(State.PlayerIDs[0], this.GetPrimaryKey(), playerTwoID);
+
+            return (State.PlayerIDs[0], (byte)State.CategoryNames.Length);
         }
 
         public Task<(string category, TimeSpan turnTime)> StartRound(Guid id) // this could potentially be bad, timing-wise. Maybe the client should generate their own clock?
@@ -175,27 +182,34 @@ namespace FLGrains
             if (!result.IsSuccess())
                 throw new Exception("Failed to start round, resulting in " + result.ToString());
 
-            var endTurnData = new EndTurnTimerData { playerIndex = index };
-            var timerHandle = RegisterTimer(OnTurnEnded, endTurnData, turnTime, TimeSpan.MaxValue);
-            endTurnData.timerHandle = timerHandle;
+            var endRoundData = new EndRoundTimerData { playerIndex = index, roundIndex = gameLogic.NumTurnsTakenByIncludingCurrent(index) - 1 };
+            var timerHandle = RegisterTimer(OnTurnEnded, endRoundData, turnTime, TimeSpan.MaxValue);
+            endRoundData.timerHandle = timerHandle;
 
             return Task.FromResult((category, turnTime - TimeSpan.FromSeconds(10))); //?? config value for additional time per turn
         }
 
-        Task OnTurnEnded(object state)
+        async Task OnTurnEnded(object state)
         {
-            //?? notify other player about their next turn
-            //?? no need to notify for start of round, if they see it, fine, if not, so what? they'll get it in a minute.
-
-            var data = (EndTurnTimerData)state;
+            var data = (EndRoundTimerData)state;
             data.timerHandle.Dispose();
+
+            State.LastProcessedEndTurns[data.playerIndex] = data.roundIndex;
+
+            var myID = this.GetPrimaryKey();
+            await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentTurnEnded(State.PlayerIDs[1 - data.playerIndex], myID, (uint)data.roundIndex,
+                gameLogic.PlayerFinishedTurn(1 - data.playerIndex, data.roundIndex) ? gameLogic.GetPlayerAnswers(1 - data.playerIndex, data.roundIndex) : Enumerable.Empty<WordScorePair>());
 
             if (gameLogic.Finished)
             {
-                //?? handle match result
-            }
+                var wins0 = gameLogic.GetNumRoundsWon(0);
+                var wins1 = gameLogic.GetNumRoundsWon(1);
+                await Task.WhenAll(GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(State.PlayerIDs[0], myID, wins0, wins1),
+                    GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(State.PlayerIDs[1], myID, wins1, wins0));
 
-            return Task.CompletedTask;
+                await ClearStateAsync();
+                DeactivateOnIdle();
+            }
         }
 
         public Task<(uint totalScore, sbyte thisWordScore, string corrected)> PlayWord(Guid id, string word)
@@ -205,6 +219,20 @@ namespace FLGrains
             gameLogic.PlayWord(index, word, out var total, out var thisWord, out var corrected);
 
             return Task.FromResult((total, thisWord, corrected));
+        }
+
+        public Task<IEnumerable<WordScorePair>> EndRound(Guid playerID)
+        {
+            int index = Index(playerID);
+
+            gameLogic.ForceEndTurn(index);
+
+            var turnIndex = gameLogic.NumTurnsTakenBy(index) - 1;
+
+            if (gameLogic.PlayerFinishedTurn(1 - index, turnIndex))
+                return Task.FromResult(gameLogic.GetPlayerAnswers(1 - index, turnIndex).AsEnumerable());
+            else
+                return Task.FromResult(Enumerable.Empty<WordScorePair>());
         }
 
         EGameState GetStateInternal()
@@ -226,17 +254,17 @@ namespace FLGrains
         public Task<GameInfo> GetGameInfo(Guid playerID)
         {
             int index = Index(playerID);
+            var turnsTakenInclCurrent = gameLogic.NumTurnsTakenByIncludingCurrent(index);
             var turnsTaken = gameLogic.NumTurnsTakenBy(index);
 
             var result = new GameInfo
             {
-                GameState = GetStateInternal(),
                 OtherPlayerID = State.PlayerIDs[1 - index],
                 NumRounds = (byte)gameLogic.Categories.Count,
-                Categories = State.CategoryNames.Take(turnsTaken).ToList(),
-                MyWordsPlayed = gameLogic.GetPlayerAnswers(index).Take(turnsTaken).Select(w => w.Select(ww => (ww.Item1, ww.Item2)).ToList()).ToList(),
-                TheirWordsPlayed = gameLogic.GetPlayerAnswers(1 - index)?.Take(turnsTaken).Select(w => w.Select(ww => (ww.Item1, ww.Item2)).ToList()).ToList(), // don't return words for the round currently in progress
-                MyTurn = gameLogic.Turn == index
+                Categories = State.CategoryNames.Take(turnsTakenInclCurrent).ToList(),
+                MyWordsPlayed = gameLogic.GetPlayerAnswers(index).Take(turnsTakenInclCurrent).ToList(),
+                TheirWordsPlayed = gameLogic.GetPlayerAnswers(1 - index)?.Take(turnsTaken).ToList(), // don't return words for the round currently in progress
+                MyTurnEndTime = gameLogic.GetTurnEndTime(index)
             };
 
             return Task.FromResult(result);
