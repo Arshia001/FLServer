@@ -81,7 +81,6 @@ namespace FLGrainInterfaces
     }
 
     //?? we should probably support disconnections during play, as the games are not time-sensitive in nature (IF we can trust clients...)
-    //?? or, at least support getting the currently in progress turn after a reconnection
     public interface IGame : IGrainWithGuidKey
     {
         Task<EGameState> GetState();

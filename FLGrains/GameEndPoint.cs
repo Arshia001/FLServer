@@ -89,7 +89,7 @@ namespace FLGrains
         public async Task SendOpponentJoined(Guid playerID, Guid gameID, Guid opponentID)
         {
             if (await IsConnected(playerID))
-                await SendMessage(playerID, "opjoin", Param.Guid(gameID), Param.String(opponentID.ToString()));
+                await SendMessage(playerID, "opj", Param.Guid(gameID), Param.String(opponentID.ToString()));
             else
                 SendPush();
         }
@@ -97,7 +97,7 @@ namespace FLGrains
         public async Task SendOpponentTurnEnded(Guid playerID, Guid gameID, uint roundNumber, IEnumerable<WordScorePair> wordsPlayed)
         {
             if (await IsConnected(playerID))
-                await SendMessage(playerID, "opround", Param.Guid(gameID), Param.UInt(roundNumber), Param.Array(wordsPlayed.Select(ws => ws.ToParam())));
+                await SendMessage(playerID, "opr", Param.Guid(gameID), Param.UInt(roundNumber), Param.Array(wordsPlayed.Select(ws => ws.ToParam())));
             else
                 SendPush();
         }
@@ -105,7 +105,7 @@ namespace FLGrains
         public async Task SendGameEnded(Guid playerID, Guid gameID, uint myScore, uint theirScore)
         {
             if (await IsConnected(playerID))
-                await SendMessage(playerID, "gameend", Param.Guid(gameID), Param.UInt(myScore), Param.UInt(theirScore));
+                await SendMessage(playerID, "gend", Param.Guid(gameID), Param.UInt(myScore), Param.UInt(theirScore));
             else
                 SendPush();
         }
