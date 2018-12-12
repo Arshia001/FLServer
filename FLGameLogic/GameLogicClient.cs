@@ -23,22 +23,24 @@ namespace FLGameLogic
 
         public void RegisterPlayedWord(int player, string word, byte score) => RegisterPlayedWordInternal(player, word, score);
 
-        public void RegisterFullTurn(int player, int round, IEnumerable<WordScorePair> wordsPlayed)
+        public bool RegisterFullTurn(int player, uint round, IEnumerable<WordScorePair> wordsPlayed)
         {
             if (playerAnswers[player].Count != round)
-                throw new Exception("Incorrect round number");
+                return false;
 
             ForceEndTurn(player);
             playerAnswers[player].Add(wordsPlayed.ToList());
             playerScores[player].Add((uint)wordsPlayed.Sum(t => t.score));
+            return true;
         }
 
-        public void SetCategory(int round, string category)
+        public bool SetCategory(int round, string category)
         {
             if (categories[round] != null)
-                throw new Exception($"Category for round {round} is already known");
+                return false;
 
             categories[round] = category;
+            return true;
         }
 
         public void RestoreGameState(int numRounds, IEnumerable<string> categories, IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes)
@@ -48,6 +50,17 @@ namespace FLGameLogic
                 this.categories.AddRange(Enumerable.Repeat(default(string), numRounds - this.categories.Count));
 
             base.RestoreGameState(wordsPlayed, turnEndTimes);
+        }
+
+        public bool ForceEndTurn(int player, uint roundNumber)
+        {
+            if (PlayerStartedTurn(player, RoundNumber) && !PlayerStartedTurn(player, RoundNumber + 1))
+            {
+                ForceEndTurn(player);
+                return true;
+            }
+
+            return false;
         }
     }
 }
