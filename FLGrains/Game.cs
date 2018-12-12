@@ -253,6 +253,9 @@ namespace FLGrains
 
         public Task<GameInfo> GetGameInfo(Guid playerID)
         {
+            if (GetStateInternal() == GameState.New)
+                throw new Exception("Game not in progress");
+
             int index = Index(playerID);
             var turnsTakenInclCurrent = gameLogic.NumTurnsTakenByIncludingCurrent(index);
             var turnsTaken = gameLogic.NumTurnsTakenBy(index);

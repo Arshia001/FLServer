@@ -7,6 +7,14 @@ namespace FLGameLogic
 {
     public class GameLogicClient : GameLogic
     {
+        public static GameLogicClient CreateFromState(int numRounds, IEnumerable<string> categories, IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes)
+        {
+            var result = new GameLogicClient();
+            result.RestoreGameState(numRounds, categories, wordsPlayed, turnEndTimes);
+            return result;
+        }
+
+
         List<string> categories;
 
 
@@ -14,6 +22,8 @@ namespace FLGameLogic
 
         public override int NumRounds => Categories.Count;
 
+
+        private GameLogicClient() { }
 
         public GameLogicClient(int numRounds)
         {
