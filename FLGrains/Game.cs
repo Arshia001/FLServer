@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace FLGrains
 {
     //?? the current scheme doesn't support immediate lookup of score details for a round
-    class GameState
+    class GameGrain_State
     {
         public string[] CategoryNames { get; set; }
         //public List<HashSet<string>>[] PlayerAnswers { get; set; } // player no. -> turn no. -> answers //?? does bond support lists?
@@ -21,7 +21,7 @@ namespace FLGrains
         //public DateTime[] TurnEndTimes { get; set; }
     }
 
-    class Game : SaveStateOnDeactivateGrain<GameState>, IGame
+    class Game : SaveStateOnDeactivateGrain<GameGrain_State>, IGame
     {
         class EndRoundTimerData
         {
@@ -103,7 +103,7 @@ namespace FLGrains
 
         public Task<byte> StartNew(Guid playerOneID)
         {
-            if (GetStateInternal() != EGameState.New)
+            if (GetStateInternal() != GameState.New)
                 throw new Exception("Game already started");
 
             State.CategoryNames = new[] { "Greetings", "Cars", "Fruits" }; //?? fetch by random from some central repository
@@ -235,21 +235,21 @@ namespace FLGrains
                 return Task.FromResult(Enumerable.Empty<WordScorePair>());
         }
 
-        EGameState GetStateInternal()
+        GameState GetStateInternal()
         {
             if (State.PlayerIDs == null || State.PlayerIDs.Length == 0)
-                return EGameState.New;
+                return GameState.New;
 
             if (State.PlayerIDs[1] == Guid.Empty)
-                return EGameState.WaitingForSecondPlayer;
+                return GameState.WaitingForSecondPlayer;
 
             if (gameLogic.Finished)
-                return EGameState.Finished;
+                return GameState.Finished;
 
-            return EGameState.InProgress;
+            return GameState.InProgress;
         }
 
-        public Task<EGameState> GetState() => Task.FromResult(GetStateInternal());
+        public Task<GameState> GetState() => Task.FromResult(GetStateInternal());
 
         public Task<GameInfo> GetGameInfo(Guid playerID)
         {

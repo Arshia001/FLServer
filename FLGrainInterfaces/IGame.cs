@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace FLGrainInterfaces
 {
-    public enum EGameState
+    public enum GameState
     {
         New,
         WaitingForSecondPlayer,
@@ -34,11 +34,10 @@ namespace FLGrainInterfaces
         public IReadOnlyList<IReadOnlyList<WordScorePair>> TheirWordsPlayed { get; set; }
         public DateTime MyTurnEndTime { get; set; }
 
-        public IEnumerable<Param> ToParams(IGrainFactory grainFactory)
+        public async Task<Param> ToParam(IGrainFactory grainFactory)
         {
-            return new[]
-            {
-                Param.String(OtherPlayerID.ToString()), //?? player name
+            return Param.Array(
+                await PlayerInfo.GetAsParamForPlayerID(grainFactory, OtherPlayerID),
                 Param.UInt(NumRounds),
                 Param.Array(Categories.Select(c => Param.String(c))),
                 Param.Array(MyWordsPlayed.Select(
@@ -52,7 +51,7 @@ namespace FLGrainInterfaces
                     ))
                 )),
                 Param.DateTime(MyTurnEndTime)
-            };
+            );
         }
     }
 
@@ -60,7 +59,7 @@ namespace FLGrainInterfaces
     public class SimplifiedGameInfo
     {
         public Guid GameID { get; set; }
-        public EGameState GameState { get; set; }
+        public GameState GameState { get; set; }
         public Guid OtherPlayerID { get; set; }
         public bool MyTurn { get; set; }
         public byte MyScore { get; set; }
@@ -83,7 +82,7 @@ namespace FLGrainInterfaces
     //?? we should probably support disconnections during play, as the games are not time-sensitive in nature (IF we can trust clients...)
     public interface IGame : IGrainWithGuidKey
     {
-        Task<EGameState> GetState();
+        Task<GameState> GetState();
         Task<byte> StartNew(Guid playerOneID); // Returns number of rounds
         Task<(Guid opponentID, byte numRounds)> AddSecondPlayer(Guid playerTwoID);
         Task<(string category, TimeSpan turnTime)> StartRound(Guid id);

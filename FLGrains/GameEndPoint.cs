@@ -29,11 +29,11 @@ namespace FLGrains
             {
                 do
                     pendingGame = GrainFactory.GetGrain<IGame>(Guid.NewGuid());
-                while (await pendingGame.GetState() != EGameState.New);
+                while (await pendingGame.GetState() != GameState.New);
 
                 var numRounds = await userProfile.JoinGameAsFirstPlayer(pendingGame);
 
-                return Success(Param.Guid(pendingGame.GetPrimaryKey()), Param.String(null), Param.UInt(numRounds));
+                return Success(Param.Guid(pendingGame.GetPrimaryKey()), Param.Null(), Param.UInt(numRounds));
             }
             else
             {
@@ -42,7 +42,7 @@ namespace FLGrains
                 var gameID = pendingGame.GetPrimaryKey();
                 pendingGame = null;
 
-                return Success(Param.Guid(gameID), Param.String(result.opponentID.ToString()), Param.UInt(result.numRounds));
+                return Success(Param.Guid(gameID), await PlayerInfo.GetAsParamForPlayerID(GrainFactory, result.opponentID), Param.UInt(result.numRounds));
             }
         }
 
@@ -71,7 +71,7 @@ namespace FLGrains
         public async Task<EndPointFunctionResult> GetGameInfo(EndPointFunctionParams args)
         {
             var result = await GrainFactory.GetGrain<IGame>(args.Args[0].AsGuid.Value).GetGameInfo(args.ClientID);
-            return Success(result.ToParams(GrainFactory));
+            return Success(await result.ToParam(GrainFactory));
         }
 
         [MethodName("all")]
@@ -89,7 +89,7 @@ namespace FLGrains
         public async Task SendOpponentJoined(Guid playerID, Guid gameID, Guid opponentID)
         {
             if (await IsConnected(playerID))
-                await SendMessage(playerID, "opj", Param.Guid(gameID), Param.String(opponentID.ToString()));
+                await SendMessage(playerID, "opj", Param.Guid(gameID), await PlayerInfo.GetAsParamForPlayerID(GrainFactory, opponentID));
             else
                 SendPush();
         }

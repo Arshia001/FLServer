@@ -26,6 +26,11 @@ namespace FLGrains
             return Task.FromResult(State.MyGames.AsImmutable<IReadOnlyList<IGame>>());
         }
 
+        public Task<PlayerInfo> GetPlayerInfo()
+        {
+            return Task.FromResult(new PlayerInfo { Name = this.GetPrimaryKey().ToString().Substring(8) });
+        }
+
         public async Task<byte> JoinGameAsFirstPlayer(IGame game)
         {
             var result = await game.StartNew(this.GetPrimaryKey());
