@@ -95,5 +95,23 @@ namespace FLGameLogic
                     this.turnEndTimes[1] = turnEndTimes[1].Value;
             }
         }
+
+        protected StartRoundResult StartRound(int player, TimeSpan turnTime)
+        {
+            if (Finished)
+                return StartRoundResult.Error_GameFinished;
+
+            if (PlayerStartedTurn(player, RoundNumber))
+                return StartRoundResult.Error_PlayerAlreadyTookTurn;
+
+            if (Turn != player)
+                return StartRoundResult.Error_NotThisPlayersTurn;
+
+            turnEndTimes[player] = DateTime.Now + turnTime;
+            playerScores[player].Add(0);
+            playerAnswers[player].Add(new List<WordScorePair>());
+
+            return StartRoundResult.Success;
+        }
     }
 }

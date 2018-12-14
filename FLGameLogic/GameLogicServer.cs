@@ -23,26 +23,16 @@ namespace FLGameLogic
         }
 
 
-        public StartRoundResult StartRound(int player, TimeSpan turnTime, out string category)
+        public new StartRoundResult StartRound(int player, TimeSpan turnTime, out string category)
         {
-            category = "";
-
-            if (Finished)
-                return StartRoundResult.Error_GameFinished;
-
-            if (PlayerStartedTurn(player, RoundNumber))
-                return StartRoundResult.Error_PlayerAlreadyTookTurn;
-
-            if (Turn != player)
-                return StartRoundResult.Error_NotThisPlayersTurn;
-
             category = categories[RoundNumber].CategoryName;
 
-            turnEndTimes[player] = DateTime.Now + turnTime;
-            playerScores[player].Add(0);
-            playerAnswers[player].Add(new List<WordScorePair>());
+            var result = base.StartRound(player, turnTime);
 
-            return StartRoundResult.Success;
+            if (!result.IsSuccess())
+                category = "";
+
+            return result;
         }
 
         public PlayWordResult PlayWord(int player, string word, out uint totalScore, out sbyte thisWordScore, out string corrected)
