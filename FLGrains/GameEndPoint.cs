@@ -37,12 +37,12 @@ namespace FLGrains
             }
             else
             {
-                var result = await userProfile.JoinGameAsSecondPlayer(pendingGame);
+                var (opponentID, numRounds) = await userProfile.JoinGameAsSecondPlayer(pendingGame);
 
                 var gameID = pendingGame.GetPrimaryKey();
                 pendingGame = null;
 
-                return Success(Param.Guid(gameID), await PlayerInfo.GetAsParamForPlayerID(GrainFactory, result.opponentID), Param.UInt(result.numRounds));
+                return Success(Param.Guid(gameID), await PlayerInfo.GetAsParamForPlayerID(GrainFactory, opponentID), Param.UInt(numRounds));
             }
         }
 
@@ -56,8 +56,8 @@ namespace FLGrains
         [MethodName("word")]
         public async Task<EndPointFunctionResult> PlayWord(EndPointFunctionParams args)
         {
-            var (totalScore, thisWordScore, corrected) = await GrainFactory.GetGrain<IGame>(args.Args[0].AsGuid.Value).PlayWord(args.ClientID, args.Args[1].AsString);
-            return Success(Param.UInt(totalScore), Param.Int(thisWordScore), Param.String(corrected));
+            var (wordScore, corrected) = await GrainFactory.GetGrain<IGame>(args.Args[0].AsGuid.Value).PlayWord(args.ClientID, args.Args[1].AsString);
+            return Success(Param.UInt(wordScore), Param.String(corrected));
         }
 
         [MethodName("endr")]

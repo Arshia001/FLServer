@@ -212,13 +212,13 @@ namespace FLGrains
             }
         }
 
-        public Task<(uint totalScore, sbyte thisWordScore, string corrected)> PlayWord(Guid id, string word)
+        public Task<(byte wordScore, string corrected)> PlayWord(Guid id, string word)
         {
             var index = Index(id);
 
-            gameLogic.PlayWord(index, word, out var total, out var thisWord, out var corrected);
+            gameLogic.PlayWord(index, word, out var wordScore, out var corrected);
 
-            return Task.FromResult((total, thisWord, corrected));
+            return Task.FromResult((wordScore, corrected));
         }
 
         public Task<IEnumerable<WordScorePair>> EndRound(Guid playerID)

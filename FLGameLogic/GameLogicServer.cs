@@ -23,7 +23,7 @@ namespace FLGameLogic
         }
 
 
-        public new StartRoundResult StartRound(int player, TimeSpan turnTime, out string category)
+        public StartRoundResult StartRound(int player, TimeSpan turnTime, out string category)
         {
             category = categories[RoundNumber].CategoryName;
 
@@ -35,10 +35,9 @@ namespace FLGameLogic
             return result;
         }
 
-        public PlayWordResult PlayWord(int player, string word, out uint totalScore, out sbyte thisWordScore, out string corrected)
+        public PlayWordResult PlayWord(int player, string word, out byte wordScore, out string corrected)
         {
-            totalScore = 0;
-            thisWordScore = 0;
+            wordScore = 0;
             corrected = null;
 
             if (turnEndTimes[player] < DateTime.Now)
@@ -48,14 +47,10 @@ namespace FLGameLogic
                 word = corrected;
 
             var duplicate = playerAnswers[player][RoundNumber].Any(t => t.word == word);
-            byte score = 0;
             if (!duplicate)
-                categories[RoundNumber].WordsAndScores.TryGetValue(word, out score);
+                categories[RoundNumber].WordsAndScores.TryGetValue(word, out wordScore);
 
-            RegisterPlayedWordInternal(player, word, score);
-
-            totalScore = playerScores[player][RoundNumber];
-            thisWordScore = duplicate ? (sbyte)-1 : (sbyte)score;
+            RegisterPlayedWordInternal(player, word, wordScore);
 
             return PlayWordResult.Success;
         }

@@ -86,7 +86,7 @@ namespace FLGrainInterfaces
         Task<byte> StartNew(Guid playerOneID); // Returns number of rounds
         Task<(Guid opponentID, byte numRounds)> AddSecondPlayer(Guid playerTwoID);
         Task<(string category, TimeSpan turnTime)> StartRound(Guid id);
-        Task<(uint totalScore, sbyte thisWordScore, string corrected)> PlayWord(Guid id, string word);
+        Task<(byte wordScore, string corrected)> PlayWord(Guid id, string word);
         Task<IEnumerable<WordScorePair>> EndRound(Guid playerID); // Returns words opponent played this round, if they took their turn already
 
         Task<GameInfo> GetGameInfo(Guid playerID);
