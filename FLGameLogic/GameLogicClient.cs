@@ -7,9 +7,12 @@ namespace FLGameLogic
 {
     public class GameLogicClient : GameLogic
     {
-        public static GameLogicClient CreateFromState(int numRounds, IEnumerable<string> categories, IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes)
+        static List<WordScorePair> unknownRoundAnswers = new List<WordScorePair>();
+
+
+        public static GameLogicClient CreateFromState(int numRounds, IEnumerable<string> categories, IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes, int firstTurn)
         {
-            var result = new GameLogicClient();
+            var result = new GameLogicClient(firstTurn);
             result.RestoreGameState(numRounds, categories, wordsPlayed, turnEndTimes);
             return result;
         }
@@ -23,24 +26,45 @@ namespace FLGameLogic
         public override int NumRounds => Categories.Count;
 
 
-        private GameLogicClient() { }
+        private GameLogicClient(int firstTurn) : base(firstTurn) { }
 
-        public GameLogicClient(int numRounds)
+        public GameLogicClient(int numRounds, int firstTurn) : base(firstTurn)
         {
             categories = new List<string>(Enumerable.Repeat(default(string), numRounds));
         }
 
 
-        public void RegisterPlayedWord(int player, string word, byte score) => RegisterPlayedWordInternal(player, word, score);
+        public bool RegisterPlayedWord(int player, string word, byte score) => RegisterPlayedWordInternal(player, word, score); // returns whether the word was NOT a duplicate
 
         public bool RegisterFullTurn(int player, uint round, IEnumerable<WordScorePair> wordsPlayed)
+        {
+            if (!(playerAnswers[player].Count == round || playerAnswers[player].Count == round + 1 && playerAnswers[player][(int)round] == unknownRoundAnswers))
+                return false;
+
+            ForceEndTurn(player);
+
+            if (playerAnswers[player].Count == round)
+            {
+                playerAnswers[player].Add(wordsPlayed.ToList());
+                playerScores[player].Add((uint)wordsPlayed.Sum(t => t.score));
+            }
+            else
+            {
+                playerAnswers[player][(int)round] = wordsPlayed.ToList();
+                playerScores[player][(int)round] = (uint)wordsPlayed.Sum(t => t.score);
+            }
+
+            return true;
+        }
+
+        public bool RegisterTurnTakenWithUnknownPlays(int player, uint round)
         {
             if (playerAnswers[player].Count != round)
                 return false;
 
             ForceEndTurn(player);
-            playerAnswers[player].Add(wordsPlayed.ToList());
-            playerScores[player].Add((uint)wordsPlayed.Sum(t => t.score));
+            playerAnswers[player].Add(unknownRoundAnswers);
+            playerScores[player].Add(0);
             return true;
         }
 

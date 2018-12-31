@@ -9,6 +9,7 @@ namespace FLGameLogic
         protected List<List<WordScorePair>>[] playerAnswers; // player no. -> turn no. -> (answer, score)*
         protected List<uint>[] playerScores;
         protected DateTime[] turnEndTimes;
+        protected int firstTurn;
 
 
         public abstract int NumRounds { get; }
@@ -17,24 +18,27 @@ namespace FLGameLogic
             playerScores[0].Count == playerScores[1].Count ? playerScores[0].Count + (turnEndTimes.Any(t => t > DateTime.Now) ? -1 : 0) :
             Math.Min(playerScores[0].Count, playerScores[1].Count);
 
-        public int FirstTurnThisRound => RoundNumber % 2; // player 0 gets round zero, player 1 gets round 1, etc.
+        public int FirstTurn => firstTurn;
+
+        public int FirstTurnThisRound => RoundNumber % 2 == 0 ? firstTurn : (1 - firstTurn); // players take the first turn playing each round alternatively
 
         public int Turn => PlayerStartedTurn(FirstTurnThisRound, RoundNumber) ? 1 - FirstTurnThisRound : FirstTurnThisRound;
 
         public bool Finished => NumRounds <= RoundNumber;
 
 
-        protected GameLogic()
+        protected GameLogic(int firstTurn)
         {
             playerAnswers = new[] { new List<List<WordScorePair>>(), new List<List<WordScorePair>>() };
             playerScores = new[] { new List<uint>(), new List<uint>() };
             turnEndTimes = new DateTime[2];
+            this.firstTurn = firstTurn;
         }
 
 
         public IReadOnlyList<uint> GetPlayerScores(int player) => playerScores[player];
 
-        public IReadOnlyList<WordScorePair> GetPlayerAnswers(int player, int round) => playerAnswers[player][round];
+        public IReadOnlyList<WordScorePair> GetPlayerAnswers(int player, int round) => playerAnswers[player].Count > round ? playerAnswers[player][round] : new List<WordScorePair>();
 
         public IReadOnlyList<IReadOnlyList<WordScorePair>> GetPlayerAnswers(int player) => playerAnswers[player];
 
@@ -64,11 +68,18 @@ namespace FLGameLogic
             return result;
         }
 
-        protected void RegisterPlayedWordInternal(int player, string word, byte score)
+        protected bool RegisterPlayedWordInternal(int player, string word, byte score)
         {
-            playerAnswers[player][RoundNumber].Add(new WordScorePair(word, score));
-            if (score > 0)
-                playerScores[player][RoundNumber] += score;
+            if (!playerAnswers[player][RoundNumber].Any(w => w.word == word))
+            {
+                playerAnswers[player][RoundNumber].Add(new WordScorePair(word, score));
+                if (score > 0)
+                    playerScores[player][RoundNumber] += score;
+
+                return true;
+            }
+
+            return false;
         }
 
         public void ForceEndTurn(int player)

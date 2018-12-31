@@ -267,7 +267,9 @@ namespace FLGrains
                 Categories = State.CategoryNames.Take(turnsTakenInclCurrent).ToList(),
                 MyWordsPlayed = gameLogic.GetPlayerAnswers(index).Take(turnsTakenInclCurrent).ToList(),
                 TheirWordsPlayed = gameLogic.GetPlayerAnswers(1 - index)?.Take(turnsTaken).ToList(), // don't return words for the round currently in progress
-                MyTurnEndTime = gameLogic.GetTurnEndTime(index)
+                MyTurnEndTime = gameLogic.GetTurnEndTime(index),
+                MyTurnFirst = gameLogic.FirstTurn == index,
+                NumTurnsTakenByOpponent = (byte)gameLogic.NumTurnsTakenByIncludingCurrent(1 - index)
             };
 
             return Task.FromResult(result);

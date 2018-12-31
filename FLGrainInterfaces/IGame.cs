@@ -33,6 +33,9 @@ namespace FLGrainInterfaces
         public IReadOnlyList<IReadOnlyList<WordScorePair>> MyWordsPlayed { get; set; }
         public IReadOnlyList<IReadOnlyList<WordScorePair>> TheirWordsPlayed { get; set; }
         public DateTime MyTurnEndTime { get; set; }
+        public bool MyTurnFirst { get; set; }
+        public byte NumTurnsTakenByOpponent { get; set; }
+
 
         public async Task<Param> ToParam(IGrainFactory grainFactory)
         {
@@ -50,7 +53,9 @@ namespace FLGrainInterfaces
                         wordScore => Param.Array(Param.String(wordScore.word), Param.UInt(wordScore.score))
                     ))
                 )),
-                Param.DateTime(MyTurnEndTime)
+                Param.DateTime(MyTurnEndTime),
+                Param.Boolean(MyTurnFirst),
+                Param.UInt(NumTurnsTakenByOpponent)
             );
         }
     }

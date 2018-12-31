@@ -28,7 +28,7 @@ namespace FLGrains
 
         public Task<PlayerInfo> GetPlayerInfo()
         {
-            return Task.FromResult(new PlayerInfo { Name = this.GetPrimaryKey().ToString().Substring(8) });
+            return Task.FromResult(new PlayerInfo { Name = this.GetPrimaryKey().ToString().Substring(0, 8) }); //?? info
         }
 
         public async Task<byte> JoinGameAsFirstPlayer(IGame game)

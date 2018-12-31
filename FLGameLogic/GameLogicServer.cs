@@ -17,7 +17,7 @@ namespace FLGameLogic
         public override int NumRounds => Categories.Count;
 
 
-        public GameLogicServer(IEnumerable<WordCategory> categories)
+        public GameLogicServer(IEnumerable<WordCategory> categories) : base(0)
         {
             this.categories = categories.ToList();
         }

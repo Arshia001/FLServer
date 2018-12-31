@@ -33,7 +33,7 @@ namespace FLGrains
 
                 var numRounds = await userProfile.JoinGameAsFirstPlayer(pendingGame);
 
-                return Success(Param.Guid(pendingGame.GetPrimaryKey()), Param.Null(), Param.UInt(numRounds));
+                return Success(Param.Guid(pendingGame.GetPrimaryKey()), Param.Null(), Param.UInt(numRounds), Param.Boolean(true));
             }
             else
             {
@@ -42,7 +42,7 @@ namespace FLGrains
                 var gameID = pendingGame.GetPrimaryKey();
                 pendingGame = null;
 
-                return Success(Param.Guid(gameID), await PlayerInfo.GetAsParamForPlayerID(GrainFactory, opponentID), Param.UInt(numRounds));
+                return Success(Param.Guid(gameID), await PlayerInfo.GetAsParamForPlayerID(GrainFactory, opponentID), Param.UInt(numRounds), Param.Boolean(false));
             }
         }
 
