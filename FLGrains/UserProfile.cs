@@ -28,8 +28,10 @@ namespace FLGrains
 
         public Task<PlayerInfo> GetPlayerInfo()
         {
-            return Task.FromResult(new PlayerInfo { Name = this.GetPrimaryKey().ToString().Substring(0, 8) }); //?? info
+            return Task.FromResult(GetPlayerInfoImpl());
         }
+
+        PlayerInfo GetPlayerInfoImpl() => new PlayerInfo { ID = this.GetPrimaryKey(), Name = this.GetPrimaryKey().ToString().Substring(0, 8) }; //?? info
 
         public async Task<byte> JoinGameAsFirstPlayer(IGame game)
         {
@@ -40,7 +42,7 @@ namespace FLGrains
 
         public async Task<(Guid opponentID, byte numRounds)> JoinGameAsSecondPlayer(IGame game)
         {
-            var result = await game.AddSecondPlayer(this.GetPrimaryKey());
+            var result = await game.AddSecondPlayer(GetPlayerInfoImpl());
             State.MyGames.Add(game);
             return result;
         }

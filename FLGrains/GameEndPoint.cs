@@ -86,10 +86,10 @@ namespace FLGrains
         }
 
 
-        public async Task SendOpponentJoined(Guid playerID, Guid gameID, Guid opponentID)
+        public async Task SendOpponentJoined(Guid playerID, Guid gameID, PlayerInfo opponent)
         {
             if (await IsConnected(playerID))
-                await SendMessage(playerID, "opj", Param.Guid(gameID), await PlayerInfo.GetAsParamForPlayerID(GrainFactory, opponentID));
+                await SendMessage(playerID, "opj", Param.Guid(gameID), opponent.ToParam());
             else
                 SendPush();
         }

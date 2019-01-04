@@ -37,6 +37,7 @@ namespace FLHost
                     o.GatewayPort = 40001;
                     o.SiloPort = 11112;
                 })
+                .Configure<SchedulingOptions>(o => o.AllowCallChainReentrancy = true)
                 .EnableDirectClient()
                 .UseCassandraClustering((CassandraClusteringOptions o) =>
                 {
@@ -46,11 +47,12 @@ namespace FLHost
                 {
                     o.ConnectionString = "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy";
                 })
-                .AddCassandraGrainStorageAsDefault((CassandraGrainStorageOptions o) =>
-                {
-                    o.ConnctionString = "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy";
-                    o.AddSerializationProvider(1, new BondCassandraStorageSerializationProvider());
-                })
+                .AddMemoryGrainStorageAsDefault()
+                //.AddCassandraGrainStorageAsDefault((CassandraGrainStorageOptions o) =>
+                //{
+                //    o.ConnctionString = "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy";
+                //    o.AddSerializationProvider(1, new BondCassandraStorageSerializationProvider());
+                //})
                 .ConfigureLogging(l => l.AddFilter("Orleans", LogLevel.Information).AddConsole())
                 .ConfigureApplicationParts(p =>
                 {

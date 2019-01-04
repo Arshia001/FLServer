@@ -21,7 +21,7 @@ namespace FLGrains
         //public DateTime[] TurnEndTimes { get; set; }
     }
 
-    class Game : SaveStateOnDeactivateGrain<GameGrain_State>, IGame
+    class Game : Grain<GameGrain_State> /*SaveStateOnDeactivateGrain<GameGrain_State>*/, IGame
     {
         class EndRoundTimerData
         {
@@ -159,14 +159,14 @@ namespace FLGrains
             return Task.FromResult((byte)State.CategoryNames.Length);
         }
 
-        public async Task<(Guid opponentID, byte numRounds)> AddSecondPlayer(Guid playerTwoID)
+        public async Task<(Guid opponentID, byte numRounds)> AddSecondPlayer(PlayerInfo playerTwo)
         {
-            if (State.PlayerIDs[0] == playerTwoID)
+            if (State.PlayerIDs[0] == playerTwo.ID)
                 throw new Exception("Player cannot join game with self");
 
-            State.PlayerIDs[1] = playerTwoID;
+            State.PlayerIDs[1] = playerTwo.ID;
 
-            await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentJoined(State.PlayerIDs[0], this.GetPrimaryKey(), playerTwoID);
+            await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentJoined(State.PlayerIDs[0], this.GetPrimaryKey(), playerTwo);
 
             return (State.PlayerIDs[0], (byte)State.CategoryNames.Length);
         }

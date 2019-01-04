@@ -16,6 +16,8 @@ namespace FLGrainInterfaces
         public static Task<Param> GetAsParamForPlayerID(IGrainFactory grainFactory, Guid playerID) => GetForPlayerID(grainFactory, playerID).ContinueWith(t => t.Result.ToParam());
 
 
+        public Guid ID { get; set; }
+
         public string Name { get; set; }
 
 
