@@ -92,9 +92,10 @@ namespace FLGrainInterfaces
         Task<(Guid opponentID, byte numRounds)> AddSecondPlayer(PlayerInfo playerTwo);
         Task<(string category, TimeSpan turnTime)> StartRound(Guid id);
         Task<(byte wordScore, string corrected)> PlayWord(Guid id, string word);
-        Task<IEnumerable<WordScorePair>> EndRound(Guid playerID); // Returns words opponent played this round, if they took their turn already
+        Task<Immutable<IEnumerable<WordScorePair>>> EndRound(Guid playerID); // Returns words opponent played this round, if they took their turn already
 
         Task<GameInfo> GetGameInfo(Guid playerID);
         Task<SimplifiedGameInfo> GetSimplifiedGameInfo(Guid playerID);
+        Task<bool> WasFirstTurnPlayed(); //?? change to notification sent from game to matchmaking sytem
     }
 }

@@ -17,7 +17,7 @@ namespace FLGrains
         //public List<HashSet<string>>[] PlayerAnswers { get; set; } // player no. -> turn no. -> answers //?? does bond support lists?
         //public List<uint>[] PlayerScores { get; set; }
         public Guid[] PlayerIDs { get; set; }
-        public int[] LastProcessedEndTurns { get; set; } = new int[2]; //?? use to reprocess turn end notifications in case grain goes down
+        public int[] LastProcessedEndTurns { get; set; } = new[] { -1, -1 }; //?? use to reprocess turn end notifications in case grain goes down
         //public DateTime[] TurnEndTimes { get; set; }
     }
 
@@ -54,7 +54,7 @@ namespace FLGrains
                     WordsAndScores = new Dictionary<string, byte>
                     {
                         { "hello", 1 },
-                        { "nice to meet you", 2 },
+                        { "greetings", 2 },
                         { "how are you", 3 }
                     },
                     WordCorrections = new Dictionary<string, string>
@@ -189,16 +189,24 @@ namespace FLGrains
             return Task.FromResult((category, turnTime - TimeSpan.FromSeconds(10))); //?? config value for additional time per turn
         }
 
-        async Task OnTurnEnded(object state)
+        Task OnTurnEnded(object state)
         {
             var data = (EndRoundTimerData)state;
             data.timerHandle.Dispose();
 
-            State.LastProcessedEndTurns[data.playerIndex] = data.roundIndex;
+            return HandleEndTurn(data.playerIndex, data.roundIndex);
+        }
+
+        private async Task HandleEndTurn(int playerIndex, int roundIndex)
+        {
+            if (State.LastProcessedEndTurns[playerIndex] >= roundIndex)
+                return;
+
+            State.LastProcessedEndTurns[playerIndex] = roundIndex;
 
             var myID = this.GetPrimaryKey();
-            await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentTurnEnded(State.PlayerIDs[1 - data.playerIndex], myID, (uint)data.roundIndex,
-                gameLogic.PlayerFinishedTurn(1 - data.playerIndex, data.roundIndex) ? gameLogic.GetPlayerAnswers(1 - data.playerIndex, data.roundIndex) : Enumerable.Empty<WordScorePair>());
+            await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentTurnEnded(State.PlayerIDs[1 - playerIndex], myID, (uint)roundIndex,
+                gameLogic.PlayerFinishedTurn(1 - playerIndex, roundIndex) ? gameLogic.GetPlayerAnswers(playerIndex, roundIndex) : null);
 
             if (gameLogic.Finished)
             {
@@ -207,7 +215,9 @@ namespace FLGrains
                 await Task.WhenAll(GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(State.PlayerIDs[0], myID, wins0, wins1),
                     GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(State.PlayerIDs[1], myID, wins1, wins0));
 
-                await ClearStateAsync();
+                //?? rewards, etc.?
+
+                // await ClearStateAsync(); // keep game history!
                 DeactivateOnIdle();
             }
         }
@@ -221,7 +231,7 @@ namespace FLGrains
             return Task.FromResult((wordScore, corrected));
         }
 
-        public Task<IEnumerable<WordScorePair>> EndRound(Guid playerID)
+        public async Task<Immutable<IEnumerable<WordScorePair>>> EndRound(Guid playerID)
         {
             int index = Index(playerID);
 
@@ -229,10 +239,12 @@ namespace FLGrains
 
             var turnIndex = gameLogic.NumTurnsTakenBy(index) - 1;
 
+            await HandleEndTurn(index, turnIndex);
+
             if (gameLogic.PlayerFinishedTurn(1 - index, turnIndex))
-                return Task.FromResult(gameLogic.GetPlayerAnswers(1 - index, turnIndex).AsEnumerable());
+                return gameLogic.GetPlayerAnswers(1 - index, turnIndex).AsEnumerable().AsImmutable();
             else
-                return Task.FromResult(Enumerable.Empty<WordScorePair>());
+                return default(IEnumerable<WordScorePair>).AsImmutable();
         }
 
         GameState GetStateInternal()
@@ -291,6 +303,11 @@ namespace FLGrains
             };
 
             return Task.FromResult(result);
+        }
+
+        public Task<bool> WasFirstTurnPlayed() //?? remove - see comment on interface 
+        {
+            return Task.FromResult(gameLogic.PlayerFinishedTurn(0, 0));
         }
     }
 }

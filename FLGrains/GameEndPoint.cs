@@ -37,6 +37,9 @@ namespace FLGrains
             }
             else
             {
+                if (!await pendingGame.WasFirstTurnPlayed())
+                    return Failure("Play other player's turn before joining :D");
+
                 var (opponentID, numRounds) = await userProfile.JoinGameAsSecondPlayer(pendingGame);
 
                 var gameID = pendingGame.GetPrimaryKey();
@@ -63,8 +66,8 @@ namespace FLGrains
         [MethodName("endr")]
         public async Task<EndPointFunctionResult> EndRound(EndPointFunctionParams args)
         {
-            var opponentWords = await GrainFactory.GetGrain<IGame>(args.Args[0].AsGuid.Value).EndRound(args.ClientID);
-            return Success(Param.Array(opponentWords.Select(ws => ws.ToParam())));
+            var opponentWords = (await GrainFactory.GetGrain<IGame>(args.Args[0].AsGuid.Value).EndRound(args.ClientID)).Value;
+            return Success(opponentWords == null ? Param.Null() : Param.Array(opponentWords.Select(ws => ws.ToParam())));
         }
 
         [MethodName("info")]
@@ -97,7 +100,7 @@ namespace FLGrains
         public async Task SendOpponentTurnEnded(Guid playerID, Guid gameID, uint roundNumber, IEnumerable<WordScorePair> wordsPlayed)
         {
             if (await IsConnected(playerID))
-                await SendMessage(playerID, "opr", Param.Guid(gameID), Param.UInt(roundNumber), Param.Array(wordsPlayed.Select(ws => ws.ToParam())));
+                await SendMessage(playerID, "opr", Param.Guid(gameID), Param.UInt(roundNumber), wordsPlayed == null ? Param.Null() : Param.Array(wordsPlayed.Select(ws => ws.ToParam())));
             else
                 SendPush();
         }

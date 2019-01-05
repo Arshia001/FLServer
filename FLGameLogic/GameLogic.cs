@@ -22,7 +22,7 @@ namespace FLGameLogic
 
         public int FirstTurnThisRound => RoundNumber % 2 == 0 ? firstTurn : (1 - firstTurn); // players take the first turn playing each round alternatively
 
-        public int Turn => PlayerStartedTurn(FirstTurnThisRound, RoundNumber) ? 1 - FirstTurnThisRound : FirstTurnThisRound;
+        public int Turn => PlayerFinishedTurn(FirstTurnThisRound, RoundNumber) ? 1 - FirstTurnThisRound : FirstTurnThisRound;
 
         public bool Finished => NumRounds <= RoundNumber;
 
