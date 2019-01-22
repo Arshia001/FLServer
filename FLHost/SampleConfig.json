@@ -1,0 +1,139 @@
+{
+  "Categories": [
+    {
+      "Name": "Car makes",
+      "Words": [
+        {
+          "Word": "Audi",
+          "Score": 2
+        },
+        {
+          "Word": "BMW",
+          "Score": 3
+        },
+        {
+          "Word": "Ford",
+          "Score": 1
+        },
+        {
+          "Word": "Honda",
+          "Score": 2
+        },
+        {
+          "Word": "Mazda",
+          "Score": 1
+        },
+        {
+          "Word": "Nissan",
+          "Score": 1
+        },
+        {
+          "Word": "Renault",
+          "Score": 3
+        },
+        {
+          "Word": "Suzuki",
+          "Score": 1
+        },
+        {
+          "Word": "Toyota",
+          "Score": 1
+        },
+        {
+          "Word": "Volvo",
+          "Score": 1
+        }
+      ]
+    },
+    {
+      "Name": "Fruits",
+      "Words": [
+        {
+          "Word": "Apple",
+          "Score": 2
+        },
+        {
+          "Word": "Banana",
+          "Score": 3
+        },
+        {
+          "Word": "Cherry",
+          "Score": 1
+        },
+        {
+          "Word": "Grape",
+          "Score": 2
+        },
+        {
+          "Word": "Lemon",
+          "Score": 1
+        },
+        {
+          "Word": "Mango",
+          "Score": 1
+        },
+        {
+          "Word": "Orange",
+          "Score": 3
+        },
+        {
+          "Word": "Peach",
+          "Score": 1
+        },
+        {
+          "Word": "Pear",
+          "Score": 1
+        },
+        {
+          "Word": "Watermelon",
+          "Score": 1
+        }
+      ]
+    },
+    {
+      "Name": "Avengers",
+      "Words": [
+        {
+          "Word": "Iron man",
+          "Score": 2
+        },
+        {
+          "Word": "Thor",
+          "Score": 3
+        },
+        {
+          "Word": "Hulk",
+          "Score": 1
+        },
+        {
+          "Word": "Captain America",
+          "Score": 2
+        },
+        {
+          "Word": "Black Widow",
+          "Score": 1
+        },
+        {
+          "Word": "Spider Man",
+          "Score": 1
+        },
+        {
+          "Word": "Wolverine",
+          "Score": 3
+        },
+        {
+          "Word": "Ant Man",
+          "Score": 1
+        },
+        {
+          "Word": "Doctor Strange",
+          "Score": 1
+        },
+        {
+          "Word": "Nova",
+          "Score": 1
+        }
+      ]
+    }
+  ]
+}

@@ -43,14 +43,14 @@ namespace FLGameLogic
             if (turnEndTimes[player] < DateTime.Now)
                 return PlayWordResult.Error_TurnOver;
 
-            if (categories[RoundNumber].WordCorrections.TryGetValue(word, out corrected))
+            (wordScore, corrected) = categories[RoundNumber].GetScore(word);
+            if (corrected != null)
                 word = corrected;
 
             var duplicate = playerAnswers[player][RoundNumber].Any(t => t.word == word);
-            if (!duplicate)
-                categories[RoundNumber].WordsAndScores.TryGetValue(word, out wordScore);
 
-            RegisterPlayedWordInternal(player, word, wordScore);
+            if (!duplicate)
+                RegisterPlayedWordInternal(player, word, wordScore);
 
             return PlayWordResult.Success;
         }

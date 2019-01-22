@@ -14,11 +14,8 @@ namespace FLGrains
     class GameGrain_State
     {
         public string[] CategoryNames { get; set; }
-        //public List<HashSet<string>>[] PlayerAnswers { get; set; } // player no. -> turn no. -> answers //?? does bond support lists?
-        //public List<uint>[] PlayerScores { get; set; }
         public Guid[] PlayerIDs { get; set; }
         public int[] LastProcessedEndTurns { get; set; } = new[] { -1, -1 }; //?? use to reprocess turn end notifications in case grain goes down
-        //public DateTime[] TurnEndTimes { get; set; }
     }
 
     class Game : Grain<GameGrain_State> /*SaveStateOnDeactivateGrain<GameGrain_State>*/, IGame
@@ -33,11 +30,17 @@ namespace FLGrains
 
         readonly IDisposable[] turnTimers = new IDisposable[2]; //?? restore timers when activating
         GameLogicServer gameLogic;
+        IConfigReader configReader;
 
 
         int NumJoinedPlayers => State.PlayerIDs == null || State.PlayerIDs.Length == 0 ? 0 :
             State.PlayerIDs[1] == Guid.Empty ? 1 : 2;
 
+
+        public Game(IConfigReader configReader)
+        {
+            this.configReader = configReader;
+        }
 
         public override Task OnActivateAsync()
         {
@@ -46,55 +49,11 @@ namespace FLGrains
             //?? record active turn end timers in state so we can register even if turn time already passed
             if (State.CategoryNames != null && State.CategoryNames.Length > 0)
             {
-                var categories = new List<WordCategory>();
-                // foreach (var category in State.CategoryNames) //?? fetch details from said repository
-                categories.Add(new WordCategory //?? fetch details from said repository
-                {
-                    CategoryName = State.CategoryNames[0],
-                    WordsAndScores = new Dictionary<string, byte>
-                    {
-                        { "hello", 1 },
-                        { "greetings", 2 },
-                        { "how are you", 3 }
-                    },
-                    WordCorrections = new Dictionary<string, string>
-                    {
-                        { "hallo", "hello" }
-                    }
-                });
-                if (State.CategoryNames.Length > 1)
-                    categories.Add(new WordCategory //?? fetch details from said repository
-                    {
-                        CategoryName = State.CategoryNames[1],
-                        WordsAndScores = new Dictionary<string, byte>
-                        {
-                            { "bmw", 1 },
-                            { "audi", 2 },
-                            { "ikco", 3 }
-                        },
-                        WordCorrections = new Dictionary<string, string>
-                        {
-                            { "iran khodro", "ikco" }
-                        }
-                    });
-                if (State.CategoryNames.Length > 2)
-                    categories.Add(new WordCategory //?? fetch details from said repository
-                    {
-                        CategoryName = State.CategoryNames[2],
-                        WordsAndScores = new Dictionary<string, byte>
-                        {
-                            { "orange", 1 },
-                            { "banana", 2 },
-                            { "watermelon", 3 }
-                        },
-                        WordCorrections = new Dictionary<string, string>
-                        {
-                            { "orage", "orange" }
-                        }
-                    });
-
-                gameLogic = new GameLogicServer(categories); //?? restore game state from grain state
+                var config = configReader.Config;
+                gameLogic = new GameLogicServer(State.CategoryNames.Select(n => config.CategoriesByName[n])); //?? restore game state from grain state
             }
+
+            DelayDeactivation(TimeSpan.FromDays(20)); //?? store state in DB -.-
 
             return Task.CompletedTask;
         }
@@ -106,51 +65,15 @@ namespace FLGrains
             if (GetStateInternal() != GameState.New)
                 throw new Exception("Game already started");
 
-            State.CategoryNames = new[] { "Greetings", "Cars", "Fruits" }; //?? fetch by random from some central repository
+            var config = configReader.Config;
+            var randomIndices = new HashSet<int>();
+            var random = new Random();
 
-            var categories = new List<WordCategory>();
-            categories.Add(new WordCategory //?? fetch details from said repository
-            {
-                CategoryName = State.CategoryNames[0],
-                WordsAndScores = new Dictionary<string, byte>
-                {
-                    { "hello", 1 },
-                    { "greetings", 2 },
-                    { "how are you", 3 }
-                },
-                WordCorrections = new Dictionary<string, string>
-                {
-                    { "hallo", "hello" }
-                }
-            });
-            categories.Add(new WordCategory //?? fetch details from said repository
-            {
-                CategoryName = State.CategoryNames[1],
-                WordsAndScores = new Dictionary<string, byte>
-                {
-                    { "bmw", 1 },
-                    { "audi", 2 },
-                    { "ikco", 3 }
-                },
-                WordCorrections = new Dictionary<string, string>
-                {
-                    { "iran khodro", "ikco" }
-                }
-            });
-            categories.Add(new WordCategory //?? fetch details from said repository
-            {
-                CategoryName = State.CategoryNames[2],
-                WordsAndScores = new Dictionary<string, byte>
-                {
-                    { "orange", 1 },
-                    { "banana", 2 },
-                    { "watermelon", 3 }
-                },
-                WordCorrections = new Dictionary<string, string>
-                {
-                    { "orage", "orange" }
-                }
-            });
+            while (randomIndices.Count < 3) //?? number of rounds as config
+                randomIndices.Add(random.Next(config.Categories.Count));
+
+            var categories = randomIndices.Select(i => config.CategoriesAsGameLogicFormat[i]);
+            State.CategoryNames = categories.Select(c => c.CategoryName).ToArray();
 
             gameLogic = new GameLogicServer(categories);
 

@@ -25,7 +25,7 @@ namespace FLHost
         static async Task Main(string[] args)
         {
             var silo = new SiloHostBuilder()
-                .ConfigureServices(e => e.AddSingleton<IGrainReferenceConversionProvider, BondGrainReferenceConversionProvider>())
+                .ConfigureServices(e => ServiceConfiguration.ConfigureServices(e, "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy"))
                 .Configure<ClusterOptions>(o =>
                 {
                     o.ClusterId = "FLCluster";
@@ -64,6 +64,7 @@ namespace FLHost
                 {
                     o.SerializationProviders.Add(typeof(LightMessage.OrleansUtils.GrainInterfaces.LightMessageSerializer).GetTypeInfo());
                 })
+                .AddStartupTask<ConfigStartupTask>()
                 .Build();
 
             await silo.StartAsync();

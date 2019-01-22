@@ -1,4 +1,5 @@
-﻿using FLGrainInterfaces;
+﻿using FLGameLogic;
+using FLGrainInterfaces;
 using LightMessage.Client;
 using LightMessage.Client.EndPoints;
 using LightMessage.Common.Messages;
@@ -20,6 +21,16 @@ namespace FLTestClient
 
         static void Main(string[] args)
         {
+            var x = Utility.EditDistanceLessThan("hello", "hallo", 3);
+            x = Utility.EditDistanceLessThan("hello", "he", 3);
+            x = Utility.EditDistanceLessThan("hello", "lo", 3);
+            x = Utility.EditDistanceLessThan("lo", "hallo", 3);
+            x = Utility.EditDistanceLessThan("hellooooooo", "hallo", 3);
+            x = Utility.EditDistanceLessThan("helloooo", "hello", 3);
+            x = Utility.EditDistanceLessThan("heallo", "hillo", 3);
+
+
+
             //var client = new ClientBuilder()
             //    .Configure<ClusterOptions>(o =>
             //    {

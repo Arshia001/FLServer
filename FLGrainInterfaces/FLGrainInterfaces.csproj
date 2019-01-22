@@ -6,6 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ServiceInterfaces\**" />
+    <EmbeddedResource Remove="ServiceInterfaces\**" />
+    <None Remove="ServiceInterfaces\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Orleans.Core" Version="2.2.0" />
     <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator.Build" Version="2.2.0">
       <PrivateAssets>all</PrivateAssets>

@@ -4,33 +4,53 @@ using System.Text;
 
 namespace FLGameLogic
 {
+    struct WordEntry
+    {
+        public string Word { get; } // The word we're considering
+        public string CorrectedWord { get; } // (optional) The word it maps to
+        public byte Score { get; }
+
+
+        public WordEntry(string word, string correctedWord, byte score)
+        {
+            Word = word;
+            CorrectedWord = correctedWord;
+            Score = score;
+        }
+    }
+
     public class WordCategory
     {
-        public string CategoryName { get; set; }
-
-        public Dictionary<string, byte> WordsAndScores { get; set; }
-
-        public Dictionary<string, string> WordCorrections { get; set; } //?? maybe also have an automatic version that e.g. replaces characters with correct but same-sounding ones?
+        Dictionary<string, WordEntry> entries;
 
 
-        public byte GetScoreWithoutCorrection(string word)
+        public string CategoryName { get; private set; }
+
+
+        public WordCategory(string categoryName, Dictionary<string, (byte score, List<string> corrections)> wordsAndScores)
         {
-            byte score;
-            return WordsAndScores.TryGetValue(word, out score) ? score : (byte)0;
+            CategoryName = categoryName;
+
+            entries = new Dictionary<string, WordEntry>(StringComparer.InvariantCultureIgnoreCase);
+
+            foreach (var w in wordsAndScores)
+            {
+                entries.Add(w.Key, new WordEntry(w.Key, null, w.Value.score));
+                foreach (var c in w.Value.corrections)
+                    entries.Add(w.Key, new WordEntry(c, w.Key, w.Value.score));
+            }
         }
 
-        public byte GetScore(string word, out string corrected)
+        public (byte score, string corrected) GetScore(string word)
         {
-            corrected = null;
+            if (entries.TryGetValue(word, out var entry))
+                return (entry.Score, entry.CorrectedWord ?? entry.Word);
 
-            byte score;
-            if (WordsAndScores.TryGetValue(word, out score))
-                return score;
+            foreach (var kv in entries)
+                if (Utility.EditDistanceLessThan(word, kv.Key, 2)) //?? max distance as parameter
+                    return (kv.Value.Score, kv.Value.CorrectedWord ?? kv.Value.Word);
 
-            if (WordCorrections.TryGetValue(word, out corrected))
-                return score;
-
-            return 0;
+            return (0, null);
         }
     }
 }
