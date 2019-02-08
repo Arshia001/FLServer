@@ -9,7 +9,9 @@ using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
 using OrleansCassandraUtils;
+using OrleansCassandraUtils.Utils;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 
@@ -21,6 +23,21 @@ namespace FLTestClient
 
         static void Main(string[] args)
         {
+            var s = CassandraSessionFactory.CreateSession("Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy").Result;
+            var q = Queries.CreateInstance(s).Result;
+            s.Execute(q["fl_UpsertSuggestedCategory"].Bind(new
+            {
+                name = "naaaammmeee",
+                owner_id = Guid.NewGuid(),
+                words = new HashSet<string> { "a", "b", "c" }
+            }));
+            s.Execute(q["fl_UpsertSuggestedWords"].Bind(new
+            {
+                category_name = "naaaammmeee",
+                owner_id = Guid.NewGuid(),
+                words = new HashSet<string> { "a", "b", "c" }
+            }));
+
             var x = Utility.EditDistanceLessThan("گیلاس", "گلابی", 3);
             x = Utility.EditDistanceLessThan("گلابی", "گیلاس", 2);
             x = Utility.EditDistanceLessThan("hello", "hallo", 3);
