@@ -53,7 +53,7 @@ namespace FLGameLogic
                 (prevRowDistances, distances) = (distances, prevRowDistances); // we don't care about the initial contents of distances, so we just use prevRowDistances as an optimization to avoid memory allocation
             }
 
-            return distances[maxDistance + smaller.Length - longer.Length] <= maxDistance;
+            return prevRowDistances[maxDistance + smaller.Length - longer.Length] <= maxDistance;
         }
     }
 }

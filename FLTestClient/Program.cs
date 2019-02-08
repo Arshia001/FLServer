@@ -21,7 +21,9 @@ namespace FLTestClient
 
         static void Main(string[] args)
         {
-            var x = Utility.EditDistanceLessThan("hello", "hallo", 3);
+            var x = Utility.EditDistanceLessThan("گیلاس", "گلابی", 3);
+            x = Utility.EditDistanceLessThan("گلابی", "گیلاس", 2);
+            x = Utility.EditDistanceLessThan("hello", "hallo", 3);
             x = Utility.EditDistanceLessThan("hello", "he", 3);
             x = Utility.EditDistanceLessThan("hello", "lo", 3);
             x = Utility.EditDistanceLessThan("lo", "hallo", 3);
