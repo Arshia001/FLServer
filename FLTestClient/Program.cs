@@ -12,6 +12,7 @@ using OrleansCassandraUtils;
 using OrleansCassandraUtils.Utils;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading;
 
@@ -29,7 +30,7 @@ namespace FLTestClient
             {
                 name = "naaaammmeee",
                 owner_id = Guid.NewGuid(),
-                words = new HashSet<string> { "a", "b", "c" }
+                words = new HashSet<string> { "a", "b", "c" }.Select(xxx => xxx)
             }));
             s.Execute(q["fl_UpsertSuggestedWords"].Bind(new
             {

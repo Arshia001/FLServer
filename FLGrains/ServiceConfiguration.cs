@@ -20,7 +20,11 @@ namespace FLGrains
 
             services.AddSingletonNamedService<IControllable, ConfigUpdateControllable>(ConfigUpdateControllable.ServiceName);
 
-            services.AddSingleton<IConnectionStringProvider>(new ConnectionStringProvider(connectionString));
+            var connectionStringProvider = new ConnectionStringProvider(connectionString);
+            services.AddSingleton<IConnectionStringProvider>(connectionStringProvider);
+
+            // this is a really early init stage, we shouldn't care about blocking here
+            services.AddSingleton<ISuggestionService>(SuggestionService.CreateInstance(connectionStringProvider).Result);
         }
     }
 }
