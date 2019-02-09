@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FLGameLogic
 {
     public class GameLogicServer : GameLogic
     {
+        public delegate Task<byte> GetWordScoreDelegate(WordCategory category, string word);
+
+
         List<WordCategory> categories;
 
 
@@ -33,24 +37,23 @@ namespace FLGameLogic
             return result;
         }
 
-        public PlayWordResult PlayWord(int player, string word, out byte wordScore, out string corrected)
+        public async Task<(PlayWordResult result, WordCategory category, string corrected, byte score)> PlayWord(int player, string word, GetWordScoreDelegate getWordScoreDelegate)
         {
-            wordScore = 0;
-            corrected = null;
-
             if (turnEndTimes[player] < DateTime.Now)
-                return PlayWordResult.Error_TurnOver;
+                return (PlayWordResult.Error_TurnOver, null, null, 0);
 
-            (wordScore, corrected) = categories[RoundNumber].GetScore(word);
-            if (corrected != null)
-                word = corrected;
+            var category = categories[RoundNumber];
+            var corrected = category.GetCorrectedWord(word);
+            if (corrected == null)
+                return (PlayWordResult.Success, null, null, 0);
 
             var duplicate = playerAnswers[player][RoundNumber].Any(t => t.word == word);
+            if (duplicate)
+                return (PlayWordResult.Success, category, corrected, 0);
 
-            if (!duplicate)
-                RegisterPlayedWordInternal(player, word, wordScore);
-
-            return PlayWordResult.Success;
+            var score = await getWordScoreDelegate(category, word);
+            RegisterPlayedWordInternal(player, word, score);
+            return (PlayWordResult.Success, category, corrected, score);
         }
 
         public void RestoreGameState(IEnumerable<WordCategory> categories, IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes)

@@ -14,6 +14,7 @@
     <ProjectReference Include="..\..\LightMessage-Core\LightMessage.Client\LightMessage.Client.csproj" />
     <ProjectReference Include="..\..\OrleansLibraries-Core\OrleansCassandraUtils\OrleansCassandraUtils.csproj" />
     <ProjectReference Include="..\FLGrainInterfaces\FLGrainInterfaces.csproj" />
+    <ProjectReference Include="..\FLGrains\FLGrains.csproj" />
   </ItemGroup>
 
 </Project>

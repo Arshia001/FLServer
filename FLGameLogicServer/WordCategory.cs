@@ -8,14 +8,12 @@ namespace FLGameLogic
     {
         public string Word { get; } // The word we're considering
         public string CorrectedWord { get; } // (optional) The word it maps to
-        public byte Score { get; }
 
 
-        public WordEntry(string word, string correctedWord, byte score)
+        public WordEntry(string word, string correctedWord)
         {
             Word = word;
             CorrectedWord = correctedWord;
-            Score = score;
         }
     }
 
@@ -27,7 +25,7 @@ namespace FLGameLogic
         public string CategoryName { get; private set; }
 
 
-        public WordCategory(string categoryName, Dictionary<string, (byte score, List<string> corrections)> wordsAndScores)
+        public WordCategory(string categoryName, Dictionary<string, List<string>> wordsAndScores)
         {
             CategoryName = categoryName;
 
@@ -35,22 +33,22 @@ namespace FLGameLogic
 
             foreach (var w in wordsAndScores)
             {
-                entries.Add(w.Key, new WordEntry(w.Key, null, w.Value.score));
-                foreach (var c in w.Value.corrections)
-                    entries.Add(w.Key, new WordEntry(c, w.Key, w.Value.score));
+                entries.Add(w.Key, new WordEntry(w.Key, null));
+                foreach (var c in w.Value)
+                    entries.Add(c, new WordEntry(c, w.Key));
             }
         }
 
-        public (byte score, string corrected) GetScore(string word)
+        public string GetCorrectedWord(string word)
         {
             if (entries.TryGetValue(word, out var entry))
-                return (entry.Score, entry.CorrectedWord ?? entry.Word);
+                return entry.CorrectedWord ?? entry.Word;
 
             foreach (var kv in entries)
                 if (Utility.EditDistanceLessThan(word, kv.Key, 2)) //?? max distance as parameter
-                    return (kv.Value.Score, kv.Value.CorrectedWord ?? kv.Value.Word);
+                    return kv.Value.CorrectedWord ?? kv.Value.Word;
 
-            return (0, null);
+            return null;
         }
     }
 }
