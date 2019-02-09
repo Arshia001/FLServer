@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace FLGrains
 {
-    [StatelessWorker(128), EndPointName("game")]
+    [StatelessWorker(128), EndPointName("sys")]
     class SystemEndPoint : EndPointGrain, ISystemEndPoint
     {
         ISuggestionService suggestionService;
