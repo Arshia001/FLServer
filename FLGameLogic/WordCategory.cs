@@ -36,8 +36,8 @@ namespace FLGameLogic
             foreach (var w in wordsAndScores)
             {
                 entries.Add(w.Key, new WordEntry(w.Key, null, w.Value.score));
-                foreach (var c in w.Value.corrections)
-                    entries.Add(w.Key, new WordEntry(c, w.Key, w.Value.score));
+                foreach (var correction in w.Value.corrections)
+                    entries.Add(correction, new WordEntry(correction, w.Key, w.Value.score));
             }
         }
 

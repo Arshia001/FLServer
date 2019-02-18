@@ -1,136 +1,137 @@
-{
+﻿{
   "Categories": [
     {
-      "Name": "Car makes",
+      "Name": "کارخانه‌های ماشین",
       "Words": [
         {
-          "Word": "Audi",
+          "Word": "آئودی",
           "Score": 2
         },
         {
-          "Word": "BMW",
+          "Word": "ب ام و",
           "Score": 3
         },
         {
-          "Word": "Ford",
+          "Word": "فورد",
           "Score": 1
         },
         {
-          "Word": "Honda",
+          "Word": "هوندا",
           "Score": 2
         },
         {
-          "Word": "Mazda",
+          "Word": "مزدا",
           "Score": 1
         },
         {
-          "Word": "Nissan",
+          "Word": "نیسان",
           "Score": 1
         },
         {
-          "Word": "Renault",
+          "Word": "رنو",
           "Score": 3
         },
         {
-          "Word": "Suzuki",
+          "Word": "سوزوکی",
           "Score": 1
         },
         {
-          "Word": "Toyota",
+          "Word": "تویوتا",
           "Score": 1
         },
         {
-          "Word": "Volvo",
+          "Word": "ولوو",
           "Score": 1
         }
       ]
     },
     {
-      "Name": "Fruits",
+      "Name": "میوه‌ها",
       "Words": [
         {
-          "Word": "Apple",
+          "Word": "سیب",
           "Score": 2
         },
         {
-          "Word": "Banana",
+          "Word": "موز",
           "Score": 3
         },
         {
-          "Word": "Cherry",
+          "Word": "گیلاس",
           "Score": 1
         },
         {
-          "Word": "Grape",
+          "Word": "انگور",
           "Score": 2
         },
         {
-          "Word": "Lemon",
+          "Word": "لیمو",
           "Score": 1
         },
         {
-          "Word": "Mango",
+          "Word": "انبه",
           "Score": 1
         },
         {
-          "Word": "Orange",
+          "Word": "پرتقال",
           "Score": 3
         },
         {
-          "Word": "Peach",
+          "Word": "هلو",
           "Score": 1
         },
         {
-          "Word": "Pear",
+          "Word": "گلابی",
           "Score": 1
         },
         {
-          "Word": "Watermelon",
+          "Word": "هندوانه",
           "Score": 1
         }
       ]
     },
     {
-      "Name": "Avengers",
+      "Name": "شخصیت‌های کلاه قرمزی",
       "Words": [
         {
-          "Word": "Iron man",
+          "Word": "آقای مجری",
           "Score": 2
         },
         {
-          "Word": "Thor",
+          "Word": "پسر خاله",
           "Score": 3
         },
         {
-          "Word": "Hulk",
+          "Word": "دیبی",
           "Score": 1
         },
         {
-          "Word": "Captain America",
+          "Word": "ببعی",
           "Score": 2
         },
         {
-          "Word": "Black Widow",
+          "Word": "سروناز",
           "Score": 1
         },
         {
-          "Word": "Spider Man",
+          "Word": "عزیزم ببخشید",
           "Score": 1
         },
         {
-          "Word": "Wolverine",
-          "Score": 3
+          "Word": "آقای هم ساده",
+          "Score": 3,
+          "Corrections": [ "همساده" ]
         },
         {
-          "Word": "Ant Man",
+          "Word": "فامیل دور",
           "Score": 1
         },
         {
-          "Word": "Doctor Strange",
+          "Word": "جیگر",
           "Score": 1
         },
         {
-          "Word": "Nova",
+          "Word": "گابی",
           "Score": 1
         }
       ]
