@@ -140,19 +140,25 @@ namespace FLGrains
 
                 //?? rewards, etc.?
 
-                // await ClearStateAsync(); // keep game history!
+                // await ClearStateAsync(); // keep game history (separately)
                 DeactivateOnIdle();
             }
         }
 
-        public Task<(byte wordScore, string corrected)> PlayWord(Guid id, string word)
+        public async Task<(byte wordScore, string corrected)> PlayWord(Guid id, string word)
         {
             var index = Index(id);
 
-            gameLogic.PlayWord(index, word, out var wordScore, out var corrected);
+            var result = await gameLogic.PlayWord(index, word, GetWordScore);
 
-            return Task.FromResult((wordScore, corrected));
+            if (result.corrected != null && result.category != null && result.score > 0)
+                GrainFactory.GetGrain<IWordUsageAggregationWorker>(result.category.CategoryName).AddDelta(result.corrected).Ignore();
+
+            return (result.score, result.corrected);
         }
+
+        Task<byte> GetWordScore(WordCategory category, string word) => 
+            GrainFactory.GetGrain<IWordUsageAggregatorCache>(category.CategoryName).GetScore(word);
 
         public async Task<Immutable<IEnumerable<WordScorePair>>> EndRound(Guid playerID)
         {

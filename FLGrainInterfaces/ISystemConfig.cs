@@ -15,7 +15,6 @@ namespace FLGrainInterfaces
         public class Entry
         {
             public string Word { get; private set; }
-            public byte Score { get; private set; }
             public List<string> Corrections { get; private set; } = new List<string>();
         }
 
@@ -54,7 +53,7 @@ namespace FLGrainInterfaces
         {
             this.data = data;
 
-            CategoriesAsGameLogicFormat = data.Categories.Select(c => new FLGameLogic.WordCategory(c.Name, c.Words.ToDictionary(w => w.Word, w => (w.Score, w.Corrections)))).ToList();
+            CategoriesAsGameLogicFormat = data.Categories.Select(c => new FLGameLogic.WordCategory(c.Name, c.Words.ToDictionary(w => w.Word, w => w.Corrections))).ToList();
             CategoriesByName = CategoriesAsGameLogicFormat.ToDictionary(c => c.CategoryName);
         }
     }

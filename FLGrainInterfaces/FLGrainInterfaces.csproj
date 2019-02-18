@@ -23,7 +23,7 @@
     <ProjectReference Include="..\..\LightMessage-Core\LightMessage.OrleansUtils.GrainInterfaces\LightMessage.OrleansUtils.GrainInterfaces.csproj" />
     <ProjectReference Include="..\..\OrleansLibraries-Core\OrleansBondUtils\OrleansBondUtils.csproj" />
     <ProjectReference Include="..\..\OrleansLibraries-Core\OrleansIndexingGrainInterfaces\OrleansIndexingGrainInterfaces.csproj" />
-    <ProjectReference Include="..\FLGameLogic\FLGameLogic.csproj" />
+    <ProjectReference Include="..\FLGameLogicServer\FLGameLogicServer.csproj" />
   </ItemGroup>
 
 </Project>
