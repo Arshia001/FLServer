@@ -25,17 +25,17 @@ namespace FLGameLogic
         public string CategoryName { get; private set; }
 
 
-        public WordCategory(string categoryName, Dictionary<string, List<string>> wordsAndScores)
+        public WordCategory(string categoryName, Dictionary<string, List<string>> wordsAndCorrections)
         {
             CategoryName = categoryName;
 
             entries = new Dictionary<string, WordEntry>(StringComparer.InvariantCultureIgnoreCase);
 
-            foreach (var w in wordsAndScores)
+            foreach (var w in wordsAndCorrections)
             {
-                entries.Add(w.Key, new WordEntry(w.Key, null, w.Value.score));
-                foreach (var correction in w.Value.corrections)
-                    entries.Add(correction, new WordEntry(correction, w.Key, w.Value.score));
+                entries.Add(w.Key, new WordEntry(w.Key, null));
+                foreach (var correction in w.Value)
+                    entries.Add(correction, new WordEntry(correction, w.Key));
             }
         }
 

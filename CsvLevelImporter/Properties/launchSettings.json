@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CsvLevelImporter": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Users\\Arshia\\Desktop\\categories.csv\" \"out.json\""
+    }
+  }
+}
