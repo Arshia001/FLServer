@@ -73,7 +73,7 @@ namespace FLGrains
             if (current.TryGetValue(word, out var result))
                 return result;
 
-            return 0;
+            return 2;
         }
     }
 }

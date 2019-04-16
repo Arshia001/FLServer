@@ -16,8 +16,13 @@ namespace FLGrains
     [StatelessWorker(128), EndPointName("game")]
     class GameEndPoint : EndPointGrain, IGameEndPoint
     {
-        static IGame pendingGame;
+        IConfigReader configReader;
 
+        static System.Threading.SemaphoreSlim sem = new System.Threading.SemaphoreSlim(1);
+        static HashSet<IGame> pendingGames = new HashSet<IGame>();
+
+
+        public GameEndPoint(IConfigReader configReader) => this.configReader = configReader;
 
         //?? Do I even need to mention that we need a matchmaking system?
         [MethodName("new")]
@@ -25,27 +30,48 @@ namespace FLGrains
         {
             var userProfile = GrainFactory.GetGrain<IUserProfile>(args.ClientID);
 
-            if (pendingGame == null)
+            await sem.WaitAsync();
+            try
             {
+                var gameToEnter = default(IGame);
+                var opponentID = Guid.Empty;
+                var numRounds = default(byte);
+                var gameID = Guid.Empty;
+
+                foreach (var game in pendingGames)
+                {
+                    if (!await game.WasFirstTurnPlayed())
+                        continue;
+                    try
+                    {
+                        (opponentID, numRounds) = await userProfile.JoinGameAsSecondPlayer(game);
+                        gameID = game.GetPrimaryKey();
+                        gameToEnter = game;
+                        break;
+                    }
+                    catch { }
+                }
+
+                if (gameToEnter != null)
+                {
+                    pendingGames.Remove(gameToEnter);
+                    return Success(Param.Guid(gameID), await PlayerInfo.GetAsParamForPlayerID(GrainFactory, opponentID), Param.UInt(numRounds), Param.Boolean(false));
+                }
+
                 do
-                    pendingGame = GrainFactory.GetGrain<IGame>(Guid.NewGuid());
-                while (await pendingGame.GetState() != GameState.New);
+                    gameToEnter = GrainFactory.GetGrain<IGame>(Guid.NewGuid());
+                while (await gameToEnter.GetState() != GameState.New);
 
-                var numRounds = await userProfile.JoinGameAsFirstPlayer(pendingGame);
+                numRounds = await userProfile.JoinGameAsFirstPlayer(gameToEnter);
 
-                return Success(Param.Guid(pendingGame.GetPrimaryKey()), Param.Null(), Param.UInt(numRounds), Param.Boolean(true));
+                pendingGames.Add(gameToEnter);
+
+                return Success(Param.Guid(gameToEnter.GetPrimaryKey()), Param.Null(), Param.UInt(numRounds), Param.Boolean(true));
+
             }
-            else
+            finally
             {
-                if (!await pendingGame.WasFirstTurnPlayed())
-                    return Failure("Play other player's turn before joining :D");
-
-                var (opponentID, numRounds) = await userProfile.JoinGameAsSecondPlayer(pendingGame);
-
-                var gameID = pendingGame.GetPrimaryKey();
-                pendingGame = null;
-
-                return Success(Param.Guid(gameID), await PlayerInfo.GetAsParamForPlayerID(GrainFactory, opponentID), Param.UInt(numRounds), Param.Boolean(false));
+                sem.Release();
             }
         }
 
@@ -87,6 +113,17 @@ namespace FLGrains
 
             return Success(gameInfos.Select(gi => Param.Array(gi.ToParams(GrainFactory))));
         }
+
+        [MethodName("ans")]
+        public async Task<EndPointFunctionResult> GetAllAnswers(EndPointFunctionParams args)
+            => Success(Param.Array(
+                await Task.WhenAll(configReader.Config.CategoriesByName[args.Args[0].AsString].Answers.Select(
+                    async s => Param.Array(
+                        Param.String(s),
+                        Param.UInt(await GrainFactory.GetGrain<IWordUsageAggregatorCache>(args.Args[0].AsString).GetScore(s))
+                        )
+                    ))
+                ));
 
 
         public async Task SendOpponentJoined(Guid playerID, Guid gameID, PlayerInfo opponent)
