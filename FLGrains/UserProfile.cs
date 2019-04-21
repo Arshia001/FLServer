@@ -26,9 +26,9 @@ namespace FLGrains
             return Task.FromResult(State.MyGames.AsImmutable<IReadOnlyList<IGame>>());
         }
 
-        public Task<PlayerInfo> GetPlayerInfo()
+        public Task<Immutable<PlayerInfo>> GetPlayerInfo()
         {
-            return Task.FromResult(GetPlayerInfoImpl());
+            return Task.FromResult(GetPlayerInfoImpl().AsImmutable());
         }
 
         PlayerInfo GetPlayerInfoImpl() => new PlayerInfo { ID = this.GetPrimaryKey(), Name = this.GetPrimaryKey().ToString().Substring(0, 8) }; //?? info

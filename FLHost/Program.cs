@@ -71,7 +71,7 @@ namespace FLHost
 
             var client = (IClusterClient)silo.Services.GetService(typeof(IClusterClient));
 
-            var lightMessageHost = new LightMessageOrleansHost();
+            var lightMessageHost = new LightMessageHost();
             await lightMessageHost.Start(client, new IPEndPoint(IPAddress.Any, 1021), OnAuth, new LightMessage.Common.Util.ConsoleLogProvider(LightMessage.Common.Util.LogLevel.Verbose));
 
             while (Console.ReadLine() != "exit")
@@ -80,9 +80,9 @@ namespace FLHost
             await silo.StopAsync();
         }
 
-        static Task<Guid?> OnAuth(AuthRequestMessage AuthMessage)
+        static Task<Guid?> OnAuth(Guid? clientID)
         {
-            return Task.FromResult(AuthMessage.AsGuid(0) ?? (Guid?)Guid.NewGuid()); //?? client.GetGrain<IClientAuthorizer>(0).Authorize(AuthMessage);
+            return Task.FromResult(clientID ?? (Guid?)Guid.NewGuid()); //?? client.GetGrain<IClientAuthorizer>(0).Authorize(AuthMessage);
         }
     }
 }

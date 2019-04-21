@@ -8,25 +8,11 @@ using System.Threading.Tasks;
 
 namespace FLGrainInterfaces
 {
-    [Immutable]
-    public class PlayerInfo
+    public class PlayerInfoUtil
     {
-        public static Task<PlayerInfo> GetForPlayerID(IGrainFactory grainFactory, Guid playerID) => grainFactory.GetGrain<IUserProfile>(playerID).GetPlayerInfo();
+        public static Task<Immutable<PlayerInfo>> GetForPlayerID(IGrainFactory grainFactory, Guid playerID) => grainFactory.GetGrain<IUserProfile>(playerID).GetPlayerInfo();
 
-        public static Task<Param> GetAsParamForPlayerID(IGrainFactory grainFactory, Guid playerID) => GetForPlayerID(grainFactory, playerID).ContinueWith(t => t.Result.ToParam());
-
-
-        public Guid ID { get; set; }
-
-        public string Name { get; set; }
-
-
-        public Param ToParam()
-        {
-            return Param.Array(
-                Param.String(Name)
-                );
-        }
+        public static Task<Param> GetAsParamForPlayerID(IGrainFactory grainFactory, Guid playerID) => GetForPlayerID(grainFactory, playerID).ContinueWith(t => t.Result.Value.ToParam());
     }
 
 
@@ -35,6 +21,6 @@ namespace FLGrainInterfaces
         Task<byte> JoinGameAsFirstPlayer(IGame game);
         Task<(Guid opponentID, byte numRounds)> JoinGameAsSecondPlayer(IGame game);
         Task<Immutable<IReadOnlyList<IGame>>> GetGames();
-        Task<PlayerInfo> GetPlayerInfo();
+        Task<Immutable<PlayerInfo>> GetPlayerInfo();
     }
 }

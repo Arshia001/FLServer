@@ -5,7 +5,10 @@ open FSharp.Data
 
 type OutputJson = JsonProvider<"""..\FLHost\SampleConfig.json""">
 
-let addCategory catList (Some name, wordList) = OutputJson.Category(name, wordList |> List.toArray) :: catList
+let addCategory catList (name, wordList) = 
+    match name with
+    | Some name -> OutputJson.Category(name, wordList |> List.toArray) :: catList
+    | _ -> failwith "Category without name"
 
 [<EntryPoint>]
 let main argv =

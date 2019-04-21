@@ -1,0 +1,174 @@
+﻿namespace servercont FLGrainInterfaces;
+namespace serveriface FLGrainInterfaces;
+namespace serverimpl FLGrains;
+namespace client Network;
+namespace clientcont Network.Types;
+
+handshake { 
+    clientID: guid?;
+}
+
+enum GameState
+{
+    New,
+    WaitingForSecondPlayer,
+    InProgress,
+    Finished
+}
+
+contract PlayerInfo
+{
+	ID: guid;
+	Name: string;
+}
+
+contract WordScorePairDTO castfrom(FLGameLogic.WordScorePair)
+{
+	Word, WordScorePair.word: string;
+	Score, WordScorePair.score: u8;
+}
+
+contract GameInfo
+{
+    OtherPlayerInfo: PlayerInfo;
+    NumRounds: u8;
+    Categories: string[];
+    MyWordsPlayed: WordScorePairDTO[][];
+    TheirWordsPlayed: WordScorePairDTO[][];
+    MyTurnEndTime: datetime;
+    MyTurnFirst: bool;
+    NumTurnsTakenByOpponent: u8;
+}
+
+contract SimplifiedGameInfo
+{
+    GameID: guid;
+    GameState: GameState;
+    OtherPlayerName: string;
+    MyTurn: bool;
+    MyScore: u8;
+    TheirScore: u8;
+}
+
+endpoint System sys 
+{
+	request SuggestCategory csug
+	{
+		{
+			name: string;
+			words: string[];
+		}
+		-> { }
+	}
+
+	request SuggestWord wsug
+	{
+		{
+			categoryName: string;
+			words: string[];
+		}
+		-> { }
+	}
+}
+
+endpoint Game gm
+{
+	notification OpponentJoined opj
+	{
+		gameID: guid;
+		opponentInfo: PlayerInfo;
+	}
+
+	notification OpponentTurnEnded opr
+	{
+		gameID: guid;
+		roundNumber: u8;
+		wordsPlayed: WordScorePairDTO[];
+	}
+
+	notification GameEnded gend
+	{
+		gameID: guid;
+		myScore: u32;
+		theirScore: u32;
+	}
+
+	request NewGame new
+	{
+		{ }
+		->
+		{
+			gameID: guid;
+			opponentInfo: PlayerInfo;
+			numRounds: u8;
+			myTurnFirst: bool;
+		}
+	}
+
+	request StartRound round
+	{
+		{
+			gameID: guid;
+		}
+		->
+		{
+			category: string;
+			roundTime: timespan;
+		}
+	}
+
+	request PlayWord word
+	{
+		{
+			gameID: guid;
+			word: string;
+		}
+		->
+		{
+			wordScore: u8;
+			corrected: string;
+		}
+	}
+
+	request EndRound endr
+	{
+		{
+			gameID: guid;
+		}
+		->
+		{
+			opponentWords: WordScorePairDTO[];
+		}
+	}
+
+	request GetGameInfo info
+	{
+		{
+			gameID: guid;
+		}
+		->
+		{
+			gameInfo: GameInfo;
+		}
+	}
+
+	request GetAllGames all
+	{
+		{ }
+		->
+		{
+			games: SimplifiedGameInfo[];
+		}
+	}
+
+	request GetAnswers ans
+	{
+		{
+			category: string;
+		}
+		->
+		{
+			words: WordScorePairDTO[];
+		}
+	}
+}

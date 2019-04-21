@@ -13,8 +13,7 @@ using System.Threading.Tasks;
 
 namespace FLGrains
 {
-    [StatelessWorker(128), EndPointName("sys")]
-    class SystemEndPoint : EndPointGrain, ISystemEndPoint
+    class SystemEndPoint : SystemEndPointBase
     {
         ISuggestionService suggestionService;
 
@@ -25,18 +24,10 @@ namespace FLGrains
         }
 
 
-        [MethodName("csug")]
-        public async Task<EndPointFunctionResult> SuggestCategory(EndPointFunctionParams args)
-        {
-            await suggestionService.RegisterCategorySuggestion(args.ClientID, args.Args[0].AsString, args.Args[1].AsArray.Select(p => p.AsString));
-            return Success();
-        }
+        protected override Task SuggestCategory(Guid clientID, string name, IReadOnlyList<string> words) =>
+            suggestionService.RegisterCategorySuggestion(clientID, name, words);
 
-        [MethodName("wsug")]
-        public async Task<EndPointFunctionResult> SuggestWord(EndPointFunctionParams args)
-        {
-            await suggestionService.RegisterCategorySuggestion(args.ClientID, args.Args[0].AsString, args.Args[1].AsArray.Select(p => p.AsString));
-            return Success();
-        }
+        protected override Task SuggestWord(Guid clientID, string categoryName, IReadOnlyList<string> words) =>
+            suggestionService.RegisterCategorySuggestion(clientID, categoryName, words);
     }
 }

@@ -13,8 +13,7 @@ using System.Threading.Tasks;
 
 namespace FLGrains
 {
-    [StatelessWorker(128), EndPointName("game")]
-    class GameEndPoint : EndPointGrain, IGameEndPoint
+    class GameEndPoint : GameEndPointBase
     {
         IConfigReader configReader;
 
@@ -24,11 +23,9 @@ namespace FLGrains
 
         public GameEndPoint(IConfigReader configReader) => this.configReader = configReader;
 
-        //?? Do I even need to mention that we need a matchmaking system?
-        [MethodName("new")]
-        public async Task<EndPointFunctionResult> NewGame(EndPointFunctionParams args)
+        protected override async Task<(Guid gameID, PlayerInfo opponentInfo, byte numRounds, bool myTurnFirst)> NewGame(Guid clientID)
         {
-            var userProfile = GrainFactory.GetGrain<IUserProfile>(args.ClientID);
+            var userProfile = GrainFactory.GetGrain<IUserProfile>(clientID);
 
             await sem.WaitAsync();
             try
@@ -55,7 +52,7 @@ namespace FLGrains
                 if (gameToEnter != null)
                 {
                     pendingGames.Remove(gameToEnter);
-                    return Success(Param.Guid(gameID), await PlayerInfo.GetAsParamForPlayerID(GrainFactory, opponentID), Param.UInt(numRounds), Param.Boolean(false));
+                    return (gameID, (await PlayerInfoUtil.GetForPlayerID(GrainFactory, opponentID)).Value, numRounds, false);
                 }
 
                 do
@@ -66,7 +63,7 @@ namespace FLGrains
 
                 pendingGames.Add(gameToEnter);
 
-                return Success(Param.Guid(gameToEnter.GetPrimaryKey()), Param.Null(), Param.UInt(numRounds), Param.Boolean(true));
+                return (gameToEnter.GetPrimaryKey(), null, numRounds, true);
 
             }
             finally
@@ -75,81 +72,43 @@ namespace FLGrains
             }
         }
 
-        [MethodName("round")]
-        public async Task<EndPointFunctionResult> StartRound(EndPointFunctionParams args)
+        protected override Task<(string category, TimeSpan roundTime)> StartRound(Guid clientID, Guid gameID) =>
+            GrainFactory.GetGrain<IGame>(gameID).StartRound(clientID);
+
+        protected override Task<(byte wordScore, string corrected)> PlayWord(Guid clientID, Guid gameID, string word) =>
+            GrainFactory.GetGrain<IGame>(gameID).PlayWord(clientID, word);
+
+        protected override async Task<IReadOnlyList<WordScorePairDTO>> EndRound(Guid clientID, Guid gameID)
         {
-            var (category, endTime) = await GrainFactory.GetGrain<IGame>(args.Args[0].AsGuid.Value).StartRound(args.ClientID);
-            return Success(Param.String(category), Param.TimeSpan(endTime));
+            var result = await GrainFactory.GetGrain<IGame>(gameID).EndRound(clientID);
+            return result.Value.Select(w => (WordScorePairDTO)w).ToList();
         }
 
-        [MethodName("word")]
-        public async Task<EndPointFunctionResult> PlayWord(EndPointFunctionParams args)
+        protected override async Task<GameInfo> GetGameInfo(Guid clientID, Guid gameID)
         {
-            var (wordScore, corrected) = await GrainFactory.GetGrain<IGame>(args.Args[0].AsGuid.Value).PlayWord(args.ClientID, args.Args[1].AsString);
-            return Success(Param.UInt(wordScore), Param.String(corrected));
+            var result = await GrainFactory.GetGrain<IGame>(gameID).GetGameInfo(clientID);
+            return result.Value;
         }
 
-        [MethodName("endr")]
-        public async Task<EndPointFunctionResult> EndRound(EndPointFunctionParams args)
+        protected override async Task<IReadOnlyList<SimplifiedGameInfo>> GetAllGames(Guid clientID)
         {
-            var opponentWords = (await GrainFactory.GetGrain<IGame>(args.Args[0].AsGuid.Value).EndRound(args.ClientID)).Value;
-            return Success(opponentWords == null ? Param.Null() : Param.Array(opponentWords.Select(ws => ws.ToParam())));
-        }
-
-        [MethodName("info")]
-        public async Task<EndPointFunctionResult> GetGameInfo(EndPointFunctionParams args)
-        {
-            var result = await GrainFactory.GetGrain<IGame>(args.Args[0].AsGuid.Value).GetGameInfo(args.ClientID);
-            return Success(await result.ToParam(GrainFactory));
-        }
-
-        [MethodName("all")]
-        public async Task<EndPointFunctionResult> GetAllGames(EndPointFunctionParams args)
-        {
-            var games = (await GrainFactory.GetGrain<IUserProfile>(args.ClientID).GetGames()).Value;
+            var games = (await GrainFactory.GetGrain<IUserProfile>(clientID).GetGames()).Value;
             var gameInfos = new List<SimplifiedGameInfo>();
             for (int i = games.Count - 1; i >= 0; --i)
-                gameInfos.Add(await games[i].GetSimplifiedGameInfo(args.ClientID));
+                gameInfos.Add((await games[i].GetSimplifiedGameInfo(clientID)).Value);
 
-            return Success(gameInfos.Select(gi => Param.Array(gi.ToParams(GrainFactory))));
+            return gameInfos;
         }
 
-        [MethodName("ans")]
-        public async Task<EndPointFunctionResult> GetAllAnswers(EndPointFunctionParams args)
-            => Success(Param.Array(
-                await Task.WhenAll(configReader.Config.CategoriesByName[args.Args[0].AsString].Answers.Select(
-                    async s => Param.Array(
-                        Param.String(s),
-                        Param.UInt(await GrainFactory.GetGrain<IWordUsageAggregatorCache>(args.Args[0].AsString).GetScore(s))
-                        )
-                    ))
-                ));
-
-
-        public async Task SendOpponentJoined(Guid playerID, Guid gameID, PlayerInfo opponent)
-        {
-            if (await IsConnected(playerID))
-                await SendMessage(playerID, "opj", Param.Guid(gameID), opponent.ToParam());
-            else
-                SendPush();
-        }
-
-        public async Task SendOpponentTurnEnded(Guid playerID, Guid gameID, uint roundNumber, IEnumerable<WordScorePair> wordsPlayed)
-        {
-            if (await IsConnected(playerID))
-                await SendMessage(playerID, "opr", Param.Guid(gameID), Param.UInt(roundNumber), wordsPlayed == null ? Param.Null() : Param.Array(wordsPlayed.Select(ws => ws.ToParam())));
-            else
-                SendPush();
-        }
-
-        public async Task SendGameEnded(Guid playerID, Guid gameID, uint myScore, uint theirScore)
-        {
-            if (await IsConnected(playerID))
-                await SendMessage(playerID, "gend", Param.Guid(gameID), Param.UInt(myScore), Param.UInt(theirScore));
-            else
-                SendPush();
-        }
-
-        void SendPush() { } //?? stub
+        protected override async Task<IReadOnlyList<WordScorePairDTO>> GetAnswers(Guid clientID, string category) =>
+            await Task.WhenAll(configReader.Config.CategoriesByName[category].Answers.Select(
+                async s => new WordScorePairDTO
+                {
+                    Word = s,
+                    Score = await GrainFactory.GetGrain<IWordUsageAggregatorCache>(category).GetScore(s)
+                }
+            ));
+        //?? Do I even need to mention that we need a matchmaking system?
+        //?? send push in notifs
     }
 }
