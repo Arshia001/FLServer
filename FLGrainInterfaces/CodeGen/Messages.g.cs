@@ -11,7 +11,7 @@ namespace FLGrainInterfaces
     public interface IGameEndPoint : LightMessage.OrleansUtils.GrainInterfaces.IEndPointGrain
     {
         System.Threading.Tasks.Task SendOpponentJoined(System.Guid clientID, System.Guid gameID, PlayerInfo opponentInfo);
-        System.Threading.Tasks.Task SendOpponentTurnEnded(System.Guid clientID, System.Guid gameID, byte roundNumber, System.Collections.Generic.IReadOnlyList<WordScorePairDTO> wordsPlayed);
+        System.Threading.Tasks.Task SendOpponentTurnEnded(System.Guid clientID, System.Guid gameID, byte roundNumber, System.Collections.Generic.IEnumerable<WordScorePairDTO> wordsPlayed);
         System.Threading.Tasks.Task SendGameEnded(System.Guid clientID, System.Guid gameID, uint myScore, uint theirScore);
     }
 }

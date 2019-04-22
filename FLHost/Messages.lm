@@ -22,6 +22,7 @@ contract PlayerInfo
 	Name: string;
 }
 
+// remember, one can specify "server" or "client" after castfrom items to generate that cast only on the specified side
 contract WordScorePairDTO castfrom(FLGameLogic.WordScorePair)
 {
 	Word, WordScorePair.word: string;

@@ -8,8 +8,8 @@ namespace Network
     {
         protected override string EndPointName => "sys";
 
-        public System.Threading.Tasks.Task SuggestCategory(string name, System.Collections.Generic.IReadOnlyList<string> words) => EndPointProxy.SendInvocationForReply("csug", System.Threading.CancellationToken.None, LightMessage.Common.Messages.Param.String(name), LightMessage.Common.Messages.Param.Array(words.Select(a => LightMessage.Common.Messages.Param.String(a))));
-        public System.Threading.Tasks.Task SuggestWord(string categoryName, System.Collections.Generic.IReadOnlyList<string> words) => EndPointProxy.SendInvocationForReply("wsug", System.Threading.CancellationToken.None, LightMessage.Common.Messages.Param.String(categoryName), LightMessage.Common.Messages.Param.Array(words.Select(a => LightMessage.Common.Messages.Param.String(a))));
+        public System.Threading.Tasks.Task SuggestCategory(string name, System.Collections.Generic.IEnumerable<string> words) => EndPointProxy.SendInvocationForReply("csug", System.Threading.CancellationToken.None, LightMessage.Common.Messages.Param.String(name), LightMessage.Common.Messages.Param.Array(words.Select(a => LightMessage.Common.Messages.Param.String(a))));
+        public System.Threading.Tasks.Task SuggestWord(string categoryName, System.Collections.Generic.IEnumerable<string> words) => EndPointProxy.SendInvocationForReply("wsug", System.Threading.CancellationToken.None, LightMessage.Common.Messages.Param.String(categoryName), LightMessage.Common.Messages.Param.Array(words.Select(a => LightMessage.Common.Messages.Param.String(a))));
 
         protected override void RegisterMessageEvents()
         {

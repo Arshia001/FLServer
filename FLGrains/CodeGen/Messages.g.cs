@@ -33,7 +33,7 @@ namespace FLGrains
     public abstract class GameEndPointBase : LightMessage.OrleansUtils.Grains.EndPointGrain, IGameEndPoint
     {
         public System.Threading.Tasks.Task SendOpponentJoined(System.Guid clientID, System.Guid gameID, PlayerInfo opponentInfo) => SendMessage(clientID, "opj", LightMessage.Common.Messages.Param.Guid(gameID), opponentInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null());
-        public System.Threading.Tasks.Task SendOpponentTurnEnded(System.Guid clientID, System.Guid gameID, byte roundNumber, System.Collections.Generic.IReadOnlyList<WordScorePairDTO> wordsPlayed) => SendMessage(clientID, "opr", LightMessage.Common.Messages.Param.Guid(gameID), LightMessage.Common.Messages.Param.UInt(roundNumber), LightMessage.Common.Messages.Param.Array(wordsPlayed.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
+        public System.Threading.Tasks.Task SendOpponentTurnEnded(System.Guid clientID, System.Guid gameID, byte roundNumber, System.Collections.Generic.IEnumerable<WordScorePairDTO> wordsPlayed) => SendMessage(clientID, "opr", LightMessage.Common.Messages.Param.Guid(gameID), LightMessage.Common.Messages.Param.UInt(roundNumber), LightMessage.Common.Messages.Param.Array(wordsPlayed.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
         public System.Threading.Tasks.Task SendGameEnded(System.Guid clientID, System.Guid gameID, uint myScore, uint theirScore) => SendMessage(clientID, "gend", LightMessage.Common.Messages.Param.Guid(gameID), LightMessage.Common.Messages.Param.UInt(myScore), LightMessage.Common.Messages.Param.UInt(theirScore));
         protected abstract System.Threading.Tasks.Task<(System.Guid gameID, PlayerInfo opponentInfo, byte numRounds, bool myTurnFirst)> NewGame(System.Guid clientID);
 
@@ -65,7 +65,7 @@ namespace FLGrains
             return Success(LightMessage.Common.Messages.Param.UInt(result.wordScore), LightMessage.Common.Messages.Param.String(result.corrected));
         }
 
-        protected abstract System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<WordScorePairDTO>> EndRound(System.Guid clientID, System.Guid gameID);
+        protected abstract System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<WordScorePairDTO>> EndRound(System.Guid clientID, System.Guid gameID);
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("endr")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_EndRound(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
@@ -85,7 +85,7 @@ namespace FLGrains
             return Success(result?.ToParam() ?? LightMessage.Common.Messages.Param.Null());
         }
 
-        protected abstract System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<SimplifiedGameInfo>> GetAllGames(System.Guid clientID);
+        protected abstract System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<SimplifiedGameInfo>> GetAllGames(System.Guid clientID);
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("all")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_GetAllGames(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
@@ -95,7 +95,7 @@ namespace FLGrains
             return Success(LightMessage.Common.Messages.Param.Array(result.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
         }
 
-        protected abstract System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<WordScorePairDTO>> GetAnswers(System.Guid clientID, string category);
+        protected abstract System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<WordScorePairDTO>> GetAnswers(System.Guid clientID, string category);
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("ans")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_GetAnswers(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
