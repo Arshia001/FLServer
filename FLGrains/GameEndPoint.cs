@@ -23,6 +23,7 @@ namespace FLGrains
 
         public GameEndPoint(IConfigReader configReader) => this.configReader = configReader;
 
+        //?? Do I even need to mention that we need a matchmaking system?
         protected override async Task<(Guid gameID, PlayerInfo opponentInfo, byte numRounds, bool myTurnFirst)> NewGame(Guid clientID)
         {
             var userProfile = GrainFactory.GetGrain<IUserProfile>(clientID);
@@ -78,10 +79,10 @@ namespace FLGrains
         protected override Task<(byte wordScore, string corrected)> PlayWord(Guid clientID, Guid gameID, string word) =>
             GrainFactory.GetGrain<IGame>(gameID).PlayWord(clientID, word);
 
-        protected override async Task<IReadOnlyList<WordScorePairDTO>> EndRound(Guid clientID, Guid gameID)
+        protected override async Task<IEnumerable<WordScorePairDTO>> EndRound(Guid clientID, Guid gameID)
         {
             var result = await GrainFactory.GetGrain<IGame>(gameID).EndRound(clientID);
-            return result.Value.Select(w => (WordScorePairDTO)w).ToList();
+            return result.Value.Select(w => (WordScorePairDTO)w);
         }
 
         protected override async Task<GameInfo> GetGameInfo(Guid clientID, Guid gameID)
@@ -90,7 +91,7 @@ namespace FLGrains
             return result.Value;
         }
 
-        protected override async Task<IReadOnlyList<SimplifiedGameInfo>> GetAllGames(Guid clientID)
+        protected override async Task<IEnumerable<SimplifiedGameInfo>> GetAllGames(Guid clientID)
         {
             var games = (await GrainFactory.GetGrain<IUserProfile>(clientID).GetGames()).Value;
             var gameInfos = new List<SimplifiedGameInfo>();
@@ -100,7 +101,7 @@ namespace FLGrains
             return gameInfos;
         }
 
-        protected override async Task<IReadOnlyList<WordScorePairDTO>> GetAnswers(Guid clientID, string category) =>
+        protected override async Task<IEnumerable<WordScorePairDTO>> GetAnswers(Guid clientID, string category) =>
             await Task.WhenAll(configReader.Config.CategoriesByName[category].Answers.Select(
                 async s => new WordScorePairDTO
                 {
@@ -108,7 +109,32 @@ namespace FLGrains
                     Score = await GrainFactory.GetGrain<IWordUsageAggregatorCache>(category).GetScore(s)
                 }
             ));
-        //?? Do I even need to mention that we need a matchmaking system?
-        //?? send push in notifs
+
+
+        public override async Task SendGameEnded(Guid clientID, Guid gameID, uint myScore, uint theirScore)
+        {
+            if (await IsConnected(clientID))
+                await base.SendGameEnded(clientID, gameID, myScore, theirScore);
+            else
+                SendPush();
+        }
+
+        public override async Task SendOpponentJoined(Guid clientID, Guid gameID, PlayerInfo opponentInfo)
+        {
+            if (await IsConnected(clientID))
+                await base.SendOpponentJoined(clientID, gameID, opponentInfo);
+            else
+                SendPush();
+        }
+
+        public override async Task SendOpponentTurnEnded(Guid clientID, Guid gameID, byte roundNumber, IEnumerable<WordScorePairDTO> wordsPlayed)
+        {
+            if (await IsConnected(clientID))
+                await base.SendOpponentTurnEnded(clientID, gameID, roundNumber, wordsPlayed);
+            else
+                SendPush();
+        }
+
+        void SendPush() { } //?? stub
     }
 }
