@@ -47,12 +47,11 @@ namespace FLHost
                 {
                     o.ConnectionString = "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy";
                 })
-                .AddMemoryGrainStorageAsDefault()
-                //.AddCassandraGrainStorageAsDefault((CassandraGrainStorageOptions o) =>
-                //{
-                //    o.ConnctionString = "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy";
-                //    o.AddSerializationProvider(1, new BondCassandraStorageSerializationProvider());
-                //})
+                .AddCassandraGrainStorageAsDefault((CassandraGrainStorageOptions o) =>
+                {
+                    o.ConnctionString = "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy";
+                    o.AddSerializationProvider(1, new BondCassandraStorageSerializationProvider());
+                })
                 .ConfigureLogging(l => l.AddFilter("Orleans", LogLevel.Information).AddConsole())
                 .ConfigureApplicationParts(p =>
                 {

@@ -1,4 +1,5 @@
 ﻿using Orleans;
+using OrleansBondUtils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace FLGrainInterfaces
 {
+    [BondSerializationTag("@a")]
     public interface IAggregator<TAggregateDelta> : IGrain
     {
         Task AddDelta(TAggregateDelta delta);

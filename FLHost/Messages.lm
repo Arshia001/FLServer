@@ -22,6 +22,14 @@ contract PlayerInfo
 	Name: string;
 }
 
+contract OwnPlayerInfo
+{
+	Name: string;
+	XP: u32;
+	Level: u32;
+	NextLevelXPThreshold: u32;
+}
+
 // remember, one can specify "server" or "client" after castfrom items to generate that cast only on the specified side
 contract WordScorePairDTO castfrom(FLGameLogic.WordScorePair)
 {
@@ -53,6 +61,15 @@ contract SimplifiedGameInfo
 
 endpoint System sys 
 {
+	request GetStartupInfo st
+	{
+		{ }
+		->
+		{
+			playerInfo: OwnPlayerInfo;
+		}
+	}
+
 	request SuggestCategory csug
 	{
 		{

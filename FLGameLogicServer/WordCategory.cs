@@ -28,7 +28,7 @@ namespace FLGameLogic
         public IEnumerable<string> Answers => answers;
 
 
-        public WordCategory(string categoryName, Dictionary<string, List<string>> wordsAndCorrections)
+        public WordCategory(string categoryName, Dictionary<string, IEnumerable<string>> wordsAndCorrections)
         {
             CategoryName = categoryName;
 

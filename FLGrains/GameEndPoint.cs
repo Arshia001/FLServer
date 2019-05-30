@@ -26,7 +26,7 @@ namespace FLGrains
         //?? Do I even need to mention that we need a matchmaking system?
         protected override async Task<(Guid gameID, PlayerInfo opponentInfo, byte numRounds, bool myTurnFirst)> NewGame(Guid clientID)
         {
-            var userProfile = GrainFactory.GetGrain<IUserProfile>(clientID);
+            var userProfile = GrainFactory.GetGrain<IPlayer>(clientID);
 
             await sem.WaitAsync();
             try
@@ -53,7 +53,7 @@ namespace FLGrains
                 if (gameToEnter != null)
                 {
                     pendingGames.Remove(gameToEnter);
-                    return (gameID, (await PlayerInfoUtil.GetForPlayerID(GrainFactory, opponentID)).Value, numRounds, false);
+                    return (gameID, await PlayerInfoUtil.GetForPlayerID(GrainFactory, opponentID), numRounds, false);
                 }
 
                 do
@@ -93,12 +93,8 @@ namespace FLGrains
 
         protected override async Task<IEnumerable<SimplifiedGameInfo>> GetAllGames(Guid clientID)
         {
-            var games = (await GrainFactory.GetGrain<IUserProfile>(clientID).GetGames()).Value;
-            var gameInfos = new List<SimplifiedGameInfo>();
-            for (int i = games.Count - 1; i >= 0; --i)
-                gameInfos.Add((await games[i].GetSimplifiedGameInfo(clientID)).Value);
-
-            return gameInfos;
+            var games = (await GrainFactory.GetGrain<IPlayer>(clientID).GetGames()).Value;
+            return await Task.WhenAll(games.Reverse().Select(g => g.GetSimplifiedGameInfo(clientID).UnwrapImmutable()));
         }
 
         protected override async Task<IEnumerable<WordScorePairDTO>> GetAnswers(Guid clientID, string category) =>

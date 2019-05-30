@@ -1,7 +1,9 @@
-﻿using FLGameLogic;
+﻿using Bond;
+using FLGameLogic;
 using FLGrainInterfaces;
 using Orleans;
 using Orleans.Concurrency;
+using OrleansBondUtils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,14 +13,20 @@ using System.Threading.Tasks;
 namespace FLGrains
 {
     //?? the current scheme doesn't support immediate lookup of score details for a round
+    [Schema, BondSerializationTag("#g")]
     class GameGrain_State
     {
+        [Id(0)]
         public string[] CategoryNames { get; set; }
-        public Guid[] PlayerIDs { get; set; }
+
+        [Id(1)]
+        public Guid[] PlayerIDs { get; set; } = Array.Empty<Guid>();
+
+        [Id(2)]
         public int[] LastProcessedEndTurns { get; set; } = new[] { -1, -1 }; //?? use to reprocess turn end notifications in case grain goes down
     }
 
-    class Game : Grain<GameGrain_State> /*SaveStateOnDeactivateGrain<GameGrain_State>*/, IGame
+    class Game : SaveStateOnDeactivateGrain<GameGrain_State>, IGame
     {
         class EndRoundTimerData
         {
@@ -33,7 +41,7 @@ namespace FLGrains
         IConfigReader configReader;
 
 
-        int NumJoinedPlayers => State.PlayerIDs == null || State.PlayerIDs.Length == 0 ? 0 :
+        int NumJoinedPlayers => State.PlayerIDs.Length == 0 || State.PlayerIDs.Length == 0 ? 0 :
             State.PlayerIDs[1] == Guid.Empty ? 1 : 2;
 
 
@@ -70,7 +78,7 @@ namespace FLGrains
             var random = new Random();
 
             while (randomIndices.Count < 3) //?? number of rounds as config
-                randomIndices.Add(random.Next(config.Categories.Count));
+                randomIndices.Add(random.Next(config.CategoriesAsGameLogicFormat.Count));
 
             var categories = randomIndices.Select(i => config.CategoriesAsGameLogicFormat[i]);
             State.CategoryNames = categories.Select(c => c.CategoryName).ToArray();
@@ -178,7 +186,7 @@ namespace FLGrains
 
         GameState GetStateInternal()
         {
-            if (State.PlayerIDs == null || State.PlayerIDs.Length == 0)
+            if (State.PlayerIDs.Length == 0 || State.PlayerIDs.Length == 0)
                 return GameState.New;
 
             if (State.PlayerIDs[1] == Guid.Empty)
@@ -203,7 +211,7 @@ namespace FLGrains
 
             var result = new GameInfo
             {
-                OtherPlayerInfo = (await PlayerInfoUtil.GetForPlayerID(GrainFactory, State.PlayerIDs[1 - index])).Value,
+                OtherPlayerInfo = await PlayerInfoUtil.GetForPlayerID(GrainFactory, State.PlayerIDs[1 - index]),
                 NumRounds = (byte)gameLogic.Categories.Count,
                 Categories = State.CategoryNames.Take(turnsTakenInclCurrent).ToList(),
                 MyWordsPlayed = gameLogic.GetPlayerAnswers(index).Take(turnsTakenInclCurrent).Select(ws => ws.Select(w => (WordScorePairDTO)w).ToList()).ToList(),
@@ -225,7 +233,7 @@ namespace FLGrains
             {
                 GameID = this.GetPrimaryKey(),
                 GameState = GetStateInternal(),
-                OtherPlayerName = (await PlayerInfoUtil.GetForPlayerID(GrainFactory, State.PlayerIDs[1 - index])).Value.Name,
+                OtherPlayerName = (await PlayerInfoUtil.GetForPlayerID(GrainFactory, State.PlayerIDs[1 - index])).Name,
                 MyTurn = gameLogic.Turn == index,
                 MyScore = gameLogic.GetNumRoundsWon(index),
                 TheirScore = gameLogic.GetNumRoundsWon(1 - index)

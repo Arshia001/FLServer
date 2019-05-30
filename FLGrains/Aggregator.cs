@@ -1,6 +1,8 @@
-﻿using FLGrainInterfaces;
+﻿using Bond;
+using FLGrainInterfaces;
 using Orleans;
 using Orleans.Concurrency;
+using OrleansBondUtils;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,13 +10,22 @@ using System.Threading.Tasks;
 
 namespace FLGrains
 {
-    class AggregatorState<T>
+    [Schema, BondSerializationTag("#a")]
+    class AggregatorState<T> : IOnDeserializedHandler
+        where T: class, new()
     {
+        [Id(0)]
         public T Data { get; set; }
+
+        public void OnDeserialized()
+        {
+            if (Data == null)
+                Data = new T();
+        }
     }
 
     abstract class Aggregator<TData, TAggregateDelta> : Grain<AggregatorState<TData>>, IAggregator<TAggregateDelta>, IAggregateRetriever<TData> 
-        where TData: class
+        where TData: class, new()
     {
         protected abstract TData GetDefault();
         protected abstract TData AddDelta(TData current, TAggregateDelta delta);

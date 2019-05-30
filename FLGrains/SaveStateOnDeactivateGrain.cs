@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace FLGrains
 {
+    //?? also write state every X minutes as disaster aversion [if a change happened] (how to track changes?)
     class SaveStateOnDeactivateGrain<TState> : Grain<TState>
         where TState : new()
     {

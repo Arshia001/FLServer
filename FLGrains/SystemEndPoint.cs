@@ -23,6 +23,8 @@ namespace FLGrains
             this.suggestionService = suggestionService;
         }
 
+        protected override Task<OwnPlayerInfo> GetStartupInfo(Guid clientID) =>
+            GrainFactory.GetGrain<IPlayer>(clientID).PerformStartupTasksAndGetInfo().UnwrapImmutable();
 
         protected override Task SuggestCategory(Guid clientID, string name, IReadOnlyList<string> words) =>
             suggestionService.RegisterCategorySuggestion(clientID, name, words);

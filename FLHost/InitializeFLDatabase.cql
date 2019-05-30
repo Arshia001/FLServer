@@ -1,10 +1,21 @@
 ﻿CREATE TABLE IF NOT EXISTS fl_config (
 	key int,
 	data text,
+
 	PRIMARY KEY (key)
 );
 
-CREATE TABLE IF NOT EXISTS fl_suggested_categories (
+CREATE TABLE IF NOT EXISTS fl_categories (
+	name text,
+	words map<text, frozen<set<text>>>,
+
+	PRIMARY KEY (name)
+) WITH compression = {
+	'class' : 'LZ4Compressor',
+	'enabled' : true
+};
+
+CREATE TABLE IF NOT EXISTS fl_suggested_categories ( // User-suggested categories
 	owner_id uuid,
 	name text,
 	words set<text>,
@@ -15,7 +26,7 @@ CREATE TABLE IF NOT EXISTS fl_suggested_categories (
 	'enabled' : true
 };
 
-CREATE TABLE IF NOT EXISTS fl_suggested_words (
+CREATE TABLE IF NOT EXISTS fl_suggested_words ( // User-suggested words for **existing** categories
 	owner_id uuid,
 	category_name text,
 	words set<text>,

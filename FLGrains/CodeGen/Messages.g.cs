@@ -7,6 +7,16 @@ namespace FLGrains
     [LightMessage.OrleansUtils.GrainInterfaces.EndPointNameAttribute("sys"), Orleans.Concurrency.StatelessWorkerAttribute(128)]
     public abstract class SystemEndPointBase : LightMessage.OrleansUtils.Grains.EndPointGrain, ISystemEndPoint
     {
+        protected abstract System.Threading.Tasks.Task<OwnPlayerInfo> GetStartupInfo(System.Guid clientID);
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("st")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_GetStartupInfo(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            var result = await GetStartupInfo(input.ClientID);
+            return Success(result?.ToParam() ?? LightMessage.Common.Messages.Param.Null());
+        }
+
         protected abstract System.Threading.Tasks.Task SuggestCategory(System.Guid clientID, string name, System.Collections.Generic.IReadOnlyList<string> words);
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("csug")]

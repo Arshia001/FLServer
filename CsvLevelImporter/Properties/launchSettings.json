@@ -2,7 +2,7 @@
   "profiles": {
     "CsvLevelImporter": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\Users\\Arshia\\Desktop\\categories.csv\" \"out.json\""
+      "commandLineArgs": "\"C:\\Users\\Arshi\\Desktop\\categories.csv\" \"D:\\categories.csv\""
     }
   }
 }

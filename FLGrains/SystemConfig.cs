@@ -1,5 +1,6 @@
-﻿using FLGrainInterfaces;
-using Cassandra;
+﻿using Cassandra;
+using FLGrainInterfaces;
+using FLGrains.ServiceInterfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Orleans;
@@ -10,7 +11,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using FLGrains.ServiceInterfaces;
 
 namespace FLGrains
 {
@@ -65,7 +65,10 @@ namespace FLGrains
 
         static async Task<ConfigData> ReadConfigDataFromDatabase(ISession session)
         {
-            var rows = await session.ExecuteAsync(new SimpleStatement("select data from fl_config where key = 0"));
+            var rows = await session.ExecuteAsync(
+                new SimpleStatement("select data from fl_config where key = 0")
+                .SetConsistencyLevel(ConsistencyLevel.All)
+                );
             var data = Convert.ToString(rows.FirstOrDefault()?["data"]);
 
             if (!string.IsNullOrEmpty(data))
@@ -74,12 +77,37 @@ namespace FLGrains
                 return new ConfigData();
         }
 
+        //?? This is not the greatest idea. We should be able to push incremental updates to silos,
+        //   since this data is likely to be some hundreds of megabytes. Each silo could read from
+        //   the database (not likely to change anything), and we should be able to push *incremental*
+        //   updates to silos when something changes. We could have a version, and expect to receive
+        //   sequential versions on the silos, asking for all the data if it goes out of sync.
+        static async Task<List<CategoryConfig>> ReadCategoriesFromDatabase(ISession session)
+        {
+            var rows = await session.ExecuteAsync(
+                new SimpleStatement("select * from fl_categories")
+                .SetConsistencyLevel(ConsistencyLevel.All)
+                );
+
+            var result = new List<CategoryConfig>();
+
+            foreach (var row in rows)
+                result.Add(new CategoryConfig(
+                    Convert.ToString(row["name"]),
+                    ((IDictionary<string, IEnumerable<string>>)row["words"])
+                        .Select(kv => new CategoryConfig.Entry(kv.Key, kv.Value))
+                    ));
+
+            return result;
+        }
+
         async Task InternalUpdateConfigFromDatabase()
         {
             var connectionString = connectionStringProvider.ConnectionString;
             var session = await CassandraSessionFactory.CreateSession(connectionString);
 
             var newData = await ReadConfigDataFromDatabase(session);
+            newData.Categories = await ReadCategoriesFromDatabase(session);
 
             SetNewData(newData);
         }

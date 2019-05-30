@@ -1,27 +1,16 @@
 ﻿{
-  "Categories": [
+  "PlayerLevels": [
     {
-      "Name": "کارخانه‌های ماشین",
-      "Words": [
-        {
-          "Word": "آئودی",
-          "Corrections": [ "Audi", "آیودی" ]
-        },
-        {
-          "Word": "ب ام و"
-        }
-      ]
+      "Level": 1,
+      "RequiredXP": 10
     },
     {
-      "Name": "میوه‌ها",
-      "Words": [
-        {
-          "Word": "سیب"
-        },
-        {
-          "Word": "موز"
-        }
-      ]
+      "Level": 2,
+      "RequiredXP": 25
+    },
+    {
+      "Level": 0,
+      "RequiredXP": "(player.Level - 2) * 50"
     }
   ]
 }

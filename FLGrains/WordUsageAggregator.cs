@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WordUsageData = System.Collections.Generic.Dictionary<string, int>;
 
 namespace FLGrains
 {
@@ -13,12 +12,12 @@ namespace FLGrains
     {
         protected override WordUsageData AddDelta(WordUsageData current, WordUsageData delta)
         {
-            foreach (var (key, value) in delta)
+            foreach (var (key, value) in delta.WordScores)
             {
-                if (!current.TryGetValue(key, out var currentValue))
+                if (!current.WordScores.TryGetValue(key, out var currentValue))
                     currentValue = 0;
 
-                current[key] = value + currentValue;
+                current.WordScores[key] = value + currentValue;
             }
 
             return current;
@@ -34,10 +33,10 @@ namespace FLGrains
 
         protected override WordUsageData AddDelta(WordUsageData current, string delta)
         {
-            if (!current.TryGetValue(delta, out var currentValue))
+            if (!current.WordScores.TryGetValue(delta, out var currentValue))
                 currentValue = 0;
 
-            current[delta] = currentValue + 1;
+            current.WordScores[delta] = currentValue + 1;
             return current;
         }
 
@@ -54,16 +53,16 @@ namespace FLGrains
 
         protected override Dictionary<string, byte> TransformData(WordUsageData data)
         {
-            var total = data.Sum(kv => (long)kv.Value);
+            var total = data.WordScores.Sum(kv => (long)kv.Value);
 
             if (total == 0)
-                return data.ToDictionary(kv => kv.Key, kv => (byte)2);
+                return data.WordScores.ToDictionary(kv => kv.Key, kv => (byte)2);
 
-            var mean = total / (float)data.Count;
+            var mean = total / (float)data.WordScores.Count;
             var threshold3 = mean * 0.7f; //?? to config parameters
             var threshold2 = mean * 1.3f;
 
-            return data.ToDictionary(kv => kv.Key, kv => (byte)(kv.Value < threshold3 ? 3 : kv.Value < threshold2 ? 2 : 1));
+            return data.WordScores.ToDictionary(kv => kv.Key, kv => (byte)(kv.Value < threshold3 ? 3 : kv.Value < threshold2 ? 2 : 1));
         }
 
         public async Task<byte> GetScore(string word)
