@@ -28,6 +28,7 @@ contract OwnPlayerInfo
 	XP: u32;
 	Level: u32;
 	NextLevelXPThreshold: u32;
+	CurrentNumRoundsWonForReward: u32;
 }
 
 // remember, one can specify "server" or "client" after castfrom items to generate that cast only on the specified side
@@ -61,15 +62,33 @@ contract SimplifiedGameInfo
 
 endpoint System sys 
 {
+	notification NumRoundsWonForRewardUpdated rwu
+	{
+		totalRoundsWon: u32;
+	}
+
 	request GetStartupInfo st
 	{
 		{ }
 		->
 		{
 			playerInfo: OwnPlayerInfo;
+			numRoundsToWinToGetReward: u8;
 		}
 	}
 
+	request TakeRewardForWinningRounds trwr
+	{
+		{ }
+		->
+		{
+			dummy: string; //??
+		}
+	}
+}
+
+endpoint Suggestion sg
+{
 	request SuggestCategory csug
 	{
 		{
@@ -101,7 +120,7 @@ endpoint Game gm
 	{
 		gameID: guid;
 		roundNumber: u8;
-		wordsPlayed: WordScorePairDTO[];
+		wordsPlayed: WordScorePairDTO[]?;
 	}
 
 	notification GameEnded gend
@@ -155,7 +174,7 @@ endpoint Game gm
 		}
 		->
 		{
-			opponentWords: WordScorePairDTO[];
+			opponentWords: WordScorePairDTO[]?;
 		}
 	}
 

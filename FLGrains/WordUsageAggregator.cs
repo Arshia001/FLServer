@@ -12,6 +12,9 @@ namespace FLGrains
     {
         protected override WordUsageData AddDelta(WordUsageData current, WordUsageData delta)
         {
+            if (delta == null || delta.WordScores == null)
+                return current;
+
             foreach (var (key, value) in delta.WordScores)
             {
                 if (!current.WordScores.TryGetValue(key, out var currentValue))
@@ -42,7 +45,7 @@ namespace FLGrains
 
         protected override IAggregator<WordUsageData> GetAggregator() => GrainFactory.GetGrain<IWordUsageAggregator>(this.GetPrimaryKeyString());
 
-        protected override WordUsageData GetDefault() => new WordUsageData();
+        protected override WordUsageData GetDefault() => new WordUsageData() { WordScores = new Dictionary<string, int>() };
     }
 
     class WordUsageAggregatorCache : AggregatorCache<WordUsageData, Dictionary<string, byte>>, IWordUsageAggregatorCache

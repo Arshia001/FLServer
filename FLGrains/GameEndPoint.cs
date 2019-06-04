@@ -82,7 +82,7 @@ namespace FLGrains
         protected override async Task<IEnumerable<WordScorePairDTO>> EndRound(Guid clientID, Guid gameID)
         {
             var result = await GrainFactory.GetGrain<IGame>(gameID).EndRound(clientID);
-            return result.Value.Select(w => (WordScorePairDTO)w);
+            return result.Value?.Select(w => (WordScorePairDTO)w);
         }
 
         protected override async Task<GameInfo> GetGameInfo(Guid clientID, Guid gameID)

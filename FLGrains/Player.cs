@@ -1,4 +1,5 @@
 ﻿using FLGrainInterfaces;
+using LightMessage.OrleansUtils.Grains;
 using Orleans;
 using Orleans.Concurrency;
 using System;
@@ -38,7 +39,8 @@ namespace FLGrains
                 Name = GetName(),
                 Level = State.Level,
                 XP = State.XP,
-                NextLevelXPThreshold = GetNextLevelRequiredXP(configReader.Config)
+                NextLevelXPThreshold = GetNextLevelRequiredXP(configReader.Config),
+                CurrentNumRoundsWonForReward = State.NumRoundsWonForReward
             }.AsImmutable());
 
         PlayerInfo GetPlayerInfoImpl() => new PlayerInfo { ID = this.GetPrimaryKey(), Name = GetName() }; //?? other info
@@ -76,6 +78,21 @@ namespace FLGrains
             var result = await game.AddSecondPlayer(GetPlayerInfoImpl());
             State.MyGames.Add(game);
             return result;
+        }
+
+        public Task OnRoundWon()
+        {
+            ++State.NumRoundsWonForReward;
+            return GrainFactory.GetGrain<ISystemEndPoint>(0).SendNumRoundsWonForRewardUpdated(this.GetPrimaryKey(), State.NumRoundsWonForReward);
+        }
+
+        public Task<string> TakeRewardForWinningRounds()
+        {
+            if (State.NumRoundsWonForReward < configReader.Config.NumRoundsToWinToGetReward)
+                throw new VerbatimException("Reward not ready to take yet");
+
+            State.NumRoundsWonForReward = 0;
+            return Task.FromResult("Congrats, you win -.-");
         }
     }
 }

@@ -135,9 +135,21 @@ namespace FLGrains
 
             State.LastProcessedEndTurns[playerIndex] = roundIndex;
 
+            var opponentFinishedThisRound = gameLogic.PlayerFinishedTurn(1 - playerIndex, roundIndex);
+
             var myID = this.GetPrimaryKey();
             await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentTurnEnded(State.PlayerIDs[1 - playerIndex], myID, (byte)roundIndex,
-                gameLogic.PlayerFinishedTurn(1 - playerIndex, roundIndex) ? gameLogic.GetPlayerAnswers(playerIndex, roundIndex).Select(w => (WordScorePairDTO)w).ToList() : null);
+                opponentFinishedThisRound ? gameLogic.GetPlayerAnswers(playerIndex, roundIndex).Select(w => (WordScorePairDTO)w).ToList() : null);
+
+            if (opponentFinishedThisRound)
+            {
+                var score0 = gameLogic.GetPlayerScores(0)[roundIndex];
+                var score1 = gameLogic.GetPlayerScores(1)[roundIndex];
+                if (score0 > score1)
+                    await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[0]).OnRoundWon();
+                else if (score1 > score0)
+                    await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[1]).OnRoundWon();
+            }
 
             if (gameLogic.Finished)
             {

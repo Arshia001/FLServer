@@ -5,6 +5,11 @@ namespace FLGrainInterfaces
 {
     public interface ISystemEndPoint : LightMessage.OrleansUtils.GrainInterfaces.IEndPointGrain
     {
+        System.Threading.Tasks.Task SendNumRoundsWonForRewardUpdated(System.Guid clientID, uint totalRoundsWon);
+    }
+
+    public interface ISuggestionEndPoint : LightMessage.OrleansUtils.GrainInterfaces.IEndPointGrain
+    {
     }
 
     public interface IGameEndPoint : LightMessage.OrleansUtils.GrainInterfaces.IEndPointGrain
@@ -47,15 +52,16 @@ namespace FLGrainInterfaces
         public uint XP { get; set; }
         public uint Level { get; set; }
         public uint NextLevelXPThreshold { get; set; }
+        public uint CurrentNumRoundsWonForReward { get; set; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.UInt(XP), LightMessage.Common.Messages.Param.UInt(Level), LightMessage.Common.Messages.Param.UInt(NextLevelXPThreshold));
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.UInt(XP), LightMessage.Common.Messages.Param.UInt(Level), LightMessage.Common.Messages.Param.UInt(NextLevelXPThreshold), LightMessage.Common.Messages.Param.UInt(CurrentNumRoundsWonForReward));
 
         public static OwnPlayerInfo FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new OwnPlayerInfo { Name = array[0].AsString, XP = (uint)array[1].AsUInt.Value, Level = (uint)array[2].AsUInt.Value, NextLevelXPThreshold = (uint)array[3].AsUInt.Value };
+            return new OwnPlayerInfo { Name = array[0].AsString, XP = (uint)array[1].AsUInt.Value, Level = (uint)array[2].AsUInt.Value, NextLevelXPThreshold = (uint)array[3].AsUInt.Value, CurrentNumRoundsWonForReward = (uint)array[4].AsUInt.Value };
         }
     }
 

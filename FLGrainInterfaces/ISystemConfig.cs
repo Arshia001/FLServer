@@ -55,6 +55,8 @@ namespace FLGrainInterfaces
 
         public List<LevelConfig> PlayerLevels { get; set; }
 
+        public byte NumRoundsToWinToGetReward { get; set; }
+
         [JsonIgnore]
         public int Version { get; set; }
 
@@ -70,6 +72,8 @@ namespace FLGrainInterfaces
         public IReadOnlyDictionary<string, FLGameLogic.WordCategory> CategoriesByName { get; }
 
         public IReadOnlyDictionary<uint, LevelConfig> PlayerLevels { get; }
+
+        public byte NumRoundsToWinToGetReward => data.NumRoundsToWinToGetReward;
 
 
         public int Version => data.Version;

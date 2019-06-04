@@ -12,5 +12,6 @@
       "Level": 0,
       "RequiredXP": "(player.Level - 2) * 50"
     }
-  ]
+  ],
+  "NumRoundsToWinToGetReward": 2
 }

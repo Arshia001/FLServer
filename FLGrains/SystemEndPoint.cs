@@ -15,21 +15,17 @@ namespace FLGrains
 {
     class SystemEndPoint : SystemEndPointBase
     {
-        ISuggestionService suggestionService;
+        readonly IConfigReader configReader;
 
+        public SystemEndPoint(ISuggestionService suggestionService, IConfigReader configReader) => this.configReader = configReader;
 
-        public SystemEndPoint(ISuggestionService suggestionService)
+        protected override async Task<(OwnPlayerInfo playerInfo, byte numRoundsToWinToGetReward)> GetStartupInfo(Guid clientID)
         {
-            this.suggestionService = suggestionService;
+            var playerInfo = await GrainFactory.GetGrain<IPlayer>(clientID).PerformStartupTasksAndGetInfo().UnwrapImmutable();
+            return (playerInfo, configReader.Config.NumRoundsToWinToGetReward);
         }
 
-        protected override Task<OwnPlayerInfo> GetStartupInfo(Guid clientID) =>
-            GrainFactory.GetGrain<IPlayer>(clientID).PerformStartupTasksAndGetInfo().UnwrapImmutable();
-
-        protected override Task SuggestCategory(Guid clientID, string name, IReadOnlyList<string> words) =>
-            suggestionService.RegisterCategorySuggestion(clientID, name, words);
-
-        protected override Task SuggestWord(Guid clientID, string categoryName, IReadOnlyList<string> words) =>
-            suggestionService.RegisterCategorySuggestion(clientID, categoryName, words);
+        protected override Task<string> TakeRewardForWinningRounds(Guid clientID) =>
+            GrainFactory.GetGrain<IPlayer>(clientID).TakeRewardForWinningRounds();
     }
 }

@@ -33,6 +33,9 @@ namespace FLGrainInterfaces
         [Id(3)]
         public uint XP { get; set; }
 
+        [Id(4)]
+        public uint NumRoundsWonForReward { get; set; }
+
         public void OnDeserialized()
         {
             if (MyGames == null)
@@ -45,10 +48,14 @@ namespace FLGrainInterfaces
     {
         Task<Immutable<OwnPlayerInfo>> PerformStartupTasksAndGetInfo();
 
-        Task<byte> JoinGameAsFirstPlayer(IGame game);
-        Task<(Guid opponentID, byte numRounds)> JoinGameAsSecondPlayer(IGame game);
-        Task<Immutable<IReadOnlyList<IGame>>> GetGames();
         Task<Immutable<PlayerInfo>> GetPlayerInfo();
         Task<Immutable<OwnPlayerInfo>> GetOwnPlayerInfo();
+
+        Task<Immutable<IReadOnlyList<IGame>>> GetGames();
+        Task<byte> JoinGameAsFirstPlayer(IGame game);
+        Task<(Guid opponentID, byte numRounds)> JoinGameAsSecondPlayer(IGame game);
+        Task OnRoundWon();
+
+        Task<string> TakeRewardForWinningRounds();
     }
 }

@@ -1,0 +1,10 @@
+﻿Powerups -> time, reveal word
+Choice of subject (w/ time?)
+Statistics
+Friendship
+Chat
+IAB
+Registration / login
+LeaderBoards
+Inventory?
+Get scores for all words at start of round and store with game so players won't get different scores for the same words
