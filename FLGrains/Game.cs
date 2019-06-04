@@ -169,7 +169,7 @@ namespace FLGrains
         {
             var index = Index(id);
 
-            var result = await gameLogic.PlayWord(index, word, GetWordScore);
+            var result = await gameLogic.PlayWord(index, word, (c, w) => GetWordScore(gameLogic.RoundNumber, index, c, w));
 
             if (result.corrected != null && result.category != null && result.score > 0)
                 GrainFactory.GetGrain<IWordUsageAggregationWorker>(result.category.CategoryName).AddDelta(result.corrected).Ignore();
@@ -177,8 +177,18 @@ namespace FLGrains
             return (result.score, result.corrected);
         }
 
-        Task<byte> GetWordScore(WordCategory category, string word) => 
-            GrainFactory.GetGrain<IWordUsageAggregatorCache>(category.CategoryName).GetScore(word);
+        Task<byte> GetWordScore(int round, int playerIndex, WordCategory category, string word)
+        {
+            // If other player played this word, we want to make sure we give this one the same score
+            if (gameLogic.PlayerFinishedTurn(1 - playerIndex, round))
+            {
+                var answer = gameLogic.GetPlayerAnswers(1 - playerIndex, round).FirstOrDefault(w => w.word == word);
+                if (answer.word != null)
+                    return Task.FromResult(answer.score);
+            }
+
+            return GrainFactory.GetGrain<IWordUsageAggregatorCache>(category.CategoryName).GetScore(word);
+        }
 
         public async Task<Immutable<IEnumerable<WordScorePair>>> EndRound(Guid playerID)
         {
