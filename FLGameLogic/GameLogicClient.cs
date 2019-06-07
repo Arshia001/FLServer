@@ -7,7 +7,7 @@ namespace FLGameLogic
 {
     public class GameLogicClient : GameLogic
     {
-        static List<WordScorePair> unknownRoundAnswers = new List<WordScorePair>();
+        static readonly List<WordScorePair> unknownRoundAnswers = new List<WordScorePair>();
 
 
         public static GameLogicClient CreateFromState(int numRounds, IEnumerable<string> categories, IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes, int firstTurn)
@@ -33,8 +33,6 @@ namespace FLGameLogic
             categories = new List<string>(Enumerable.Repeat(default(string), numRounds));
         }
 
-
-        public bool RegisterPlayedWord(int player, string word, byte score) => RegisterPlayedWordInternal(player, word, score); // returns whether the word was NOT a duplicate
 
         public bool RegisterFullTurn(int player, uint round, IEnumerable<WordScorePair> wordsPlayed)
         {
@@ -93,6 +91,20 @@ namespace FLGameLogic
             if (PlayerStartedTurn(player, RoundNumber) && !PlayerStartedTurn(player, RoundNumber + 1))
             {
                 ForceEndTurn(player);
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool RegisterPlayedWord(int player, string word, byte score)
+        {
+            if (!playerAnswers[player][RoundNumber].Any(w => w.word == word))
+            {
+                playerAnswers[player][RoundNumber].Add(new WordScorePair(word, score));
+                if (score > 0)
+                    playerScores[player][RoundNumber] += score;
+
                 return true;
             }
 

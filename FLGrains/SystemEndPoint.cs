@@ -17,12 +17,12 @@ namespace FLGrains
     {
         readonly IConfigReader configReader;
 
-        public SystemEndPoint(ISuggestionService suggestionService, IConfigReader configReader) => this.configReader = configReader;
+        public SystemEndPoint(IConfigReader configReader) => this.configReader = configReader;
 
         protected override async Task<(OwnPlayerInfo playerInfo, byte numRoundsToWinToGetReward)> GetStartupInfo(Guid clientID)
         {
             var playerInfo = await GrainFactory.GetGrain<IPlayer>(clientID).PerformStartupTasksAndGetInfo().UnwrapImmutable();
-            return (playerInfo, configReader.Config.NumRoundsToWinToGetReward);
+            return (playerInfo, configReader.Config.ConfigValues.NumRoundsToWinToGetReward);
         }
 
         protected override Task<string> TakeRewardForWinningRounds(Guid clientID) =>

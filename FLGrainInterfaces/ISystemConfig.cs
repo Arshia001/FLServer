@@ -43,9 +43,15 @@ namespace FLGrainInterfaces
     public class LevelConfig
     {
         public uint Level { get; private set; }
-        public RunnableExpression<uint> RequiredXP { get; set; }
+        public RunnableExpression<uint> RequiredXP { get; private set; }
 
         public uint GetRequiredXP(PlayerState playerState) => RequiredXP.Evaluate(this, ExpressionUtil.GetObjectWithName(playerState));
+    }
+
+    public class ConfigValues
+    {
+        public byte NumRoundsPerGame { get; private set; }
+        public byte NumRoundsToWinToGetReward { get; private set; }
     }
 
     public class ConfigData : ICloneable
@@ -55,7 +61,7 @@ namespace FLGrainInterfaces
 
         public List<LevelConfig> PlayerLevels { get; set; }
 
-        public byte NumRoundsToWinToGetReward { get; set; }
+        public ConfigValues ConfigValues { get; set; }
 
         [JsonIgnore]
         public int Version { get; set; }
@@ -73,7 +79,7 @@ namespace FLGrainInterfaces
 
         public IReadOnlyDictionary<uint, LevelConfig> PlayerLevels { get; }
 
-        public byte NumRoundsToWinToGetReward => data.NumRoundsToWinToGetReward;
+        public ConfigValues ConfigValues => data.ConfigValues;
 
 
         public int Version => data.Version;

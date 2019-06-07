@@ -7,6 +7,7 @@ namespace FLGameLogic
     public enum PlayWordResult
     {
         Success,
+        Duplicate,
         Error_TurnOver
     }
 

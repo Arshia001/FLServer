@@ -45,15 +45,29 @@ namespace FLGameLogic
             var category = categories[RoundNumber];
             var corrected = category.GetCorrectedWord(word);
             if (corrected == null)
-                return (PlayWordResult.Success, null, null, 0);
+            {
+                corrected = word;
+                getWordScoreDelegate = null;
+            }
 
-            var duplicate = playerAnswers[player][RoundNumber].Any(t => t.word == word);
-            if (duplicate)
-                return (PlayWordResult.Success, category, corrected, 0);
+            var score = await getWordScoreDelegate(category, corrected);
+            var notDuplicate = await RegisterPlayedWordInternal(player, corrected, category, getWordScoreDelegate);
+            return (notDuplicate ? PlayWordResult.Success : PlayWordResult.Duplicate, category, corrected, score);
+        }
 
-            var score = await getWordScoreDelegate(category, word);
-            RegisterPlayedWordInternal(player, word, score);
-            return (PlayWordResult.Success, category, corrected, score);
+        async Task<bool> RegisterPlayedWordInternal(int player, string word, WordCategory category, GetWordScoreDelegate getWordScoreDelegate)
+        {
+            if (!playerAnswers[player][RoundNumber].Any(w => w.word == word))
+            {
+                var score = getWordScoreDelegate == null ? (byte)0 : await getWordScoreDelegate(category, word);
+                playerAnswers[player][RoundNumber].Add(new WordScorePair(word, score));
+                if (score > 0)
+                    playerScores[player][RoundNumber] += score;
+
+                return true;
+            }
+
+            return false;
         }
 
         public void RestoreGameState(IEnumerable<WordCategory> categories, IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes)

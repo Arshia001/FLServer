@@ -40,7 +40,7 @@ contract WordScorePairDTO castfrom(FLGameLogic.WordScorePair)
 
 contract GameInfo
 {
-    OtherPlayerInfo: PlayerInfo;
+    OtherPlayerInfo: PlayerInfo?;
     NumRounds: u8;
     Categories: string[];
     MyWordsPlayed: WordScorePairDTO[][];
@@ -54,7 +54,7 @@ contract SimplifiedGameInfo
 {
     GameID: guid;
     GameState: GameState;
-    OtherPlayerName: string;
+    OtherPlayerName: string?;
     MyTurn: bool;
     MyScore: u8;
     TheirScore: u8;

@@ -68,20 +68,6 @@ namespace FLGameLogic
             return result;
         }
 
-        protected bool RegisterPlayedWordInternal(int player, string word, byte score)
-        {
-            if (!playerAnswers[player][RoundNumber].Any(w => w.word == word))
-            {
-                playerAnswers[player][RoundNumber].Add(new WordScorePair(word, score));
-                if (score > 0)
-                    playerScores[player][RoundNumber] += score;
-
-                return true;
-            }
-
-            return false;
-        }
-
         public void ForceEndTurn(int player)
         {
             var now = DateTime.Now;

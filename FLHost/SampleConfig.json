@@ -13,5 +13,8 @@
       "RequiredXP": "(player.Level - 2) * 50"
     }
   ],
-  "NumRoundsToWinToGetReward": 2
+  "ConfigValues": {
+    "NumRoundsPerGame": 1,
+    "NumRoundsToWinToGetReward": 2
+  }
 }

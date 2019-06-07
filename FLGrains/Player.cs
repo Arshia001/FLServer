@@ -88,7 +88,7 @@ namespace FLGrains
 
         public Task<string> TakeRewardForWinningRounds()
         {
-            if (State.NumRoundsWonForReward < configReader.Config.NumRoundsToWinToGetReward)
+            if (State.NumRoundsWonForReward < configReader.Config.ConfigValues.NumRoundsToWinToGetReward)
                 throw new VerbatimException("Reward not ready to take yet");
 
             State.NumRoundsWonForReward = 0;

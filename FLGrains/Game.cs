@@ -77,7 +77,7 @@ namespace FLGrains
             var randomIndices = new HashSet<int>();
             var random = new Random();
 
-            while (randomIndices.Count < 3) //?? number of rounds as config
+            while (randomIndices.Count < configReader.Config.ConfigValues.NumRoundsPerGame)
                 randomIndices.Add(random.Next(config.CategoriesAsGameLogicFormat.Count));
 
             var categories = randomIndices.Select(i => config.CategoriesAsGameLogicFormat[i]);
@@ -171,7 +171,7 @@ namespace FLGrains
 
             var result = await gameLogic.PlayWord(index, word, (c, w) => GetWordScore(gameLogic.RoundNumber, index, c, w));
 
-            if (result.corrected != null && result.category != null && result.score > 0)
+            if (result.result != PlayWordResult.Duplicate)
                 GrainFactory.GetGrain<IWordUsageAggregationWorker>(result.category.CategoryName).AddDelta(result.corrected).Ignore();
 
             return (result.score, result.corrected);
@@ -233,7 +233,7 @@ namespace FLGrains
 
             var result = new GameInfo
             {
-                OtherPlayerInfo = await PlayerInfoUtil.GetForPlayerID(GrainFactory, State.PlayerIDs[1 - index]),
+                OtherPlayerInfo = State.PlayerIDs[1 - index] == Guid.Empty ? null : await PlayerInfoUtil.GetForPlayerID(GrainFactory, State.PlayerIDs[1 - index]),
                 NumRounds = (byte)gameLogic.Categories.Count,
                 Categories = State.CategoryNames.Take(turnsTakenInclCurrent).ToList(),
                 MyWordsPlayed = gameLogic.GetPlayerAnswers(index).Take(turnsTakenInclCurrent).Select(ws => ws.Select(w => (WordScorePairDTO)w).ToList()).ToList(),
@@ -255,7 +255,7 @@ namespace FLGrains
             {
                 GameID = this.GetPrimaryKey(),
                 GameState = GetStateInternal(),
-                OtherPlayerName = (await PlayerInfoUtil.GetForPlayerID(GrainFactory, State.PlayerIDs[1 - index])).Name,
+                OtherPlayerName = State.PlayerIDs[1 - index] == Guid.Empty ? null : (await PlayerInfoUtil.GetForPlayerID(GrainFactory, State.PlayerIDs[1 - index])).Name,
                 MyTurn = gameLogic.Turn == index,
                 MyScore = gameLogic.GetNumRoundsWon(index),
                 TheirScore = gameLogic.GetNumRoundsWon(1 - index)
