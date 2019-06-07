@@ -59,7 +59,7 @@ namespace FLGrainInterfaces.Util
             if (value.Type == Jint.Runtime.Types.None || value.Type == Jint.Runtime.Types.Undefined || value.Type == Jint.Runtime.Types.Null)
                 return default;
 
-            return JsonConvert.DeserializeObject<T>(value.ToString());
+            return JsonConvert.DeserializeObject<T>(value.ToString()); //!! is this a performance-friendly thing to do?
         }
 
         public T Evaluate(object self, params (string name, object value)[] predefinedObjects)

@@ -37,25 +37,25 @@ namespace FLGameLogic
             return result;
         }
 
-        public async Task<(PlayWordResult result, WordCategory category, string corrected, byte score)> PlayWord(int player, string word, GetWordScoreDelegate getWordScoreDelegate)
+        public async Task<(PlayWordResult result, WordCategory category, string corrected, byte score)>
+            PlayWord(int player, string word, GetWordScoreDelegate getWordScoreDelegate, Func<int, int> getMaxEditDistance)
         {
             if (turnEndTimes[player] < DateTime.Now)
                 return (PlayWordResult.Error_TurnOver, null, null, 0);
 
             var category = categories[RoundNumber];
-            var corrected = category.GetCorrectedWord(word);
+            var corrected = category.GetCorrectedWord(word, getMaxEditDistance);
             if (corrected == null)
             {
                 corrected = word;
                 getWordScoreDelegate = null;
             }
 
-            var score = await getWordScoreDelegate(category, corrected);
-            var notDuplicate = await RegisterPlayedWordInternal(player, corrected, category, getWordScoreDelegate);
+            var (notDuplicate, score) = await RegisterPlayedWordInternal(player, corrected, category, getWordScoreDelegate);
             return (notDuplicate ? PlayWordResult.Success : PlayWordResult.Duplicate, category, corrected, score);
         }
 
-        async Task<bool> RegisterPlayedWordInternal(int player, string word, WordCategory category, GetWordScoreDelegate getWordScoreDelegate)
+        async Task<(bool notDuplicate, byte score)> RegisterPlayedWordInternal(int player, string word, WordCategory category, GetWordScoreDelegate getWordScoreDelegate)
         {
             if (!playerAnswers[player][RoundNumber].Any(w => w.word == word))
             {
@@ -64,10 +64,10 @@ namespace FLGameLogic
                 if (score > 0)
                     playerScores[player][RoundNumber] += score;
 
-                return true;
+                return (true, score);
             }
 
-            return false;
+            return (false, 0);
         }
 
         public void RestoreGameState(IEnumerable<WordCategory> categories, IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes)

@@ -24,6 +24,10 @@ namespace FLGrains
                 State.Level = 1;
             }
 
+            //??
+            State.LastRoundWinRewardTakeTime = DateTime.Now;
+            State.NumRoundsWonForReward = 2;
+
             return GetOwnPlayerInfo();
         }
 
@@ -33,15 +37,21 @@ namespace FLGrains
 
         string GetName() => State.Name ?? $"Guest{this.GetPrimaryKey().ToString().Substring(0, 8)}";
 
-        public Task<Immutable<OwnPlayerInfo>> GetOwnPlayerInfo() =>
-            Task.FromResult(new OwnPlayerInfo
+        public Task<Immutable<OwnPlayerInfo>> GetOwnPlayerInfo()
+        {
+            var config = configReader.Config;
+            var timeTillNextReward = config.ConfigValues.RoundWinRewardInterval - (DateTime.Now - State.LastRoundWinRewardTakeTime);
+
+            return Task.FromResult(new OwnPlayerInfo
             {
                 Name = GetName(),
                 Level = State.Level,
                 XP = State.XP,
-                NextLevelXPThreshold = GetNextLevelRequiredXP(configReader.Config),
-                CurrentNumRoundsWonForReward = State.NumRoundsWonForReward
+                NextLevelXPThreshold = GetNextLevelRequiredXP(config),
+                CurrentNumRoundsWonForReward = State.NumRoundsWonForReward,
+                NextRoundWinRewardTimeRemaining = new TimeSpan(Math.Max(0L, timeTillNextReward.Ticks))
             }.AsImmutable());
+        }
 
         PlayerInfo GetPlayerInfoImpl() => new PlayerInfo { ID = this.GetPrimaryKey(), Name = GetName() }; //?? other info
 
@@ -86,13 +96,22 @@ namespace FLGrains
             return GrainFactory.GetGrain<ISystemEndPoint>(0).SendNumRoundsWonForRewardUpdated(this.GetPrimaryKey(), State.NumRoundsWonForReward);
         }
 
-        public Task<string> TakeRewardForWinningRounds()
+        public Task<(ulong totalGold, TimeSpan nextRewardTime)> TakeRewardForWinningRounds()
         {
+            var configValues = configReader.Config.ConfigValues;
+
+            if (DateTime.Now - State.LastRoundWinRewardTakeTime < configValues.RoundWinRewardInterval)
+                throw new VerbatimException("Interval not elapsed yet");
+
             if (State.NumRoundsWonForReward < configReader.Config.ConfigValues.NumRoundsToWinToGetReward)
-                throw new VerbatimException("Reward not ready to take yet");
+                throw new VerbatimException("Insufficient rounds won");
 
             State.NumRoundsWonForReward = 0;
-            return Task.FromResult("Congrats, you win -.-");
+            State.LastRoundWinRewardTakeTime = DateTime.Now;
+
+            //?? State.Funds += ....
+
+            return Task.FromResult(((ulong)configValues.NumGoldRewardForWinningRounds, configValues.RoundWinRewardInterval)); //??
         }
     }
 }

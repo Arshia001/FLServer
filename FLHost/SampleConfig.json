@@ -13,8 +13,13 @@
       "RequiredXP": "(player.Level - 2) * 50"
     }
   ],
+  "EditDistanceConfig": {
+    "MaxDistanceToCorrectByLetterCount": "Math.floor(letterCount / 3)"
+  },
   "ConfigValues": {
     "NumRoundsPerGame": 1,
-    "NumRoundsToWinToGetReward": 2
+    "NumRoundsToWinToGetReward": 2,
+    "RoundWinRewardInterval": "00:00:10",
+    "NumGoldRewardForWinningRounds": 10
   }
 }

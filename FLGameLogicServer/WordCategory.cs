@@ -44,13 +44,13 @@ namespace FLGameLogic
             }
         }
 
-        public string GetCorrectedWord(string word)
+        public string GetCorrectedWord(string word, Func<int, int> getMaxEditDistance)
         {
             if (entries.TryGetValue(word, out var entry))
                 return entry.CorrectedWord ?? entry.Word;
 
             foreach (var kv in entries)
-                if (Utility.EditDistanceLessThan(word, kv.Key, 2)) //?? max distance as parameter
+                if (EditDistance.IsLessThan(word, kv.Key, getMaxEditDistance(Math.Min(word.Length, kv.Key.Length))))
                     return kv.Value.CorrectedWord ?? kv.Value.Word;
 
             return null;

@@ -53,15 +53,16 @@ namespace FLGrainInterfaces
         public uint Level { get; set; }
         public uint NextLevelXPThreshold { get; set; }
         public uint CurrentNumRoundsWonForReward { get; set; }
+        public System.TimeSpan NextRoundWinRewardTimeRemaining { get; set; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.UInt(XP), LightMessage.Common.Messages.Param.UInt(Level), LightMessage.Common.Messages.Param.UInt(NextLevelXPThreshold), LightMessage.Common.Messages.Param.UInt(CurrentNumRoundsWonForReward));
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.UInt(XP), LightMessage.Common.Messages.Param.UInt(Level), LightMessage.Common.Messages.Param.UInt(NextLevelXPThreshold), LightMessage.Common.Messages.Param.UInt(CurrentNumRoundsWonForReward), LightMessage.Common.Messages.Param.TimeSpan(NextRoundWinRewardTimeRemaining));
 
         public static OwnPlayerInfo FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new OwnPlayerInfo { Name = array[0].AsString, XP = (uint)array[1].AsUInt.Value, Level = (uint)array[2].AsUInt.Value, NextLevelXPThreshold = (uint)array[3].AsUInt.Value, CurrentNumRoundsWonForReward = (uint)array[4].AsUInt.Value };
+            return new OwnPlayerInfo { Name = array[0].AsString, XP = (uint)array[1].AsUInt.Value, Level = (uint)array[2].AsUInt.Value, NextLevelXPThreshold = (uint)array[3].AsUInt.Value, CurrentNumRoundsWonForReward = (uint)array[4].AsUInt.Value, NextRoundWinRewardTimeRemaining = array[5].AsTimeSpan.Value };
         }
     }
 

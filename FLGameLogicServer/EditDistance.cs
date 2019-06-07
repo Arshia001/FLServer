@@ -4,9 +4,9 @@ using System.Text;
 
 namespace FLGameLogic
 {
-    public class Utility
+    public static class EditDistance
     {
-        public static bool EditDistanceLessThan(string word1, string word2, int maxDistance)
+        public static bool IsLessThan(string word1, string word2, int maxDistance)
         {
             string smaller, longer;
             if (word1.Length < word2.Length)

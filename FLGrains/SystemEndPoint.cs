@@ -25,7 +25,7 @@ namespace FLGrains
             return (playerInfo, configReader.Config.ConfigValues.NumRoundsToWinToGetReward);
         }
 
-        protected override Task<string> TakeRewardForWinningRounds(Guid clientID) =>
+        protected override Task<(ulong totalGold, TimeSpan timeUntilNextReward)> TakeRewardForWinningRounds(Guid clientID) =>
             GrainFactory.GetGrain<IPlayer>(clientID).TakeRewardForWinningRounds();
     }
 }

@@ -168,8 +168,9 @@ namespace FLGrains
         public async Task<(byte wordScore, string corrected)> PlayWord(Guid id, string word)
         {
             var index = Index(id);
+            var maxEditDistances = configReader.Config.MaxEditDistanceToCorrentByLetterCount;
 
-            var result = await gameLogic.PlayWord(index, word, (c, w) => GetWordScore(gameLogic.RoundNumber, index, c, w));
+            var result = await gameLogic.PlayWord(index, word, (c, w) => GetWordScore(gameLogic.RoundNumber, index, c, w), i => maxEditDistances[i]);
 
             if (result.result != PlayWordResult.Duplicate)
                 GrainFactory.GetGrain<IWordUsageAggregationWorker>(result.category.CategoryName).AddDelta(result.corrected).Ignore();

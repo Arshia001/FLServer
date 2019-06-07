@@ -48,18 +48,31 @@ namespace FLGrainInterfaces
         public uint GetRequiredXP(PlayerState playerState) => RequiredXP.Evaluate(this, ExpressionUtil.GetObjectWithName(playerState));
     }
 
+    public class EditDistanceConfig
+    {
+        public RunnableExpression<byte> MaxDistanceToCorrectByLetterCount { get; private set; }
+
+        public byte GetMaxDistanceToCorrectByLetterCount(int letterCount) =>
+            MaxDistanceToCorrectByLetterCount.Evaluate(null, new[] { ("letterCount", (object)letterCount) });
+    }
+
     public class ConfigValues
     {
         public byte NumRoundsPerGame { get; private set; }
+
         public byte NumRoundsToWinToGetReward { get; private set; }
+        public TimeSpan RoundWinRewardInterval { get; private set; }
+        public uint NumGoldRewardForWinningRounds { get; private set; }
     }
 
     public class ConfigData : ICloneable
     {
         [JsonIgnore]
-        public List<CategoryConfig> Categories { get; set; } //?? move out of config and into a separate database table: category_name text, category_words map<text, set<text>>
+        public List<CategoryConfig> Categories { get; set; }
 
         public List<LevelConfig> PlayerLevels { get; set; }
+
+        public EditDistanceConfig EditDistanceConfig { get; set; }
 
         public ConfigValues ConfigValues { get; set; }
 
@@ -79,6 +92,8 @@ namespace FLGrainInterfaces
 
         public IReadOnlyDictionary<uint, LevelConfig> PlayerLevels { get; }
 
+        public IReadOnlyList<byte> MaxEditDistanceToCorrentByLetterCount { get; }
+
         public ConfigValues ConfigValues => data.ConfigValues;
 
 
@@ -96,6 +111,8 @@ namespace FLGrainInterfaces
             CategoriesByName = CategoriesAsGameLogicFormat.ToDictionary(c => c.CategoryName);
 
             PlayerLevels = data.PlayerLevels.ToDictionary(l => l.Level);
+
+            MaxEditDistanceToCorrentByLetterCount = Enumerable.Range(0, 100).Select(i => data.EditDistanceConfig.GetMaxDistanceToCorrectByLetterCount(i)).ToList();
         }
     }
 

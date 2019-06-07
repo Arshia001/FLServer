@@ -18,14 +18,14 @@ namespace FLGrains
             return Success(result.playerInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.UInt(result.numRoundsToWinToGetReward));
         }
 
-        protected abstract System.Threading.Tasks.Task<string> TakeRewardForWinningRounds(System.Guid clientID);
+        protected abstract System.Threading.Tasks.Task<(ulong totalGold, System.TimeSpan timeUntilNextReward)> TakeRewardForWinningRounds(System.Guid clientID);
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("trwr")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_TakeRewardForWinningRounds(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
             var result = await TakeRewardForWinningRounds(input.ClientID);
-            return Success(LightMessage.Common.Messages.Param.String(result));
+            return Success(LightMessage.Common.Messages.Param.UInt(result.totalGold), LightMessage.Common.Messages.Param.TimeSpan(result.timeUntilNextReward));
         }
     }
 
