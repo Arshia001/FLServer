@@ -20,6 +20,9 @@
     "NumRoundsPerGame": 1,
     "NumRoundsToWinToGetReward": 2,
     "RoundWinRewardInterval": "00:00:10",
-    "NumGoldRewardForWinningRounds": 10
+    "NumGoldRewardForWinningRounds": 10,
+    "WinDeltaScore": 10,
+    "DrawDeltaScore": 3,
+    "LossDeltaScore": -4
   }
 }

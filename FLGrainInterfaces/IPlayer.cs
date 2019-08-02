@@ -39,6 +39,9 @@ namespace FLGrainInterfaces
         [Id(5)]
         public DateTime LastRoundWinRewardTakeTime { get; set; }
 
+        [Id(6)]
+        public uint Score { get; set; }
+
         public void OnDeserialized()
         {
             if (MyGames == null)
@@ -57,7 +60,8 @@ namespace FLGrainInterfaces
         Task<Immutable<IReadOnlyList<IGame>>> GetGames();
         Task<byte> JoinGameAsFirstPlayer(IGame game);
         Task<(Guid opponentID, byte numRounds)> JoinGameAsSecondPlayer(IGame game);
-        Task OnRoundWon();
+        Task OnRoundWon(IGame game);
+        Task<(uint score, uint rank)> OnGameResult(IGame game, Guid? winnerID);
 
         Task<(ulong totalGold, TimeSpan nextRewardTime)> TakeRewardForWinningRounds();
     }

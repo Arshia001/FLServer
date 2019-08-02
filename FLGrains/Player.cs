@@ -37,43 +37,46 @@ namespace FLGrains
 
         string GetName() => State.Name ?? $"Guest{this.GetPrimaryKey().ToString().Substring(0, 8)}";
 
-        public Task<Immutable<OwnPlayerInfo>> GetOwnPlayerInfo()
+        public async Task<Immutable<OwnPlayerInfo>> GetOwnPlayerInfo()
         {
             var config = configReader.Config;
             var timeTillNextReward = config.ConfigValues.RoundWinRewardInterval - (DateTime.Now - State.LastRoundWinRewardTakeTime);
 
-            return Task.FromResult(new OwnPlayerInfo
+            return new OwnPlayerInfo
             {
                 Name = GetName(),
                 Level = State.Level,
                 XP = State.XP,
                 NextLevelXPThreshold = GetNextLevelRequiredXP(config),
                 CurrentNumRoundsWonForReward = State.NumRoundsWonForReward,
-                NextRoundWinRewardTimeRemaining = new TimeSpan(Math.Max(0L, timeTillNextReward.Ticks))
-            }.AsImmutable());
+                NextRoundWinRewardTimeRemaining = new TimeSpan(Math.Max(0L, timeTillNextReward.Ticks)),
+                Score = State.Score,
+                Rank = (uint)await LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).GetRank(this.GetPrimaryKey())
+            }.AsImmutable();
         }
 
         PlayerInfo GetPlayerInfoImpl() => new PlayerInfo { ID = this.GetPrimaryKey(), Name = GetName() }; //?? other info
 
-        LevelConfig GetLevelConfig(ReadOnlyConfigData config)
-        {
-            if (!config.PlayerLevels.TryGetValue(State.Level, out var result))
-                return config.PlayerLevels[0];
-            return result;
-        }
+        LevelConfig GetLevelConfig(ReadOnlyConfigData config) =>
+            config.PlayerLevels.TryGetValue(State.Level, out var result) ? result : config.PlayerLevels[0];
 
         uint GetNextLevelRequiredXP(ReadOnlyConfigData config) => GetLevelConfig(config).GetRequiredXP(State);
 
-        void AddXP(uint amount) //?? notify client here or otherwise
+        Task AddXP(uint delta) //?? notify client here or otherwise
         {
+            if (delta == 0)
+                return Task.CompletedTask;
+
             var reqXP = GetNextLevelRequiredXP(configReader.Config);
 
-            State.XP += amount;
+            State.XP += delta;
             if (State.XP >= reqXP)
             {
                 ++State.Level;
                 State.XP -= reqXP;
             }
+
+            return LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.XP).AddDelta(this.GetPrimaryKey(), delta);
         }
 
         public async Task<byte> JoinGameAsFirstPlayer(IGame game)
@@ -90,10 +93,42 @@ namespace FLGrains
             return result;
         }
 
-        public Task OnRoundWon()
+        public Task OnRoundWon(IGame game)
         {
+            //?? convert MyGames to a HashSet? Would mess with ordering, but we probably need custom ordering based on time of last interaction anyway
+            if (!State.MyGames.Contains(game))
+                return Task.CompletedTask;
+
             ++State.NumRoundsWonForReward;
             return GrainFactory.GetGrain<ISystemEndPoint>(0).SendNumRoundsWonForRewardUpdated(this.GetPrimaryKey(), State.NumRoundsWonForReward);
+        }
+
+        Task<ulong> AddScore(int delta)
+        {
+            var lb = LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score);
+
+            if (delta == 0)
+                return lb.GetRank(this.GetPrimaryKey());
+
+            State.Score = (uint)Math.Max(0, State.Score + delta);
+            return lb.SetAndGetRank(this.GetPrimaryKey(), State.Score);
+        }
+            
+
+        public async Task<(uint score, uint rank)> OnGameResult(IGame game, Guid? winnerID)
+        {
+            //?? gold rewards?
+
+            ulong rank;
+
+            if (!winnerID.HasValue)
+                rank = await AddScore(configReader.Config.ConfigValues.DrawDeltaScore);
+            else if (winnerID.Value == this.GetPrimaryKey())
+                rank = await AddScore(configReader.Config.ConfigValues.WinDeltaScore);
+            else
+                rank = await AddScore(configReader.Config.ConfigValues.LossDeltaScore);
+
+            return (State.Score, (uint)rank);
         }
 
         public Task<(ulong totalGold, TimeSpan nextRewardTime)> TakeRewardForWinningRounds()

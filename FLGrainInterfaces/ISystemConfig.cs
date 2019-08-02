@@ -63,6 +63,10 @@ namespace FLGrainInterfaces
         public byte NumRoundsToWinToGetReward { get; private set; }
         public TimeSpan RoundWinRewardInterval { get; private set; }
         public uint NumGoldRewardForWinningRounds { get; private set; }
+
+        public int WinDeltaScore { get; private set; }
+        public int LossDeltaScore { get; private set; }
+        public int DrawDeltaScore { get; private set; }
     }
 
     public class ConfigData : ICloneable

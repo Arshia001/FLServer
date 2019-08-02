@@ -146,19 +146,24 @@ namespace FLGrains
                 var score0 = gameLogic.GetPlayerScores(0)[roundIndex];
                 var score1 = gameLogic.GetPlayerScores(1)[roundIndex];
                 if (score0 > score1)
-                    await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[0]).OnRoundWon();
+                    await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[0]).OnRoundWon(this.AsReference<IGame>());
                 else if (score1 > score0)
-                    await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[1]).OnRoundWon();
+                    await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[1]).OnRoundWon(this.AsReference<IGame>());
             }
 
             if (gameLogic.Finished)
             {
                 var wins0 = gameLogic.GetNumRoundsWon(0);
                 var wins1 = gameLogic.GetNumRoundsWon(1);
-                await Task.WhenAll(GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(State.PlayerIDs[0], myID, wins0, wins1),
-                    GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(State.PlayerIDs[1], myID, wins1, wins0));
 
-                //?? rewards, etc.?
+                var winner = wins0 > wins1 ? State.PlayerIDs[0] : wins1 > wins0 ? State.PlayerIDs[1] : default(Guid?);
+
+                var me = this.AsReference<IGame>();
+                var (score0, rank0) = await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[0]).OnGameResult(me, winner);
+                var (score1, rank1) = await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[1]).OnGameResult(me, winner);
+
+                await Task.WhenAll(GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(State.PlayerIDs[0], myID, wins0, wins1, score0, rank0),
+                    GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(State.PlayerIDs[1], myID, wins1, wins0, score1, rank1));
 
                 // await ClearStateAsync(); // keep game history (separately)
                 DeactivateOnIdle();

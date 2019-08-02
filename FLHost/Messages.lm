@@ -16,6 +16,12 @@ enum GameState
     Finished
 }
 
+enum LeaderBoardSubject
+{
+	Score,
+	XP
+}
+
 contract PlayerInfo
 {
 	ID: guid;
@@ -28,6 +34,8 @@ contract OwnPlayerInfo
 	XP: u32;
 	Level: u32;
 	NextLevelXPThreshold: u32;
+	Score: u32;
+	Rank: u32;
 	CurrentNumRoundsWonForReward: u32;
 	NextRoundWinRewardTimeRemaining: timespan;
 }
@@ -130,6 +138,8 @@ endpoint Game gm
 		gameID: guid;
 		myScore: u32;
 		theirScore: u32;
+		myPlayerScore: u32;
+		myPlayerRank: u32;
 	}
 
 	request NewGame new

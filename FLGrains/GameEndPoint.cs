@@ -107,10 +107,10 @@ namespace FLGrains
             ));
 
 
-        public override async Task SendGameEnded(Guid clientID, Guid gameID, uint myScore, uint theirScore)
+        public override async Task SendGameEnded(Guid clientID, Guid gameID, uint myScore, uint theirScore, uint myPlayerScore, uint myRank)
         {
             if (await IsConnected(clientID))
-                await base.SendGameEnded(clientID, gameID, myScore, theirScore);
+                await base.SendGameEnded(clientID, gameID, myScore, theirScore, myPlayerScore, myRank);
             else
                 SendPush();
         }
