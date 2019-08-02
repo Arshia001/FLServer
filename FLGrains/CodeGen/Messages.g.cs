@@ -144,6 +144,7 @@ namespace FLGrains
             return host.Start(grainFactory, ipEndPoint, OnClientAuthRequest, logProvider);
         }
 
+        public void Stop() => host.Stop();
         System.Threading.Tasks.Task<System.Guid?> OnClientAuthRequest(LightMessage.Common.ProtocolMessages.AuthRequestMessage message) => onClientAuthCallback(message.Params[0].AsGuid);
     }
 }

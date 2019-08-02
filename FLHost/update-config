@@ -1,4 +1,4 @@
-﻿#!/bin/sh
+#!/usr/bin/env bash
 
 echo "update fl_server_dev.fl_config set data = '" > __temp.cql
 cat $1 >> __temp.cql
