@@ -58,7 +58,7 @@ namespace FLGrains
             if (State.CategoryNames != null && State.CategoryNames.Length > 0)
             {
                 var config = configReader.Config;
-                gameLogic = new GameLogicServer(State.CategoryNames.Select(n => config.CategoriesByName[n])); //?? restore game state from grain state
+                gameLogic = new GameLogicServer(State.CategoryNames.Select(n => config.CategoriesAsGameLogicFormatByName[n])); //?? restore game state from grain state
             }
 
             DelayDeactivation(TimeSpan.FromDays(20)); //?? store state in DB -.-

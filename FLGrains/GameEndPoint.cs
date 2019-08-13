@@ -98,7 +98,7 @@ namespace FLGrains
         }
 
         protected override async Task<IEnumerable<WordScorePairDTO>> GetAnswers(Guid clientID, string category) =>
-            await Task.WhenAll(configReader.Config.CategoriesByName[category].Answers.Select(
+            await Task.WhenAll(configReader.Config.CategoriesAsGameLogicFormatByName[category].Answers.Select(
                 async s => new WordScorePairDTO
                 {
                     Word = s,
