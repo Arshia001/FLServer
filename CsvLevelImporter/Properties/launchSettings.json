@@ -2,7 +2,7 @@
   "profiles": {
     "CsvLevelImporter": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\Users\\Arshi\\Desktop\\categories.csv\" \"D:\\categories.csv\""
+      "commandLineArgs": "folderToCassandra \"C:\\Users\\arshi\\Documents\\Visual Studio 2017\\Projects\\FLServer\\Words\\Files\" \"C:\\Users\\arshi\\Documents\\Visual Studio 2017\\Projects\\FLServer\\Words\\Output\""
     }
   }
 }

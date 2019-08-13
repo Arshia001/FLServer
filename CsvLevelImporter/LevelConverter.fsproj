@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="CsvLevelImporter.fs" />
+    <Compile Include="LevelConverter.fs" />
   </ItemGroup>
 
   <ItemGroup>

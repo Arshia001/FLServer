@@ -16,6 +16,18 @@ namespace FLGrainInterfaces
         public static (string, object) GetObjectWithName(PlayerState playerState) => ("player", playerState);
     }
 
+    public class GroupConfig
+    {
+        public int ID { get; }
+        public string Name { get; }
+
+        public GroupConfig(int id, string name)
+        {
+            ID = id;
+            Name = name;
+        }
+    }
+
     public class CategoryConfig
     {
         public class Entry
@@ -32,11 +44,13 @@ namespace FLGrainInterfaces
 
         public string Name { get; }
         public IReadOnlyList<Entry> Words { get; }
+        public GroupConfig Group { get; }
 
-        public CategoryConfig(string name, IEnumerable<Entry> words)
+        public CategoryConfig(string name, IEnumerable<Entry> words, GroupConfig group)
         {
             Name = name;
             Words = words.ToList();
+            Group = group;
         }
     }
 
@@ -71,6 +85,9 @@ namespace FLGrainInterfaces
 
     public class ConfigData : ICloneable
     {
+        [JsonIgnore]
+        public List<GroupConfig> Groups { get; set; }
+
         [JsonIgnore]
         public List<CategoryConfig> Categories { get; set; }
 

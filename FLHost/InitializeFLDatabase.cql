@@ -5,8 +5,37 @@
 	PRIMARY KEY (key)
 );
 
+insert into queries(key, consistency_level, text) values 
+(
+	'fl_readConfig','all','
+	SELECT
+		*
+	FROM fl_config
+	WHERE
+		key = 0;
+');
+
+CREATE TABLE IF NOT EXISTS fl_groups (
+	id int,
+	name text,
+
+	PRIMARY KEY (id)
+) WITH compression = {
+	'class' : 'LZ4Compressor',
+	'enabled' : true
+};
+
+insert into queries(key, consistency_level, text) values 
+(
+	'fl_readGroups','all','
+	SELECT
+		*
+	FROM fl_groups;
+');
+
 CREATE TABLE IF NOT EXISTS fl_categories (
 	name text,
+	group_id int,
 	words map<text, frozen<set<text>>>,
 
 	PRIMARY KEY (name)
@@ -14,6 +43,14 @@ CREATE TABLE IF NOT EXISTS fl_categories (
 	'class' : 'LZ4Compressor',
 	'enabled' : true
 };
+
+insert into queries(key, consistency_level, text) values 
+(
+	'fl_readCategories','all','
+	SELECT
+		*
+	FROM fl_categories;
+');
 
 CREATE TABLE IF NOT EXISTS fl_suggested_categories ( // User-suggested categories
 	owner_id uuid,

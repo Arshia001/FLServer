@@ -63,12 +63,9 @@ namespace FLGrains
         //?? validate
         static ConfigData ParseConfigData(string data) => JsonConvert.DeserializeObject<ConfigData>(data, PrivateAccessorContractResolver.SerializerSettings);
 
-        static async Task<ConfigData> ReadConfigDataFromDatabase(ISession session)
+        static async Task<ConfigData> ReadConfigDataFromDatabase(ISession session, Queries queries)
         {
-            var rows = await session.ExecuteAsync(
-                new SimpleStatement("select data from fl_config where key = 0")
-                .SetConsistencyLevel(ConsistencyLevel.All)
-                );
+            var rows = await session.ExecuteAsync(queries["fl_readConfig"].Bind());
             var data = Convert.ToString(rows.FirstOrDefault()?["data"]);
 
             if (!string.IsNullOrEmpty(data))
@@ -77,17 +74,31 @@ namespace FLGrains
                 return new ConfigData();
         }
 
+        static async Task<List<GroupConfig>> ReadGroupsFromDatabase(ISession session, Queries queries)
+        {
+            var rows = await session.ExecuteAsync(queries["fl_readGroups"].Bind());
+
+            var result = new List<GroupConfig>();
+
+            foreach (var row in rows)
+                result.Add(new GroupConfig(
+                    Convert.ToInt32(row["id"]),
+                    Convert.ToString(row["name"])
+                    ));
+
+            return result;
+        }
+
         //?? This is not the greatest idea. We should be able to push incremental updates to silos,
         //   since this data is likely to be some hundreds of megabytes. Each silo could read from
         //   the database (not likely to change anything), and we should be able to push *incremental*
         //   updates to silos when something changes. We could have a version, and expect to receive
         //   sequential versions on the silos, asking for all the data if it goes out of sync.
-        static async Task<List<CategoryConfig>> ReadCategoriesFromDatabase(ISession session)
+        static async Task<List<CategoryConfig>> ReadCategoriesFromDatabase(ISession session, Queries queries, IEnumerable<GroupConfig> groups)
         {
-            var rows = await session.ExecuteAsync(
-                new SimpleStatement("select * from fl_categories")
-                .SetConsistencyLevel(ConsistencyLevel.All)
-                );
+            var groupsByID = groups.ToDictionary(g => g.ID);
+
+            var rows = await session.ExecuteAsync(queries["fl_readCategories"].Bind());
 
             var result = new List<CategoryConfig>();
 
@@ -95,7 +106,8 @@ namespace FLGrains
                 result.Add(new CategoryConfig(
                     Convert.ToString(row["name"]),
                     ((IDictionary<string, IEnumerable<string>>)row["words"])
-                        .Select(kv => new CategoryConfig.Entry(kv.Key, kv.Value))
+                        .Select(kv => new CategoryConfig.Entry(kv.Key, kv.Value)),
+                    groupsByID[Convert.ToInt32(row["group_id"])]
                     ));
 
             return result;
@@ -105,9 +117,11 @@ namespace FLGrains
         {
             var connectionString = connectionStringProvider.ConnectionString;
             var session = await CassandraSessionFactory.CreateSession(connectionString);
+            var queries = await Queries.CreateInstance(session);
 
-            var newData = await ReadConfigDataFromDatabase(session);
-            newData.Categories = await ReadCategoriesFromDatabase(session);
+            var newData = await ReadConfigDataFromDatabase(session, queries);
+            newData.Groups = await ReadGroupsFromDatabase(session, queries);
+            newData.Categories = await ReadCategoriesFromDatabase(session, queries, newData.Groups);
 
             SetNewData(newData);
         }
