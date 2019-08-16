@@ -200,6 +200,31 @@ endpoint Game gm
 		}
 	}
 
+	request IncreaseRoundTime irt via Player(clientid).IncreaseRoundTime(gameID)
+	{
+		{
+			gameID: guid;
+		}
+		->
+		{
+			gold: u64?;
+			remainingTime: timespan?;
+		}
+	}
+
+	request RevealWord rvw via Player(clientid).RevealWord(gameID)
+	{
+		{
+			gameID: guid;
+		}
+		->
+		{
+			gold: u64?;
+			word: string?;
+			wordScore: u8?;
+		}
+	}
+
 	request EndRound endr
 	{
 		{

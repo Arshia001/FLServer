@@ -1,8 +1,12 @@
-﻿Powerups -> time, reveal word
-Infinite play / active game limit
+﻿CLIENT Manually choosing groups
+CLIENT Powerups -> time, reveal word
+CLIENT Money
+CLIENT active game limit
+Infinite play
 Interesting/Uninteresting
 Refresh groups with money
-Money?!
+Matchmaking
+Game inactivity timeout
 Statistics
 Friendship
 Chat

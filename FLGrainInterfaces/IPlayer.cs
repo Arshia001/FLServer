@@ -22,7 +22,7 @@ namespace FLGrainInterfaces
     public class PlayerState : IOnDeserializedHandler
     {
         [Id(0)]
-        public List<IGame> MyGames { get; set; }
+        public List<IGame> ActiveGames { get; set; }
 
         [Id(1)]
         public string Name { get; set; }
@@ -42,10 +42,18 @@ namespace FLGrainInterfaces
         [Id(6)]
         public uint Score { get; set; }
 
+        [Id(7)]
+        public ulong Gold { get; set; }
+
+        [Id(8)]
+        public List<IGame> PastGames { get; set; }
+
         public void OnDeserialized()
         {
-            if (MyGames == null)
-                MyGames = new List<IGame>();
+            if (ActiveGames == null)
+                ActiveGames = new List<IGame>();
+            if (PastGames == null)
+                PastGames = new List<IGame>();
         }
     }
 
@@ -58,10 +66,14 @@ namespace FLGrainInterfaces
         Task<Immutable<OwnPlayerInfo>> GetOwnPlayerInfo();
 
         Task<Immutable<IReadOnlyList<IGame>>> GetGames();
+        Task<bool> CanEnterGame();
         Task<byte> JoinGameAsFirstPlayer(IGame game);
         Task<(Guid opponentID, byte numRounds)> JoinGameAsSecondPlayer(IGame game);
         Task OnRoundWon(IGame game);
         Task<(uint score, uint rank)> OnGameResult(IGame game, Guid? winnerID);
+
+        Task<(ulong? gold, TimeSpan? remainingTime)> IncreaseRoundTime(Guid gameID);
+        Task<(ulong? gold, string word, byte? wordScore)> RevealWord(Guid gameID);
 
         Task<(ulong totalGold, TimeSpan nextRewardTime)> TakeRewardForWinningRounds();
     }

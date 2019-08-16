@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace FLGameLogic
@@ -20,12 +21,11 @@ namespace FLGameLogic
     public class WordCategory
     {
         Dictionary<string, WordEntry> entries;
-        HashSet<string> answers;
 
 
         public string CategoryName { get; private set; }
 
-        public IEnumerable<string> Answers => answers;
+        public IReadOnlyList<string> Answers { get; }
 
 
         public WordCategory(string categoryName, Dictionary<string, IEnumerable<string>> wordsAndCorrections)
@@ -33,15 +33,17 @@ namespace FLGameLogic
             CategoryName = categoryName;
 
             entries = new Dictionary<string, WordEntry>(StringComparer.InvariantCultureIgnoreCase);
-            answers = new HashSet<string>();
+            var answersSet = new HashSet<string>();
 
             foreach (var w in wordsAndCorrections)
             {
                 entries.Add(w.Key, new WordEntry(w.Key, null));
-                answers.Add(w.Key);
+                answersSet.Add(w.Key);
                 foreach (var correction in w.Value)
                     entries.Add(correction, new WordEntry(correction, w.Key));
             }
+
+            Answers = answersSet.ToList();
         }
 
         public string GetCorrectedWord(string word, Func<int, int> getMaxEditDistance)

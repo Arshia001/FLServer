@@ -4,6 +4,7 @@ using Orleans;
 using Orleans.Concurrency;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,6 +22,7 @@ namespace FLGrains
             {
                 //?? init stuff
 
+                State.Gold = 1_000_000;
                 State.Level = 1;
             }
 
@@ -31,7 +33,8 @@ namespace FLGrains
             return GetOwnPlayerInfo();
         }
 
-        public Task<Immutable<IReadOnlyList<IGame>>> GetGames() => Task.FromResult(State.MyGames.AsImmutable<IReadOnlyList<IGame>>());
+        public Task<Immutable<IReadOnlyList<IGame>>> GetGames() => 
+            Task.FromResult(State.ActiveGames.Concat(State.PastGames).ToList().AsImmutable<IReadOnlyList<IGame>>());
 
         public Task<Immutable<PlayerInfo>> GetPlayerInfo() => Task.FromResult(GetPlayerInfoImpl().AsImmutable());
 
@@ -79,24 +82,26 @@ namespace FLGrains
             return LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.XP).AddDelta(this.GetPrimaryKey(), delta);
         }
 
+        public Task<bool> CanEnterGame() => Task.FromResult(State.ActiveGames.Count >= configReader.Config.ConfigValues.MaxActiveGames);
+
         public async Task<byte> JoinGameAsFirstPlayer(IGame game)
         {
             var result = await game.StartNew(this.GetPrimaryKey());
-            State.MyGames.Add(game);
+            State.ActiveGames.Add(game);
             return result;
         }
 
         public async Task<(Guid opponentID, byte numRounds)> JoinGameAsSecondPlayer(IGame game)
         {
             var result = await game.AddSecondPlayer(GetPlayerInfoImpl());
-            State.MyGames.Add(game);
+            State.ActiveGames.Add(game);
             return result;
         }
 
         public Task OnRoundWon(IGame game)
         {
             //?? convert MyGames to a HashSet? Would mess with ordering, but we probably need custom ordering based on time of last interaction anyway
-            if (!State.MyGames.Contains(game))
+            if (!State.ActiveGames.Contains(game))
                 return Task.CompletedTask;
 
             ++State.NumRoundsWonForReward;
@@ -113,11 +118,14 @@ namespace FLGrains
             State.Score = (uint)Math.Max(0, State.Score + delta);
             return lb.SetAndGetRank(this.GetPrimaryKey(), State.Score);
         }
-            
+
 
         public async Task<(uint score, uint rank)> OnGameResult(IGame game, Guid? winnerID)
         {
             //?? gold rewards?
+
+            State.ActiveGames.Remove(game);
+            State.PastGames.Add(game);
 
             ulong rank;
 
@@ -129,6 +137,34 @@ namespace FLGrains
                 rank = await AddScore(configReader.Config.ConfigValues.LossDeltaScore);
 
             return (State.Score, (uint)rank);
+        }
+
+        public async Task<(ulong? gold, TimeSpan? remainingTime)> IncreaseRoundTime(Guid gameID)
+        {
+            var price = configReader.Config.ConfigValues.RoundTimeExtensionPrice;
+            if (State.Gold < price)
+                throw new VerbatimException("Insufficient gold");
+
+            var time = await GrainFactory.GetGrain<IGame>(gameID).IncreaseRoundTime(this.GetPrimaryKey());
+            if (time == null)
+                return (null, null);
+
+            State.Gold -= price;
+            return (State.Gold, time.Value);
+        }
+
+        public async Task<(ulong? gold, string word, byte? wordScore)> RevealWord(Guid gameID)
+        {
+            var price = configReader.Config.ConfigValues.RevealWordPrice;
+            if (State.Gold < price)
+                throw new VerbatimException("Insufficient gold");
+
+            var result = await GrainFactory.GetGrain<IGame>(gameID).RevealWord(this.GetPrimaryKey());
+            if (result == null)
+                return (null, null, null);
+
+            State.Gold -= price;
+            return (State.Gold, result.Value.word, result.Value.wordScore);
         }
 
         public Task<(ulong totalGold, TimeSpan nextRewardTime)> TakeRewardForWinningRounds()

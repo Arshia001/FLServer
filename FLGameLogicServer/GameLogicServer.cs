@@ -98,6 +98,15 @@ namespace FLGameLogic
             return SetCategoryResult.Success;
         }
 
+        public DateTime? ExtendRoundTime(int player, TimeSpan amount)
+        {
+            if (!IsTurnInProgress(player))
+                return null;
+
+            turnEndTimes[player] += amount;
+            return turnEndTimes[player];
+        }
+
         //public void RestoreGameState(IEnumerable<WordCategory> categories, IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes)
         //{
         //    this.categories = categories.ToList();

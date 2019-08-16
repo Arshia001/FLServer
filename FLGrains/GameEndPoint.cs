@@ -23,10 +23,12 @@ namespace FLGrains
 
         public GameEndPoint(IConfigReader configReader) => this.configReader = configReader;
 
-        //?? Do I even need to mention that we need a matchmaking system?
         protected override async Task<(Guid gameID, PlayerInfo opponentInfo, byte numRounds, bool myTurnFirst)> NewGame(Guid clientID)
         {
             var userProfile = GrainFactory.GetGrain<IPlayer>(clientID);
+
+            if (!userProfile.CanEnterGame())
+                throw new VerbatimException("Cannot enter game at this time");
 
             await sem.WaitAsync();
             try

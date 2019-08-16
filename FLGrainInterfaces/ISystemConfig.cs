@@ -74,6 +74,15 @@ namespace FLGrainInterfaces
     {
         public byte NumRoundsPerGame { get; private set; }
         public byte NumCategoryChoices { get; private set; }
+        public TimeSpan ClientTimePerRound { get; private set; }
+        public TimeSpan ExtraTimePerRound { get; private set; }
+
+        public TimeSpan RoundTimeExtension { get; private set; }
+        public uint RoundTimeExtensionPrice { get; private set; }
+
+        public uint RevealWordPrice { get; private set; }
+
+        public uint MaxActiveGames { get; private set; }
 
         public byte NumRoundsToWinToGetReward { get; private set; }
         public TimeSpan RoundWinRewardInterval { get; private set; }

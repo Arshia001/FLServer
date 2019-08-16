@@ -273,6 +273,36 @@ namespace FLGrains
                 return default(IEnumerable<WordScorePair>).AsImmutable();
         }
 
+        public Task<TimeSpan?> IncreaseRoundTime(Guid playerID)
+        {
+            var index = Index(playerID);
+            var endTime = gameLogic.ExtendRoundTime(index, configReader.Config.ConfigValues.RoundTimeExtension);
+            return Task.FromResult(endTime == null ? default(TimeSpan?) : endTime.Value - DateTime.Now);
+        }
+
+        public async Task<(string word, byte wordScore)?> RevealWord(Guid playerID)
+        {
+            var index = Index(playerID);
+            if (!gameLogic.IsTurnInProgress(index))
+                return null;
+
+            var turnIndex = gameLogic.NumTurnsTakenBy(index);
+            var category = gameLogic.Categories[turnIndex];
+            var answers = gameLogic.GetPlayerAnswers(index, turnIndex);
+
+            if (answers.Count == category.Answers.Count)
+                return null;
+
+            var random = new Random();
+            string word;
+            do
+                word = category.Answers[random.Next(category.Answers.Count)];
+            while (answers.Any(a => a.word == word));
+
+            var (score, _) = await PlayWord(playerID, word);
+            return (word, score);
+        }
+
         GameState GetStateInternal()
         {
             if (State.PlayerIDs.Length == 0 || State.PlayerIDs.Length == 0)
