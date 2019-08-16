@@ -23,7 +23,7 @@ namespace FLGameLogic
             if (longer.Length - smaller.Length > maxDistance)
                 return false;
 
-            int[] distances = new int[2 * maxDistance + 1]; //?? what if maxdistance > smaller.length?
+            int[] distances = new int[2 * maxDistance + 1];
             int[] prevRowDistances = new int[2 * maxDistance + 1];
 
             for (var i = maxDistance + 1; i <= 2 * maxDistance; ++i)

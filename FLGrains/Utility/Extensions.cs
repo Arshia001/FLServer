@@ -11,5 +11,17 @@ namespace FLGrains
             t1 = kv.Key;
             t2 = kv.Value;
         }
+
+        public static IEnumerable<int> GetUnique(this Random random, int min, int max, int count)
+        {
+            if (count > max - min)
+                throw new Exception($"Interval [{min},{max}) is too short to contain {count} unique numbers");
+
+            var set = new HashSet<int>();
+            while (set.Count < count)
+                set.Add(random.Next(min, max));
+
+            return set;
+        }
     }
 }

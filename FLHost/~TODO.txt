@@ -1,5 +1,8 @@
 ﻿Powerups -> time, reveal word
-Choice of subject (w/ time?)
+Infinite play / active game limit
+Interesting/Uninteresting
+Refresh groups with money
+Money?!
 Statistics
 Friendship
 Chat

@@ -1,6 +1,7 @@
 ﻿using Bond;
 using FLGameLogic;
 using FLGrainInterfaces;
+using LightMessage.OrleansUtils.Grains;
 using Orleans;
 using Orleans.Concurrency;
 using OrleansBondUtils;
@@ -24,6 +25,12 @@ namespace FLGrains
 
         [Id(2)]
         public int[] LastProcessedEndTurns { get; set; } = new[] { -1, -1 }; //?? use to reprocess turn end notifications in case grain goes down
+
+        [Id(3)]
+        public int CategoryChooser { get; set; } = -1;
+
+        [Id(4)]
+        public ushort[] CategoryChoices { get; set; }
     }
 
     class Game : SaveStateOnDeactivateGrain<GameGrain_State>, IGame
@@ -58,7 +65,7 @@ namespace FLGrains
             if (State.CategoryNames != null && State.CategoryNames.Length > 0)
             {
                 var config = configReader.Config;
-                gameLogic = new GameLogicServer(State.CategoryNames.Select(n => config.CategoriesAsGameLogicFormatByName[n])); //?? restore game state from grain state
+                gameLogic = new GameLogicServer(State.CategoryNames.Select(n => n == null ? null : config.CategoriesAsGameLogicFormatByName[n])); //?? restore game state from grain state
             }
 
             DelayDeactivation(TimeSpan.FromDays(20)); //?? store state in DB -.-
@@ -74,16 +81,9 @@ namespace FLGrains
                 throw new Exception("Game already started");
 
             var config = configReader.Config;
-            var randomIndices = new HashSet<int>();
-            var random = new Random();
+            State.CategoryNames = new string[config.ConfigValues.NumRoundsPerGame];
 
-            while (randomIndices.Count < configReader.Config.ConfigValues.NumRoundsPerGame)
-                randomIndices.Add(random.Next(config.CategoriesAsGameLogicFormat.Count));
-
-            var categories = randomIndices.Select(i => config.CategoriesAsGameLogicFormat[i]);
-            State.CategoryNames = categories.Select(c => c.CategoryName).ToArray();
-
-            gameLogic = new GameLogicServer(categories);
+            gameLogic = new GameLogicServer(config.ConfigValues.NumRoundsPerGame);
 
             State.PlayerIDs = new[] { playerOneID, Guid.Empty };
 
@@ -102,22 +102,83 @@ namespace FLGrains
             return (State.PlayerIDs[0], (byte)State.CategoryNames.Length);
         }
 
-        public Task<(string category, TimeSpan turnTime)> StartRound(Guid id) // this could potentially be bad, timing-wise. Maybe the client should generate their own clock?
+        (bool shouldChooseCategory, string category, int roundIndex, TimeSpan? roundTime) StartRound(int playerIndex)
         {
-            var index = Index(id);
+            var roundTime = TimeSpan.FromSeconds(60); //?? config
 
-            var turnTime = TimeSpan.FromSeconds(60); //?? config
+            int roundIndex = gameLogic.NumTurnsTakenBy(playerIndex);
+            var result = gameLogic.StartRound(playerIndex, roundTime, out var category);
 
-            var result = gameLogic.StartRound(index, turnTime, out var category);
+            if (result == StartRoundResult.MustChooseCategory)
+                return (true, default(string), roundIndex, default(TimeSpan?));
 
             if (!result.IsSuccess())
                 throw new Exception("Failed to start round, resulting in " + result.ToString());
 
-            var endRoundData = new EndRoundTimerData { playerIndex = index, roundIndex = gameLogic.NumTurnsTakenByIncludingCurrent(index) - 1 };
-            var timerHandle = RegisterTimer(OnTurnEnded, endRoundData, turnTime, TimeSpan.MaxValue);
+            var endRoundData = new EndRoundTimerData { playerIndex = playerIndex, roundIndex = roundIndex };
+            var timerHandle = RegisterTimer(OnTurnEnded, endRoundData, roundTime, TimeSpan.MaxValue);
             endRoundData.timerHandle = timerHandle;
 
-            return Task.FromResult((category, turnTime - TimeSpan.FromSeconds(10))); //?? config value for additional time per turn
+            return (false, category, roundIndex, (TimeSpan?)(roundTime - TimeSpan.FromSeconds(10))); //?? config value for additional time per turn
+        }
+
+        //?? this could potentially be bad, timing-wise. Maybe the client should generate their own clock?
+        public Task<(string category, TimeSpan? roundTime, bool mustChooseGroup, IEnumerable<GroupInfoDTO> groups)> StartRound(Guid id)
+        {
+            var index = Index(id);
+
+            var (mustChooseCategory, category, _, roundTime) = StartRound(index);
+
+            if (mustChooseCategory)
+            {
+                var config = configReader.Config;
+                if (State.CategoryChoices == null || State.CategoryChooser != index)
+                {
+                    State.CategoryChooser = index;
+                    State.CategoryChoices =
+                        new Random().GetUnique(0, config.Groups.Count, config.ConfigValues.NumCategoryChoices)
+                        .Select(i => config.Groups[i].ID).ToArray();
+                }
+                return Task.FromResult((default(string), default(TimeSpan?), true, State.CategoryChoices.Select(i => (GroupInfoDTO)config.GroupsByID[i]).ToList().AsEnumerable()));
+            }
+            else
+                return Task.FromResult((category, roundTime, false, Enumerable.Empty<GroupInfoDTO>()));
+        }
+
+        public Task<(string category, TimeSpan roundTime)> ChooseGroup(Guid id, ushort groupID)
+        {
+            var index = Index(id);
+
+            var (mustChooseCategory, category, roundIndex, roundTime) = StartRound(index);
+            if (!mustChooseCategory)
+                return Task.FromResult((category, roundTime.Value));
+
+            if (State.CategoryChooser != index || State.CategoryChoices == null)
+                throw new VerbatimException("Not this player's turn to choose a group");
+
+            if (!State.CategoryChoices.Contains(groupID))
+                throw new VerbatimException($"Specified group {groupID} is not a valid choice out of ({string.Join(", ", State.CategoryChoices)})");
+
+            var config = configReader.Config;
+
+            var categories = config.CategoryNamesByGroupID[groupID];
+            var random = new Random();
+            string categoryName;
+            do
+                categoryName = categories[random.Next(categories.Count)];
+            while (State.CategoryNames.Contains(categoryName));
+
+            State.CategoryNames[roundIndex] = categoryName;
+            var result = gameLogic.SetCategory(roundIndex, config.CategoriesAsGameLogicFormatByName[categoryName]);
+
+            if (!result.IsSuccess())
+                throw new VerbatimException($"Failed to set category, result is {result}");
+
+            (mustChooseCategory, category, _, roundTime) = StartRound(index);
+            if (mustChooseCategory)
+                throw new VerbatimException("Still need to choose category after setting it once");
+
+            return Task.FromResult((category, roundTime.Value));
         }
 
         Task OnTurnEnded(object state)

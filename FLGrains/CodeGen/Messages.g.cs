@@ -69,23 +69,27 @@ namespace FLGrains
             return Success(LightMessage.Common.Messages.Param.Guid(result.gameID), result.opponentInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.UInt(result.numRounds), LightMessage.Common.Messages.Param.Boolean(result.myTurnFirst));
         }
 
-        protected abstract System.Threading.Tasks.Task<(string category, System.TimeSpan roundTime)> StartRound(System.Guid clientID, System.Guid gameID);
-
-        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("round")]
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("rnd")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_StartRound(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
-            var result = await StartRound(input.ClientID, array[0].AsGuid.Value);
-            return Success(LightMessage.Common.Messages.Param.String(result.category), LightMessage.Common.Messages.Param.TimeSpan(result.roundTime));
+            var result = await GrainFactory.GetGrain<IGame>(array[0].AsGuid.Value).StartRound(input.ClientID);
+            return Success(LightMessage.Common.Messages.Param.String(result.category), LightMessage.Common.Messages.Param.TimeSpan(result.roundTime), LightMessage.Common.Messages.Param.Boolean(result.mustChooseGroup), LightMessage.Common.Messages.Param.Array(result.groups?.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
         }
 
-        protected abstract System.Threading.Tasks.Task<(byte wordScore, string corrected)> PlayWord(System.Guid clientID, System.Guid gameID, string word);
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("grp")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_ChooseGroup(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            var result = await GrainFactory.GetGrain<IGame>(array[0].AsGuid.Value).ChooseGroup(input.ClientID, (ushort)array[1].AsUInt.Value);
+            return Success(LightMessage.Common.Messages.Param.String(result.category), LightMessage.Common.Messages.Param.TimeSpan(result.roundTime));
+        }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("word")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_PlayWord(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
-            var result = await PlayWord(input.ClientID, array[0].AsGuid.Value, array[1].AsString);
+            var result = await GrainFactory.GetGrain<IGame>(array[0].AsGuid.Value).PlayWord(input.ClientID, array[1].AsString);
             return Success(LightMessage.Common.Messages.Param.UInt(result.wordScore), LightMessage.Common.Messages.Param.String(result.corrected));
         }
 

@@ -118,6 +118,12 @@ endpoint Suggestion sg
 	}
 }
 
+contract GroupInfoDTO castfrom (GroupConfig server oneway)
+{
+	Name: string;
+	ID: u16;
+}
+
 endpoint Game gm
 {
 	notification OpponentJoined opj
@@ -154,10 +160,25 @@ endpoint Game gm
 		}
 	}
 
-	request StartRound round
+	request StartRound rnd via Game(gameID).StartRound(clientid)
 	{
 		{
 			gameID: guid;
+		}
+		->
+		{
+			category: string?;
+			roundTime: timespan?;
+			mustChooseGroup: bool;
+			groups: GroupInfoDTO[]?;
+		}
+	}
+
+	request ChooseGroup grp via Game(gameID).ChooseGroup(clientid, groupID)
+	{
+		{
+			gameID: guid;
+			groupID: u16;
 		}
 		->
 		{
@@ -166,7 +187,7 @@ endpoint Game gm
 		}
 	}
 
-	request PlayWord word
+	request PlayWord word via Game(gameID).PlayWord(clientid, word)
 	{
 		{
 			gameID: guid;

@@ -82,7 +82,7 @@ namespace FLGrains
 
             foreach (var row in rows)
                 result.Add(new GroupConfig(
-                    Convert.ToInt32(row["id"]),
+                    Convert.ToUInt16(row["id"]),
                     Convert.ToString(row["name"])
                     ));
 
@@ -107,7 +107,7 @@ namespace FLGrains
                     Convert.ToString(row["name"]),
                     ((IDictionary<string, IEnumerable<string>>)row["words"])
                         .Select(kv => new CategoryConfig.Entry(kv.Key, kv.Value)),
-                    groupsByID[Convert.ToInt32(row["group_id"])]
+                    groupsByID[Convert.ToUInt16(row["group_id"])]
                     ));
 
             return result;

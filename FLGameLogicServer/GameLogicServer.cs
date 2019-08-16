@@ -19,6 +19,11 @@ namespace FLGameLogic
         public override int NumRounds => Categories.Count;
 
 
+        public GameLogicServer(int numRounds) : base(0)
+        {
+            categories = Enumerable.Repeat(default(WordCategory), numRounds).ToList();
+        }
+
         public GameLogicServer(IEnumerable<WordCategory> categories) : base(0)
         {
             this.categories = categories.ToList();
@@ -27,7 +32,15 @@ namespace FLGameLogic
 
         public StartRoundResult StartRound(int player, TimeSpan turnTime, out string category)
         {
+            if (Finished)
+            {
+                category = null;
+                return StartRoundResult.Error_GameFinished;
+            }
+
             category = categories[RoundNumber].CategoryName;
+            if (category == null)
+                return StartRoundResult.MustChooseCategory;
 
             var result = base.StartRound(player, turnTime);
 
@@ -70,11 +83,26 @@ namespace FLGameLogic
             return (false, 0);
         }
 
-        public void RestoreGameState(IEnumerable<WordCategory> categories, IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes)
+        public SetCategoryResult SetCategory(int roundIndex, WordCategory category)
         {
-            this.categories = categories.ToList();
+            if (roundIndex >= categories.Count)
+                return SetCategoryResult.Error_IndexOutOfBounds;
 
-            base.RestoreGameState(wordsPlayed, turnEndTimes);
+            if (categories[roundIndex] != null)
+                return SetCategoryResult.Error_AlreadySet;
+
+            if (roundIndex > 0 && categories[roundIndex - 1] == null)
+                return SetCategoryResult.Error_PreviousCategoryNotSet;
+
+            categories[roundIndex] = category;
+            return SetCategoryResult.Success;
         }
+
+        //public void RestoreGameState(IEnumerable<WordCategory> categories, IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes)
+        //{
+        //    this.categories = categories.ToList();
+
+        //    base.RestoreGameState(wordsPlayed, turnEndTimes);
+        //}
     }
 }

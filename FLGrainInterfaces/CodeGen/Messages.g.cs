@@ -134,4 +134,22 @@ namespace FLGrainInterfaces
             return new SimplifiedGameInfo { GameID = array[0].AsGuid.Value, GameState = array[1].AsUEnum<GameState>().Value, OtherPlayerName = array[2].AsString, MyTurn = array[3].AsBoolean.Value, MyScore = (byte)array[4].AsUInt.Value, TheirScore = (byte)array[5].AsUInt.Value };
         }
     }
+
+    public class GroupInfoDTO
+    {
+        public string Name { get; set; }
+        public ushort ID { get; set; }
+
+        public static implicit operator GroupInfoDTO(GroupConfig obj) => new GroupInfoDTO { Name = obj.Name, ID = obj.ID };
+
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.UInt(ID));
+
+        public static GroupInfoDTO FromParam(LightMessage.Common.Messages.Param param)
+        {
+            if (param.IsNull)
+                return null;
+            var array = param.AsArray;
+            return new GroupInfoDTO { Name = array[0].AsString, ID = (ushort)array[1].AsUInt.Value };
+        }
+    }
 }

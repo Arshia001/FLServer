@@ -18,10 +18,10 @@ namespace FLGrainInterfaces
 
     public class GroupConfig
     {
-        public int ID { get; }
+        public ushort ID { get; }
         public string Name { get; }
 
-        public GroupConfig(int id, string name)
+        public GroupConfig(ushort id, string name)
         {
             ID = id;
             Name = name;
@@ -73,6 +73,7 @@ namespace FLGrainInterfaces
     public class ConfigValues
     {
         public byte NumRoundsPerGame { get; private set; }
+        public byte NumCategoryChoices { get; private set; }
 
         public byte NumRoundsToWinToGetReward { get; private set; }
         public TimeSpan RoundWinRewardInterval { get; private set; }
@@ -108,10 +109,11 @@ namespace FLGrainInterfaces
 
     public class ReadOnlyConfigData
     {
-        public IReadOnlyDictionary<int, GroupConfig> GroupsByID { get; }
+        public IReadOnlyList<GroupConfig> Groups => data.Groups;
+        public IReadOnlyDictionary<ushort, GroupConfig> GroupsByID { get; }
 
         public IReadOnlyDictionary<string, CategoryConfig> CategoriesByName { get; }
-        public IReadOnlyDictionary<int, IReadOnlyList<string>> CategoryNamesByGroupID { get; }
+        public IReadOnlyDictionary<ushort, IReadOnlyList<string>> CategoryNamesByGroupID { get; }
         public IReadOnlyDictionary<string, FLGameLogic.WordCategory> CategoriesAsGameLogicFormatByName { get; }
 
         public IReadOnlyDictionary<uint, LevelConfig> PlayerLevels { get; }

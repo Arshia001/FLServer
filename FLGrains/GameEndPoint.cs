@@ -73,22 +73,15 @@ namespace FLGrains
             }
         }
 
-        protected override Task<(string category, TimeSpan roundTime)> StartRound(Guid clientID, Guid gameID) =>
-            GrainFactory.GetGrain<IGame>(gameID).StartRound(clientID);
-
-        protected override Task<(byte wordScore, string corrected)> PlayWord(Guid clientID, Guid gameID, string word) =>
-            GrainFactory.GetGrain<IGame>(gameID).PlayWord(clientID, word);
-
         protected override async Task<IEnumerable<WordScorePairDTO>> EndRound(Guid clientID, Guid gameID)
         {
             var result = await GrainFactory.GetGrain<IGame>(gameID).EndRound(clientID);
             return result.Value?.Select(w => (WordScorePairDTO)w);
         }
 
-        protected override async Task<GameInfo> GetGameInfo(Guid clientID, Guid gameID)
+        protected override Task<GameInfo> GetGameInfo(Guid clientID, Guid gameID)
         {
-            var result = await GrainFactory.GetGrain<IGame>(gameID).GetGameInfo(clientID);
-            return result.Value;
+            return GrainFactory.GetGrain<IGame>(gameID).GetGameInfo(clientID).UnwrapImmutable();
         }
 
         protected override async Task<IEnumerable<SimplifiedGameInfo>> GetAllGames(Guid clientID)

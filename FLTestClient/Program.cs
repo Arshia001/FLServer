@@ -27,6 +27,9 @@ namespace FLTestClient
 
         static void Main(string[] args)
         {
+            Console.WriteLine(EditDistance.IsLessThan("a", "dahtrhsagsdfbadgbadgsfdsa", 105));
+
+
             //var svc = new ServiceCollection();
             //ServiceConfiguration.ConfigureServices(svc, "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy");
             //var provider = svc.BuildServiceProvider();
@@ -68,50 +71,50 @@ namespace FLTestClient
 
 
 
-            var client = new ClientBuilder()
-                .Configure<ClusterOptions>(o =>
-                {
-                    o.ClusterId = "FLCluster";
-                    o.ServiceId = "FLService";
-                })
-                .ConfigureApplicationParts(p => p.AddApplicationPart(typeof(IGame).Assembly))
-                .UseCassandraClustering(o => o.ConnectionString = "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy")
-                .ConfigureLogging(l => l.AddFilter("Orleans", Microsoft.Extensions.Logging.LogLevel.Information).AddConsole())
-                .Build();
-            client.Connect().Wait();
+            //var client = new ClientBuilder()
+            //    .Configure<ClusterOptions>(o =>
+            //    {
+            //        o.ClusterId = "FLCluster";
+            //        o.ServiceId = "FLService";
+            //    })
+            //    .ConfigureApplicationParts(p => p.AddApplicationPart(typeof(IGame).Assembly))
+            //    .UseCassandraClustering(o => o.ConnectionString = "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy")
+            //    .ConfigureLogging(l => l.AddFilter("Orleans", Microsoft.Extensions.Logging.LogLevel.Information).AddConsole())
+            //    .Build();
+            //client.Connect().Wait();
 
-            var worker = client.GetGrain<IWordUsageAggregationWorker>("xxx");
-            Task.WhenAll(
-                worker.AddDelta("hello1"),
-                worker.AddDelta("hello1"),
-                worker.AddDelta("hello1"),
-                worker.AddDelta("hello1"),
-                worker.AddDelta("hello1"),
-                worker.AddDelta("hello1"),
-                worker.AddDelta("hello2"),
-                worker.AddDelta("hello2"),
-                worker.AddDelta("hello2")
-                ).Wait();
+            //var worker = client.GetGrain<IWordUsageAggregationWorker>("xxx");
+            //Task.WhenAll(
+            //    worker.AddDelta("hello1"),
+            //    worker.AddDelta("hello1"),
+            //    worker.AddDelta("hello1"),
+            //    worker.AddDelta("hello1"),
+            //    worker.AddDelta("hello1"),
+            //    worker.AddDelta("hello1"),
+            //    worker.AddDelta("hello2"),
+            //    worker.AddDelta("hello2"),
+            //    worker.AddDelta("hello2")
+            //    ).Wait();
 
-            var ret = client.GetGrain<IWordUsageAggregatorCache>("xxx");
-            foreach (var i in Enumerable.Range(0, 10))
-            {
-                Task.Delay(5000).Wait();
+            //var ret = client.GetGrain<IWordUsageAggregatorCache>("xxx");
+            //foreach (var i in Enumerable.Range(0, 10))
+            //{
+            //    Task.Delay(5000).Wait();
 
-                Task.WhenAll(
-                    worker.AddDelta("hello1"),
-                    worker.AddDelta("hello1"),
-                    worker.AddDelta("hello1"),
-                    worker.AddDelta("hello1"),
-                    worker.AddDelta("hello1"),
-                    worker.AddDelta("hello1"),
-                    worker.AddDelta("hello2"),
-                    worker.AddDelta("hello2"),
-                    worker.AddDelta("hello2")
-                    ).Wait();
+            //    Task.WhenAll(
+            //        worker.AddDelta("hello1"),
+            //        worker.AddDelta("hello1"),
+            //        worker.AddDelta("hello1"),
+            //        worker.AddDelta("hello1"),
+            //        worker.AddDelta("hello1"),
+            //        worker.AddDelta("hello1"),
+            //        worker.AddDelta("hello2"),
+            //        worker.AddDelta("hello2"),
+            //        worker.AddDelta("hello2")
+            //        ).Wait();
 
-                Console.WriteLine(string.Join("; ", ret.GetData().Result.Select(kv => $"({kv.Key}, {kv.Value})")));
-            }
+            //    Console.WriteLine(string.Join("; ", ret.GetData().Result.Select(kv => $"({kv.Key}, {kv.Value})")));
+            //}
 
 
             //var client = new EndPointClient(new ConsoleLogProvider(LightMessage.Common.Util.LogLevel.Verbose));
