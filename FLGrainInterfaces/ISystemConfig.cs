@@ -83,6 +83,11 @@ namespace FLGrainInterfaces
         public uint RevealWordPrice { get; private set; }
 
         public uint MaxActiveGames { get; private set; }
+        public uint InfinitePlayPrice { get; private set; }
+        public TimeSpan InfinitePlayTime { get; private set; }
+
+        public float WordScoreThreshold2 { get; private set; }
+        public float WordScoreThreshold3 { get; private set; }
 
         public byte NumRoundsToWinToGetReward { get; private set; }
         public TimeSpan RoundWinRewardInterval { get; private set; }

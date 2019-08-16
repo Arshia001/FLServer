@@ -27,7 +27,7 @@ namespace FLGrains
         {
             var userProfile = GrainFactory.GetGrain<IPlayer>(clientID);
 
-            if (!userProfile.CanEnterGame())
+            if (!await userProfile.CanEnterGame())
                 throw new VerbatimException("Cannot enter game at this time");
 
             await sem.WaitAsync();
@@ -97,7 +97,7 @@ namespace FLGrains
                 async s => new WordScorePairDTO
                 {
                     Word = s,
-                    Score = await GrainFactory.GetGrain<IWordUsageAggregatorCache>(category).GetScore(s)
+                    Score = await GrainFactory.GetGrain<ICategoryStatisticsAggregatorCache>(category).GetScore(s)
                 }
             ));
 
@@ -125,6 +125,10 @@ namespace FLGrains
             else
                 SendPush();
         }
+
+        protected override Task Vote(Guid clientID, string category, bool up) =>
+            GrainFactory.GetGrain<ICategoryStatisticsAggregationWorker>(category)
+                .AddDelta(up ? new CategoryStatisticsDelta.UpVote() : (CategoryStatisticsDelta)new CategoryStatisticsDelta.DownVote());
 
         void SendPush() { } //?? stub
     }

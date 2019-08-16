@@ -27,6 +27,14 @@ namespace FLGrains
             var result = await TakeRewardForWinningRounds(input.ClientID);
             return Success(LightMessage.Common.Messages.Param.UInt(result.totalGold), LightMessage.Common.Messages.Param.TimeSpan(result.timeUntilNextReward));
         }
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("inf")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_ActivateInfinitePlay(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).ActiavateInfinitePlay();
+            return Success(LightMessage.Common.Messages.Param.Boolean(result.success), LightMessage.Common.Messages.Param.UInt(result.totalGold), LightMessage.Common.Messages.Param.TimeSpan(result.duration));
+        }
     }
 
     [LightMessage.OrleansUtils.GrainInterfaces.EndPointNameAttribute("sg"), Orleans.Concurrency.StatelessWorkerAttribute(128)]
@@ -147,6 +155,16 @@ namespace FLGrains
             var array = input.Args;
             var result = await GetAnswers(input.ClientID, array[0].AsString);
             return Success(LightMessage.Common.Messages.Param.Array(result.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
+        }
+
+        protected abstract System.Threading.Tasks.Task Vote(System.Guid clientID, string category, bool up);
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("vote")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_Vote(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            await Vote(input.ClientID, array[0].AsString, array[1].AsBoolean.Value);
+            return NoResult();
         }
     }
 

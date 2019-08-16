@@ -239,7 +239,8 @@ namespace FLGrains
             var result = await gameLogic.PlayWord(index, word, (c, w) => GetWordScore(gameLogic.RoundNumber, index, c, w), i => maxEditDistances[i]);
 
             if (result.result != PlayWordResult.Duplicate)
-                GrainFactory.GetGrain<IWordUsageAggregationWorker>(result.category.CategoryName).AddDelta(result.corrected).Ignore();
+                GrainFactory.GetGrain<ICategoryStatisticsAggregationWorker>(result.category.CategoryName)
+                    .AddDelta(new CategoryStatisticsDelta.WordUsage { Word = result.corrected }).Ignore();
 
             return (result.score, result.corrected);
         }
@@ -254,7 +255,7 @@ namespace FLGrains
                     return Task.FromResult(answer.score);
             }
 
-            return GrainFactory.GetGrain<IWordUsageAggregatorCache>(category.CategoryName).GetScore(word);
+            return GrainFactory.GetGrain<ICategoryStatisticsAggregatorCache>(category.CategoryName).GetScore(word);
         }
 
         public async Task<Immutable<IEnumerable<WordScorePair>>> EndRound(Guid playerID)

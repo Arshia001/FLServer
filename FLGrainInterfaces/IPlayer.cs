@@ -48,6 +48,9 @@ namespace FLGrainInterfaces
         [Id(8)]
         public List<IGame> PastGames { get; set; }
 
+        [Id(9)]
+        public DateTime InfinitePlayEndTime { get; set; }
+
         public void OnDeserialized()
         {
             if (ActiveGames == null)
@@ -71,6 +74,8 @@ namespace FLGrainInterfaces
         Task<(Guid opponentID, byte numRounds)> JoinGameAsSecondPlayer(IGame game);
         Task OnRoundWon(IGame game);
         Task<(uint score, uint rank)> OnGameResult(IGame game, Guid? winnerID);
+
+        Task<(bool success, ulong totalGold, TimeSpan duration)> ActiavateInfinitePlay();
 
         Task<(ulong? gold, TimeSpan? remainingTime)> IncreaseRoundTime(Guid gameID);
         Task<(ulong? gold, string word, byte? wordScore)> RevealWord(Guid gameID);

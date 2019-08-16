@@ -2,8 +2,9 @@
 CLIENT Powerups -> time, reveal word
 CLIENT Money
 CLIENT active game limit
-Infinite play
-Interesting/Uninteresting
+CLIENT Infinite play
+CLIENT Interesting/Uninteresting
+CLIENT Interesting/Uninteresting data per player to disallow duplicated voting? -> store on client, too much work for server
 Refresh groups with money
 Matchmaking
 Game inactivity timeout

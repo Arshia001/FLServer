@@ -91,8 +91,19 @@ endpoint System sys
 		{ }
 		->
 		{
-			totalGold: u64; //??
+			totalGold: u64;
 			timeUntilNextReward: timespan;
+		}
+	}
+
+	request ActivateInfinitePlay inf via Player(clientid).ActiavateInfinitePlay()
+	{
+		{ }
+		->
+		{
+			success: bool;
+			totalGold: u64;
+			duration: timespan;
 		}
 	}
 }
@@ -266,4 +277,6 @@ endpoint Game gm
 			words: WordScorePairDTO[];
 		}
 	}
+
+	request Vote vote { { category: string; up: bool; } -> noresponse }
 }

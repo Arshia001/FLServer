@@ -33,12 +33,14 @@ namespace FLGrains
             return GetOwnPlayerInfo();
         }
 
-        public Task<Immutable<IReadOnlyList<IGame>>> GetGames() => 
+        public Task<Immutable<IReadOnlyList<IGame>>> GetGames() =>
             Task.FromResult(State.ActiveGames.Concat(State.PastGames).ToList().AsImmutable<IReadOnlyList<IGame>>());
 
         public Task<Immutable<PlayerInfo>> GetPlayerInfo() => Task.FromResult(GetPlayerInfoImpl().AsImmutable());
 
         string GetName() => State.Name ?? $"Guest{this.GetPrimaryKey().ToString().Substring(0, 8)}";
+
+        bool IsInfinitePlayActive => State.InfinitePlayEndTime > DateTime.Now;
 
         public async Task<Immutable<OwnPlayerInfo>> GetOwnPlayerInfo()
         {
@@ -82,7 +84,7 @@ namespace FLGrains
             return LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.XP).AddDelta(this.GetPrimaryKey(), delta);
         }
 
-        public Task<bool> CanEnterGame() => Task.FromResult(State.ActiveGames.Count >= configReader.Config.ConfigValues.MaxActiveGames);
+        public Task<bool> CanEnterGame() => Task.FromResult(IsInfinitePlayActive || State.ActiveGames.Count < configReader.Config.ConfigValues.MaxActiveGames);
 
         public async Task<byte> JoinGameAsFirstPlayer(IGame game)
         {
@@ -183,6 +185,22 @@ namespace FLGrains
             //?? State.Funds += ....
 
             return Task.FromResult(((ulong)configValues.NumGoldRewardForWinningRounds, configValues.RoundWinRewardInterval)); //??
+        }
+
+        public Task<(bool success, ulong totalGold, TimeSpan duration)> ActiavateInfinitePlay()
+        {
+            if (IsInfinitePlayActive)
+                return Task.FromResult((false, 0UL, TimeSpan.Zero));
+
+            var config = configReader.Config.ConfigValues;
+            if (State.Gold < config.InfinitePlayPrice)
+                return Task.FromResult((false, 0UL, TimeSpan.Zero));
+
+            State.Gold -= config.InfinitePlayPrice;
+
+            var duration = config.InfinitePlayTime;
+            State.InfinitePlayEndTime = DateTime.Now + duration;
+            return Task.FromResult((true, State.Gold, duration));
         }
     }
 }
