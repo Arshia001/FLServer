@@ -185,7 +185,7 @@ endpoint Game gm
 		}
 	}
 
-	request ChooseGroup grp via Game(gameID).ChooseGroup(clientid, groupID)
+	request ChooseGroup cgr via Game(gameID).ChooseGroup(clientid, groupID)
 	{
 		{
 			gameID: guid;
@@ -195,6 +195,17 @@ endpoint Game gm
 		{
 			category: string;
 			roundTime: timespan;
+		}
+	}
+
+	request RefreshGroups rgr via Player(clientid).RefreshGroups(gameID)
+	{
+		{
+			gameID: guid;
+		}
+		->
+		{
+			groups: GroupInfoDTO[];
 		}
 	}
 

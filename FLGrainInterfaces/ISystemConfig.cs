@@ -73,7 +73,8 @@ namespace FLGrainInterfaces
     public class ConfigValues
     {
         public byte NumRoundsPerGame { get; private set; }
-        public byte NumCategoryChoices { get; private set; }
+        public byte NumGroupChoices { get; private set; }
+        public uint PriceToRefreshGroups { get; private set; }
         public TimeSpan ClientTimePerRound { get; private set; }
         public TimeSpan ExtraTimePerRound { get; private set; }
 

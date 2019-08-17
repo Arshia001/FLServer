@@ -85,12 +85,20 @@ namespace FLGrains
             return Success(LightMessage.Common.Messages.Param.String(result.category), LightMessage.Common.Messages.Param.TimeSpan(result.roundTime), LightMessage.Common.Messages.Param.Boolean(result.mustChooseGroup), LightMessage.Common.Messages.Param.Array(result.groups?.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
         }
 
-        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("grp")]
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("cgr")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_ChooseGroup(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IGame>(array[0].AsGuid.Value).ChooseGroup(input.ClientID, (ushort)array[1].AsUInt.Value);
             return Success(LightMessage.Common.Messages.Param.String(result.category), LightMessage.Common.Messages.Param.TimeSpan(result.roundTime));
+        }
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("rgr")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_RefreshGroups(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).RefreshGroups(array[0].AsGuid.Value);
+            return Success(LightMessage.Common.Messages.Param.Array(result.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("word")]

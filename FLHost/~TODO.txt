@@ -5,7 +5,8 @@ CLIENT active game limit
 CLIENT Infinite play
 CLIENT Interesting/Uninteresting
 CLIENT Interesting/Uninteresting data per player to disallow duplicated voting? -> store on client, too much work for server
-Refresh groups with money
+CLIENT Refresh groups with money
+LeaderBoards
 Matchmaking
 Game inactivity timeout
 Statistics
@@ -13,5 +14,4 @@ Friendship
 Chat
 IAB
 Registration / login
-LeaderBoards
 Inventory?

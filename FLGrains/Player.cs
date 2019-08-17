@@ -169,6 +169,20 @@ namespace FLGrains
             return (State.Gold, result.Value.word, result.Value.wordScore);
         }
 
+        public async Task<IEnumerable<GroupInfoDTO>> RefreshGroups(Guid gameID)
+        {
+            var price = configReader.Config.ConfigValues.PriceToRefreshGroups;
+            if (State.Gold < price)
+                throw new VerbatimException("Insufficient gold");
+
+            var result = await GrainFactory.GetGrain<IGame>(gameID).RefreshGroups(this.GetPrimaryKey());
+            if (result == null)
+                return null;
+
+            State.Gold -= price;
+            return result.Select(g => (GroupInfoDTO)g).ToList();
+        }
+
         public Task<(ulong totalGold, TimeSpan nextRewardTime)> TakeRewardForWinningRounds()
         {
             var configValues = configReader.Config.ConfigValues;
@@ -190,7 +204,7 @@ namespace FLGrains
         public Task<(bool success, ulong totalGold, TimeSpan duration)> ActivateInfinitePlay()
         {
             if (IsInfinitePlayActive)
-                return Task.FromResult((false, 0UL, TimeSpan.Zero));
+                return Task.FromResult((false, State.Gold, State.InfinitePlayEndTime - DateTime.Now));
 
             var config = configReader.Config.ConfigValues;
             if (State.Gold < config.InfinitePlayPrice)

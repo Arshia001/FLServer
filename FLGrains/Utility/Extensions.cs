@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace FLGrains
@@ -20,6 +21,22 @@ namespace FLGrains
             var set = new HashSet<int>();
             while (set.Count < count)
                 set.Add(random.Next(min, max));
+
+            return set;
+        }
+
+        public static IEnumerable<int> GetUniqueExcept(this Random random, int min, int max, int count, Func<int, bool> shouldExclude, int numExcluded)
+        {
+            if (count > max - min + numExcluded)
+                throw new Exception($"Interval [{min},{max}) except {numExcluded} values is too short to contain {count} unique numbers");
+
+            var set = new HashSet<int>();
+            while (set.Count < count)
+            {
+                var next = random.Next(min, max);
+                if (!shouldExclude(next))
+                    set.Add(next);
+            }
 
             return set;
         }

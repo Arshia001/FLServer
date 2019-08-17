@@ -80,6 +80,8 @@ namespace FLGrainInterfaces
         Task<(ulong? gold, TimeSpan? remainingTime)> IncreaseRoundTime(Guid gameID);
         Task<(ulong? gold, string word, byte? wordScore)> RevealWord(Guid gameID);
 
+        Task<IEnumerable<GroupInfoDTO>> RefreshGroups(Guid gameID);
+
         Task<(ulong totalGold, TimeSpan nextRewardTime)> TakeRewardForWinningRounds();
     }
 }

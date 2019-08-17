@@ -30,7 +30,7 @@ namespace FLGrains
         public int CategoryChooser { get; set; } = -1;
 
         [Id(4)]
-        public ushort[] CategoryChoices { get; set; }
+        public List<ushort> CategoryChoices { get; set; }
     }
 
     class Game : SaveStateOnDeactivateGrain<GameGrain_State>, IGame
@@ -136,8 +136,8 @@ namespace FLGrains
                 {
                     State.CategoryChooser = index;
                     State.CategoryChoices =
-                        new Random().GetUnique(0, config.Groups.Count, config.ConfigValues.NumCategoryChoices)
-                        .Select(i => config.Groups[i].ID).ToArray();
+                        new Random().GetUnique(0, config.Groups.Count, config.ConfigValues.NumGroupChoices)
+                        .Select(i => config.Groups[i].ID).ToList();
                 }
                 return Task.FromResult((default(string), default(TimeSpan?), true, State.CategoryChoices.Select(i => (GroupInfoDTO)config.GroupsByID[i]).ToList().AsEnumerable()));
             }
@@ -302,6 +302,22 @@ namespace FLGrains
 
             var (score, _) = await PlayWord(playerID, word);
             return (word, score);
+        }
+
+        public Task<List<GroupConfig>> RefreshGroups(Guid guid)
+        {
+            var index = Index(guid);
+
+            if (State.CategoryChooser != index || State.CategoryChoices == null)
+                return null;
+
+            var config = configReader.Config;
+            State.CategoryChoices =
+                new Random().GetUniqueExcept(0, config.Groups.Count, config.ConfigValues.NumGroupChoices, 
+                    i => State.CategoryChoices.Contains(config.Groups[i].ID), State.CategoryChoices.Count)
+                .Select(i => config.Groups[i].ID).ToList();
+
+            return Task.FromResult(State.CategoryChoices.Select(i => config.GroupsByID[i]).ToList());
         }
 
         GameState GetStateInternal()
