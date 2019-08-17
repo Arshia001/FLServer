@@ -96,7 +96,7 @@ endpoint System sys
 		}
 	}
 
-	request ActivateInfinitePlay inf via Player(clientid).ActiavateInfinitePlay()
+	request ActivateInfinitePlay inf via Player(clientid).ActivateInfinitePlay()
 	{
 		{ }
 		->

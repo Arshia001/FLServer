@@ -32,7 +32,7 @@ namespace FLGrains
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_ActivateInfinitePlay(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
-            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).ActiavateInfinitePlay();
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).ActivateInfinitePlay();
             return Success(LightMessage.Common.Messages.Param.Boolean(result.success), LightMessage.Common.Messages.Param.UInt(result.totalGold), LightMessage.Common.Messages.Param.TimeSpan(result.duration));
         }
     }

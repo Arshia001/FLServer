@@ -182,12 +182,12 @@ namespace FLGrains
             State.NumRoundsWonForReward = 0;
             State.LastRoundWinRewardTakeTime = DateTime.Now;
 
-            //?? State.Funds += ....
+            State.Gold += configValues.NumGoldRewardForWinningRounds;
 
-            return Task.FromResult(((ulong)configValues.NumGoldRewardForWinningRounds, configValues.RoundWinRewardInterval)); //??
+            return Task.FromResult((State.Gold, configValues.RoundWinRewardInterval));
         }
 
-        public Task<(bool success, ulong totalGold, TimeSpan duration)> ActiavateInfinitePlay()
+        public Task<(bool success, ulong totalGold, TimeSpan duration)> ActivateInfinitePlay()
         {
             if (IsInfinitePlayActive)
                 return Task.FromResult((false, 0UL, TimeSpan.Zero));

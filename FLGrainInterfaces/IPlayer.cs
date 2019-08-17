@@ -75,7 +75,7 @@ namespace FLGrainInterfaces
         Task OnRoundWon(IGame game);
         Task<(uint score, uint rank)> OnGameResult(IGame game, Guid? winnerID);
 
-        Task<(bool success, ulong totalGold, TimeSpan duration)> ActiavateInfinitePlay();
+        Task<(bool success, ulong totalGold, TimeSpan duration)> ActivateInfinitePlay();
 
         Task<(ulong? gold, TimeSpan? remainingTime)> IncreaseRoundTime(Guid gameID);
         Task<(ulong? gold, string word, byte? wordScore)> RevealWord(Guid gameID);
