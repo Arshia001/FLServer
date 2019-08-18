@@ -6,7 +6,8 @@ CLIENT Infinite play
 CLIENT Interesting/Uninteresting
 CLIENT Interesting/Uninteresting data per player to disallow duplicated voting? -> store on client, too much work for server
 CLIENT Refresh groups with money
-LeaderBoards
+CLIENT LeaderBoards
+XP / Score(?) calculations
 Matchmaking
 Game inactivity timeout
 Statistics
