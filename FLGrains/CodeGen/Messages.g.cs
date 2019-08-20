@@ -8,14 +8,14 @@ namespace FLGrains
     public abstract class SystemEndPointBase : LightMessage.OrleansUtils.Grains.EndPointGrain, ISystemEndPoint
     {
         public virtual System.Threading.Tasks.Task SendNumRoundsWonForRewardUpdated(System.Guid clientID, uint totalRoundsWon) => SendMessage(clientID, "rwu", LightMessage.Common.Messages.Param.UInt(totalRoundsWon));
-        protected abstract System.Threading.Tasks.Task<(OwnPlayerInfo playerInfo, byte numRoundsToWinToGetReward)> GetStartupInfo(System.Guid clientID);
+        protected abstract System.Threading.Tasks.Task<(OwnPlayerInfo playerInfo, ConfigValuesDTO configData)> GetStartupInfo(System.Guid clientID);
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("st")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_GetStartupInfo(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
             var result = await GetStartupInfo(input.ClientID);
-            return Success(result.playerInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.UInt(result.numRoundsToWinToGetReward));
+            return Success(result.playerInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), result.configData?.ToParam() ?? LightMessage.Common.Messages.Param.Null());
         }
 
         protected abstract System.Threading.Tasks.Task<(ulong totalGold, System.TimeSpan timeUntilNextReward)> TakeRewardForWinningRounds(System.Guid clientID);

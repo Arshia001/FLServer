@@ -42,6 +42,8 @@ namespace FLGrains
 
         bool IsInfinitePlayActive => State.InfinitePlayEndTime > DateTime.Now;
 
+        TimeSpan InfinitePlayTimeRemaining => State.InfinitePlayEndTime - DateTime.Now;
+
         public async Task<Immutable<OwnPlayerInfo>> GetOwnPlayerInfo()
         {
             var config = configReader.Config;
@@ -56,7 +58,9 @@ namespace FLGrains
                 CurrentNumRoundsWonForReward = State.NumRoundsWonForReward,
                 NextRoundWinRewardTimeRemaining = new TimeSpan(Math.Max(0L, timeTillNextReward.Ticks)),
                 Score = State.Score,
-                Rank = (uint)await LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).GetRank(this.GetPrimaryKey())
+                Rank = (uint)await LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).GetRank(this.GetPrimaryKey()),
+                Gold = State.Gold,
+                InfinitePlayTimeRemaining = IsInfinitePlayActive ? InfinitePlayTimeRemaining : default(TimeSpan?)
             }.AsImmutable();
         }
 

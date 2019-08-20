@@ -19,10 +19,10 @@ namespace FLGrains
 
         public SystemEndPoint(IConfigReader configReader) => this.configReader = configReader;
 
-        protected override async Task<(OwnPlayerInfo playerInfo, byte numRoundsToWinToGetReward)> GetStartupInfo(Guid clientID)
+        protected override async Task<(OwnPlayerInfo playerInfo, ConfigData configData)> GetStartupInfo(Guid clientID)
         {
             var playerInfo = await GrainFactory.GetGrain<IPlayer>(clientID).PerformStartupTasksAndGetInfo().UnwrapImmutable();
-            return (playerInfo, configReader.Config.ConfigValues.NumRoundsToWinToGetReward);
+            return (playerInfo, configReader.Config.ConfigValues);
         }
 
         protected override Task<(ulong totalGold, TimeSpan timeUntilNextReward)> TakeRewardForWinningRounds(Guid clientID) =>

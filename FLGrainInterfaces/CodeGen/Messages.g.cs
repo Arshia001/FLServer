@@ -60,17 +60,19 @@ namespace FLGrainInterfaces
         public uint NextLevelXPThreshold { get; set; }
         public uint Score { get; set; }
         public uint Rank { get; set; }
+        public ulong Gold { get; set; }
         public uint CurrentNumRoundsWonForReward { get; set; }
         public System.TimeSpan NextRoundWinRewardTimeRemaining { get; set; }
+        public System.TimeSpan? InfinitePlayTimeRemaining { get; set; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.UInt(XP), LightMessage.Common.Messages.Param.UInt(Level), LightMessage.Common.Messages.Param.UInt(NextLevelXPThreshold), LightMessage.Common.Messages.Param.UInt(Score), LightMessage.Common.Messages.Param.UInt(Rank), LightMessage.Common.Messages.Param.UInt(CurrentNumRoundsWonForReward), LightMessage.Common.Messages.Param.TimeSpan(NextRoundWinRewardTimeRemaining));
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.UInt(XP), LightMessage.Common.Messages.Param.UInt(Level), LightMessage.Common.Messages.Param.UInt(NextLevelXPThreshold), LightMessage.Common.Messages.Param.UInt(Score), LightMessage.Common.Messages.Param.UInt(Rank), LightMessage.Common.Messages.Param.UInt(Gold), LightMessage.Common.Messages.Param.UInt(CurrentNumRoundsWonForReward), LightMessage.Common.Messages.Param.TimeSpan(NextRoundWinRewardTimeRemaining), LightMessage.Common.Messages.Param.TimeSpan(InfinitePlayTimeRemaining));
 
         public static OwnPlayerInfo FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new OwnPlayerInfo { Name = array[0].AsString, XP = (uint)array[1].AsUInt.Value, Level = (uint)array[2].AsUInt.Value, NextLevelXPThreshold = (uint)array[3].AsUInt.Value, Score = (uint)array[4].AsUInt.Value, Rank = (uint)array[5].AsUInt.Value, CurrentNumRoundsWonForReward = (uint)array[6].AsUInt.Value, NextRoundWinRewardTimeRemaining = array[7].AsTimeSpan.Value };
+            return new OwnPlayerInfo { Name = array[0].AsString, XP = (uint)array[1].AsUInt.Value, Level = (uint)array[2].AsUInt.Value, NextLevelXPThreshold = (uint)array[3].AsUInt.Value, Score = (uint)array[4].AsUInt.Value, Rank = (uint)array[5].AsUInt.Value, Gold = array[6].AsUInt.Value, CurrentNumRoundsWonForReward = (uint)array[7].AsUInt.Value, NextRoundWinRewardTimeRemaining = array[8].AsTimeSpan.Value, InfinitePlayTimeRemaining = array[9].AsTimeSpan };
         }
     }
 
@@ -132,6 +134,31 @@ namespace FLGrainInterfaces
                 return null;
             var array = param.AsArray;
             return new SimplifiedGameInfo { GameID = array[0].AsGuid.Value, GameState = array[1].AsUEnum<GameState>().Value, OtherPlayerName = array[2].AsString, MyTurn = array[3].AsBoolean.Value, MyScore = (byte)array[4].AsUInt.Value, TheirScore = (byte)array[5].AsUInt.Value };
+        }
+    }
+
+    public class ConfigValuesDTO
+    {
+        public byte NumRoundsToWinToGetReward { get; set; }
+        public System.TimeSpan RoundWinRewardInterval { get; set; }
+        public uint NumGoldRewardForWinningRounds { get; set; }
+        public uint PriceToRefreshGroups { get; set; }
+        public System.TimeSpan RoundTimeExtension { get; set; }
+        public uint RoundTimeExtensionPrice { get; set; }
+        public uint RevealWordPrice { get; set; }
+        public uint MaxActiveGames { get; set; }
+        public uint InfinitePlayPrice { get; set; }
+
+        public static implicit operator ConfigValuesDTO(ConfigValues obj) => new ConfigValuesDTO { NumRoundsToWinToGetReward = obj.NumRoundsToWinToGetReward, RoundWinRewardInterval = obj.RoundWinRewardInterval, NumGoldRewardForWinningRounds = obj.NumGoldRewardForWinningRounds, PriceToRefreshGroups = obj.PriceToRefreshGroups, RoundTimeExtension = obj.RoundTimeExtension, RoundTimeExtensionPrice = obj.RoundTimeExtensionPrice, RevealWordPrice = obj.RevealWordPrice, MaxActiveGames = obj.MaxActiveGames, InfinitePlayPrice = obj.InfinitePlayPrice };
+
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.UInt(NumRoundsToWinToGetReward), LightMessage.Common.Messages.Param.TimeSpan(RoundWinRewardInterval), LightMessage.Common.Messages.Param.UInt(NumGoldRewardForWinningRounds), LightMessage.Common.Messages.Param.UInt(PriceToRefreshGroups), LightMessage.Common.Messages.Param.TimeSpan(RoundTimeExtension), LightMessage.Common.Messages.Param.UInt(RoundTimeExtensionPrice), LightMessage.Common.Messages.Param.UInt(RevealWordPrice), LightMessage.Common.Messages.Param.UInt(MaxActiveGames), LightMessage.Common.Messages.Param.UInt(InfinitePlayPrice));
+
+        public static ConfigValuesDTO FromParam(LightMessage.Common.Messages.Param param)
+        {
+            if (param.IsNull)
+                return null;
+            var array = param.AsArray;
+            return new ConfigValuesDTO { NumRoundsToWinToGetReward = (byte)array[0].AsUInt.Value, RoundWinRewardInterval = array[1].AsTimeSpan.Value, NumGoldRewardForWinningRounds = (uint)array[2].AsUInt.Value, PriceToRefreshGroups = (uint)array[3].AsUInt.Value, RoundTimeExtension = array[4].AsTimeSpan.Value, RoundTimeExtensionPrice = (uint)array[5].AsUInt.Value, RevealWordPrice = (uint)array[6].AsUInt.Value, MaxActiveGames = (uint)array[7].AsUInt.Value, InfinitePlayPrice = (uint)array[8].AsUInt.Value };
         }
     }
 

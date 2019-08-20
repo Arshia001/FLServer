@@ -1,5 +1,4 @@
-﻿CLIENT Powerups -> time, reveal word
-CLIENT Money
+﻿CLIENT Money
 CLIENT active game limit
 CLIENT Infinite play
 CLIENT Interesting/Uninteresting

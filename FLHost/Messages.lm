@@ -36,11 +36,12 @@ contract OwnPlayerInfo
 	NextLevelXPThreshold: u32;
 	Score: u32;
 	Rank: u32;
+	Gold: u64;
 	CurrentNumRoundsWonForReward: u32;
 	NextRoundWinRewardTimeRemaining: timespan;
+	InfinitePlayTimeRemaining: timespan?;
 }
 
-// remember, one can specify "server" or "client" after castfrom items to generate that cast only on the specified side
 contract WordScorePairDTO castfrom(FLGameLogic.WordScorePair)
 {
 	Word, WordScorePair.word: string;
@@ -69,6 +70,19 @@ contract SimplifiedGameInfo
     TheirScore: u8;
 }
 
+contract ConfigValuesDTO castfrom(ConfigValues server oneway)
+{
+	NumRoundsToWinToGetReward: u8;
+	RoundWinRewardInterval: timespan;
+	NumGoldRewardForWinningRounds: u32;
+	PriceToRefreshGroups: u32;
+	RoundTimeExtension: timespan;
+	RoundTimeExtensionPrice: u32;
+	RevealWordPrice: u32;
+	MaxActiveGames: u32;
+	InfinitePlayPrice: u32;
+}
+
 endpoint System sys 
 {
 	notification NumRoundsWonForRewardUpdated rwu
@@ -82,7 +96,7 @@ endpoint System sys
 		->
 		{
 			playerInfo: OwnPlayerInfo;
-			numRoundsToWinToGetReward: u8;
+			configData: ConfigValuesDTO;
 		}
 	}
 
