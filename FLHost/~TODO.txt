@@ -1,5 +1,4 @@
-﻿CLIENT Manually choosing groups
-CLIENT Powerups -> time, reveal word
+﻿CLIENT Powerups -> time, reveal word
 CLIENT Money
 CLIENT active game limit
 CLIENT Infinite play

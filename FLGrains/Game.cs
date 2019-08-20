@@ -104,7 +104,8 @@ namespace FLGrains
 
         (bool shouldChooseCategory, string category, int roundIndex, TimeSpan? roundTime) StartRound(int playerIndex)
         {
-            var roundTime = TimeSpan.FromSeconds(60); //?? config
+            var configValues = configReader.Config.ConfigValues;
+            var roundTime = configValues.ClientTimePerRound + configValues.ExtraTimePerRound;
 
             int roundIndex = gameLogic.NumTurnsTakenBy(playerIndex);
             var result = gameLogic.StartRound(playerIndex, roundTime, out var category);
@@ -119,7 +120,7 @@ namespace FLGrains
             var timerHandle = RegisterTimer(OnTurnEnded, endRoundData, roundTime, TimeSpan.MaxValue);
             endRoundData.timerHandle = timerHandle;
 
-            return (false, category, roundIndex, (TimeSpan?)(roundTime - TimeSpan.FromSeconds(10))); //?? config value for additional time per turn
+            return (false, category, roundIndex, (TimeSpan?)(configValues.ClientTimePerRound));
         }
 
         //?? this could potentially be bad, timing-wise. Maybe the client should generate their own clock?
@@ -276,9 +277,10 @@ namespace FLGrains
 
         public Task<TimeSpan?> IncreaseRoundTime(Guid playerID)
         {
+            var extension = configReader.Config.ConfigValues.RoundTimeExtension;
             var index = Index(playerID);
-            var endTime = gameLogic.ExtendRoundTime(index, configReader.Config.ConfigValues.RoundTimeExtension);
-            return Task.FromResult(endTime == null ? default(TimeSpan?) : endTime.Value - DateTime.Now);
+            var endTime = gameLogic.ExtendRoundTime(index, extension);
+            return Task.FromResult(endTime == null ? default(TimeSpan?) : extension);
         }
 
         public async Task<(string word, byte wordScore)?> RevealWord(Guid playerID)
