@@ -77,10 +77,10 @@ namespace FLGrains
 
         uint GetNextLevelRequiredXP(ReadOnlyConfigData config) => GetLevelConfig(config).GetRequiredXP(State);
 
-        void AddXP(uint delta) //?? notify client here or otherwise
+        Task AddXP(uint delta)
         {
             if (delta == 0)
-                return;
+                return Task.CompletedTask;
 
             var reqXP = GetNextLevelRequiredXP(configReader.Config);
 
@@ -91,7 +91,11 @@ namespace FLGrains
                 State.XP -= reqXP;
             }
 
-            LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.XP).AddDelta(this.GetPrimaryKey(), delta).Ignore();
+            var id = this.GetPrimaryKey();
+
+            LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.XP).AddDelta(id, delta).Ignore();
+
+            return GrainFactory.GetGrain<ISystemEndPoint>(0).SendXPUpdated(id, State.XP, State.Level);
         }
 
         public Task<bool> CanEnterGame() => Task.FromResult(IsInfinitePlayActive || State.ActiveGames.Count < configReader.Config.ConfigValues.MaxActiveGames);

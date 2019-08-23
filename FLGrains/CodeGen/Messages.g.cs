@@ -8,6 +8,7 @@ namespace FLGrains
     public abstract class SystemEndPointBase : LightMessage.OrleansUtils.Grains.EndPointGrain, ISystemEndPoint
     {
         public virtual System.Threading.Tasks.Task SendNumRoundsWonForRewardUpdated(System.Guid clientID, uint totalRoundsWon) => SendMessage(clientID, "rwu", LightMessage.Common.Messages.Param.UInt(totalRoundsWon));
+        public virtual System.Threading.Tasks.Task SendXPUpdated(System.Guid clientID, uint totalXP, uint totalLevel) => SendMessage(clientID, "xp", LightMessage.Common.Messages.Param.UInt(totalXP), LightMessage.Common.Messages.Param.UInt(totalLevel));
         protected abstract System.Threading.Tasks.Task<(OwnPlayerInfo playerInfo, ConfigValuesDTO configData)> GetStartupInfo(System.Guid clientID);
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("st")]

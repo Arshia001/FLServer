@@ -6,6 +6,7 @@ namespace FLGrainInterfaces
     public interface ISystemEndPoint : LightMessage.OrleansUtils.GrainInterfaces.IEndPointGrain
     {
         System.Threading.Tasks.Task SendNumRoundsWonForRewardUpdated(System.Guid clientID, uint totalRoundsWon);
+        System.Threading.Tasks.Task SendXPUpdated(System.Guid clientID, uint totalXP, uint totalLevel);
     }
 
     public interface ISuggestionEndPoint : LightMessage.OrleansUtils.GrainInterfaces.IEndPointGrain

@@ -106,6 +106,12 @@ endpoint System sys
 		totalRoundsWon: u32;
 	}
 
+	notification XPUpdated xp
+	{
+		totalXP: u32;
+		totalLevel: u32;
+	}
+
 	request GetStartupInfo st
 	{
 		{ }
