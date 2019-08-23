@@ -18,11 +18,31 @@
   },
   "ConfigValues": {
     "NumRoundsPerGame": 1,
+    
+    "NumGroupChoices": 3,
+    "PriceToRefreshGroups": 100,
+    
+    "ClientTimePerRound": "00:00:50",
+    "ExtraTimePerRound": "00:00:10",
+    
+    "RoundTimeExtension": "00:00:30",
+    "RoundTimeExtensionPrice": 500,
+    
+    "RevealWordPrice": 300,
+    
+    "MaxActiveGames": 5,
+    "InfinitePlayPrice": 200,
+    "InfinitePlayTime": "12:00:00",
+    
     "NumRoundsToWinToGetReward": 2,
     "RoundWinRewardInterval": "00:00:10",
-    "NumGoldRewardForWinningRounds": 10,
+    "NumGoldRewardForWinningRounds": 50,
+
     "WinDeltaScore": 10,
     "DrawDeltaScore": 3,
-    "LossDeltaScore": -4
+    "LossDeltaScore": -4,
+
+    "WordScoreThreshold2": 1.3,
+    "WordScoreThreshold3": 0.7
   }
 }

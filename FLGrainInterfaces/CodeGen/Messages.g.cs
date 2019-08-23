@@ -36,6 +36,30 @@ namespace FLGrainInterfaces
         XP
     }
 
+    public enum LeaderBoardGroup
+    {
+        All,
+        Friends,
+        Clan
+    }
+
+    public class LeaderBoardEntryDTO
+    {
+        public string Name { get; set; }
+        public ulong Rank { get; set; }
+        public ulong Score { get; set; }
+
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.UInt(Rank), LightMessage.Common.Messages.Param.UInt(Score));
+
+        public static LeaderBoardEntryDTO FromParam(LightMessage.Common.Messages.Param param)
+        {
+            if (param.IsNull)
+                return null;
+            var array = param.AsArray;
+            return new LeaderBoardEntryDTO { Name = array[0].AsString, Rank = array[1].AsUInt.Value, Score = array[2].AsUInt.Value };
+        }
+    }
+
     public class PlayerInfo
     {
         public System.Guid ID { get; set; }

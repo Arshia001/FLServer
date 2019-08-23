@@ -23,6 +23,8 @@ namespace FLGrains
             var connectionStringProvider = new ConnectionStringProvider(connectionString);
             services.AddSingleton<IConnectionStringProvider>(connectionStringProvider);
 
+            services.AddSingleton<ILeaderBoardPlayerInfoCacheService, LeaderBoardPlayerInfoCacheService>();
+
             // this is a really early init stage, we shouldn't care about blocking here
             services.AddSingleton<ISuggestionService>(SuggestionService.CreateInstance(connectionStringProvider).Result);
         }

@@ -46,6 +46,7 @@ namespace FLGrains
         readonly IDisposable[] turnTimers = new IDisposable[2]; //?? restore timers when activating
         GameLogicServer gameLogic;
         IConfigReader configReader;
+        Random random = new Random();
 
 
         int NumJoinedPlayers => State.PlayerIDs.Length == 0 || State.PlayerIDs.Length == 0 ? 0 :
@@ -65,7 +66,20 @@ namespace FLGrains
             if (State.CategoryNames != null && State.CategoryNames.Length > 0)
             {
                 var config = configReader.Config;
-                gameLogic = new GameLogicServer(State.CategoryNames.Select(n => n == null ? null : config.CategoriesAsGameLogicFormatByName[n])); //?? restore game state from grain state
+                //?? restore game state from grain state
+                gameLogic = new GameLogicServer(State.CategoryNames.ToList().Select((n, i) => 
+                {
+                    if (n == null)
+                        return null;
+
+                    if (config.CategoriesAsGameLogicFormatByName.TryGetValue(n, out var category))
+                        return category;
+
+                    // In case a category was deleted...
+                    category = config.CategoriesAsGameLogicFormat[random.Next(config.CategoriesAsGameLogicFormat.Count)];
+                    State.CategoryNames[i] = category.CategoryName;
+                    return category;
+                }));
             }
 
             DelayDeactivation(TimeSpan.FromDays(20)); //?? store state in DB -.-

@@ -27,9 +27,6 @@ namespace FLTestClient
 
         static void Main(string[] args)
         {
-            Console.WriteLine(EditDistance.IsLessThan("a", "dahtrhsagsdfbadgbadgsfdsa", 105));
-
-
             //var svc = new ServiceCollection();
             //ServiceConfiguration.ConfigureServices(svc, "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy");
             //var provider = svc.BuildServiceProvider();

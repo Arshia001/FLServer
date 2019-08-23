@@ -119,7 +119,7 @@ namespace FLGrains
 
         void SetImpl(Guid id, ulong score)
         {
-            if (State.Scores.GetScore(id) < score)
+            if (!State.Scores.TryGetScore(id, out var existing) || existing < score)
             {
                 State.Scores.Add(id, score);
                 changedSinceLastWrite = true;

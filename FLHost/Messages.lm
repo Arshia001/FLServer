@@ -22,10 +22,26 @@ enum LeaderBoardSubject
 	XP
 }
 
+enum LeaderBoardGroup
+{
+	All,
+	Friends,
+	Clan
+}
+
+contract LeaderBoardEntryDTO
+{
+	Name: string?;
+	Rank: u64;
+	Score: u64;
+	//?? avatar
+}
+
 contract PlayerInfo
 {
 	ID: guid;
 	Name: string;
+	//?? avatar
 }
 
 contract OwnPlayerInfo
@@ -118,6 +134,18 @@ endpoint System sys
 			success: bool;
 			totalGold: u64;
 			duration: timespan;
+		}
+	}
+
+	request GetLeaderBoard lb
+	{
+		{
+			subject: LeaderBoardSubject;
+			group: LeaderBoardGroup;
+		}
+		->
+		{
+			entries: LeaderBoardEntryDTO[];
 		}
 	}
 }

@@ -24,6 +24,10 @@ namespace FLGrains
 
                 State.Gold = 1_000_000;
                 State.Level = 1;
+
+                var id = this.GetPrimaryKey();
+                LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).Set(id, 0).Ignore();
+                LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.XP).Set(id, 0).Ignore();
             }
 
             //??
@@ -63,6 +67,8 @@ namespace FLGrains
                 InfinitePlayTimeRemaining = IsInfinitePlayActive ? InfinitePlayTimeRemaining : default(TimeSpan?)
             }.AsImmutable();
         }
+
+        public Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo() => Task.FromResult(new PlayerLeaderBoardInfo(State.Name));
 
         PlayerInfo GetPlayerInfoImpl() => new PlayerInfo { ID = this.GetPrimaryKey(), Name = GetName() }; //?? other info
 

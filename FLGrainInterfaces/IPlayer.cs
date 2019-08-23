@@ -17,6 +17,15 @@ namespace FLGrainInterfaces
         public static Task<OwnPlayerInfo> GetOwnForPlayerID(IGrainFactory grainFactory, Guid playerID) => grainFactory.GetGrain<IPlayer>(playerID).GetOwnPlayerInfo().UnwrapImmutable();
     }
 
+    [Immutable]
+    public class PlayerLeaderBoardInfo
+    {
+        public string Name { get; }
+        //?? avatar
+
+        public PlayerLeaderBoardInfo(string name) => Name = name;
+    }
+
     //?? split into current games and past games, keep full history of past games somewhere else or limit history to a few items
     [Schema, BondSerializationTag("#p")]
     public class PlayerState : IOnDeserializedHandler
@@ -67,6 +76,7 @@ namespace FLGrainInterfaces
 
         Task<Immutable<PlayerInfo>> GetPlayerInfo();
         Task<Immutable<OwnPlayerInfo>> GetOwnPlayerInfo();
+        Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo();
 
         Task<Immutable<IReadOnlyList<IGame>>> GetGames();
         Task<bool> CanEnterGame();

@@ -110,6 +110,8 @@ namespace FLGrainInterfaces.Util
             return default(TScore);
         }
 
+        public bool TryGetScore(TValue Value, out TScore score) => ValueCache.TryGetValue(Value, out score);
+
         public void Add(TValue Value, TScore Score)
         {
             Delete(Value); // If it exists; otherwise, this has no effect and no performance penalty

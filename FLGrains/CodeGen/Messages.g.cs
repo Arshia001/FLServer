@@ -35,6 +35,16 @@ namespace FLGrains
             var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).ActivateInfinitePlay();
             return Success(LightMessage.Common.Messages.Param.Boolean(result.success), LightMessage.Common.Messages.Param.UInt(result.totalGold), LightMessage.Common.Messages.Param.TimeSpan(result.duration));
         }
+
+        protected abstract System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<LeaderBoardEntryDTO>> GetLeaderBoard(System.Guid clientID, LeaderBoardSubject subject, LeaderBoardGroup group);
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("lb")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_GetLeaderBoard(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            var result = await GetLeaderBoard(input.ClientID, array[0].AsUEnum<LeaderBoardSubject>().Value, array[1].AsUEnum<LeaderBoardGroup>().Value);
+            return Success(LightMessage.Common.Messages.Param.Array(result.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
+        }
     }
 
     [LightMessage.OrleansUtils.GrainInterfaces.EndPointNameAttribute("sg"), Orleans.Concurrency.StatelessWorkerAttribute(128)]
