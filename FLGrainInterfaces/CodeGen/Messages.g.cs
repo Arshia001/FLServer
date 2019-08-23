@@ -65,15 +65,16 @@ namespace FLGrainInterfaces
     {
         public System.Guid ID { get; set; }
         public string Name { get; set; }
+        public uint Level { get; set; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.Guid(ID), LightMessage.Common.Messages.Param.String(Name));
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.Guid(ID), LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.UInt(Level));
 
         public static PlayerInfo FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new PlayerInfo { ID = array[0].AsGuid.Value, Name = array[1].AsString };
+            return new PlayerInfo { ID = array[0].AsGuid.Value, Name = array[1].AsString, Level = (uint)array[2].AsUInt.Value };
         }
     }
 

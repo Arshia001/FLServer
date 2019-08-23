@@ -82,8 +82,8 @@ namespace FLGrains
             {
                 var mean = total / (float)data.WordScores.Count;
                 var config = configReader.Config.ConfigValues;
-                var threshold3 = mean * config.WordScoreThreshold2;
-                var threshold2 = mean * config.WordScoreThreshold3;
+                var threshold3 = mean * config.WordScoreThreshold3;
+                var threshold2 = mean * config.WordScoreThreshold2;
 
                 result.WordScores = data.WordScores.ToDictionary(kv => kv.Key, kv => (byte)(kv.Value < threshold3 ? 3 : kv.Value < threshold2 ? 2 : 1));
             }

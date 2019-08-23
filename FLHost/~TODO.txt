@@ -11,3 +11,6 @@ Chat
 IAB
 Registration / login
 Inventory?
+Version checks
+Safe service restart -> reject new connections, turn service off when no connections remain, **might take a lot of time**! Force people out after a while?
+planned down-time -> notify players in some way (broadcast messages?)

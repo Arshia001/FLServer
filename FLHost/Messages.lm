@@ -41,6 +41,7 @@ contract PlayerInfo
 {
 	ID: guid;
 	Name: string;
+	Level: u32;
 	//?? avatar
 }
 

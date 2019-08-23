@@ -1,4 +1,5 @@
 ﻿using Bond;
+using Bond.Tag;
 using FLGameLogic;
 using FLGrainInterfaces;
 using LightMessage.OrleansUtils.Grains;
@@ -15,22 +16,30 @@ namespace FLGrains
 {
     //?? the current scheme doesn't support immediate lookup of score details for a round
     [Schema, BondSerializationTag("#g")]
-    class GameGrain_State
+    public class GameGrain_State : IOnDeserializedHandler
     {
-        [Id(0)]
+        [Id(0), Type(typeof(nullable<wstring>[]))]
         public string[] CategoryNames { get; set; }
 
         [Id(1)]
-        public Guid[] PlayerIDs { get; set; } = Array.Empty<Guid>();
+        public Guid[] PlayerIDs { get; set; }
 
         [Id(2)]
-        public int[] LastProcessedEndTurns { get; set; } = new[] { -1, -1 }; //?? use to reprocess turn end notifications in case grain goes down
+        public int[] LastProcessedEndTurns { get; set; } //?? use to reprocess turn end notifications in case grain goes down
 
         [Id(3)]
-        public int CategoryChooser { get; set; } = -1;
+        public int GroupChooser { get; set; } = -1;
 
-        [Id(4)]
-        public List<ushort> CategoryChoices { get; set; }
+        [Id(4), Type(typeof(nullable<List<ushort>>))]
+        public List<ushort> GroupChoices { get; set; }
+
+        public void OnDeserialized()
+        {
+            if (PlayerIDs == null)
+                PlayerIDs = Array.Empty<Guid>();
+            if (LastProcessedEndTurns == null)
+                LastProcessedEndTurns = new[] { -1, -1 };
+        }
     }
 
     class Game : SaveStateOnDeactivateGrain<GameGrain_State>, IGame
@@ -49,8 +58,7 @@ namespace FLGrains
         Random random = new Random();
 
 
-        int NumJoinedPlayers => State.PlayerIDs.Length == 0 || State.PlayerIDs.Length == 0 ? 0 :
-            State.PlayerIDs[1] == Guid.Empty ? 1 : 2;
+        int NumJoinedPlayers => State.PlayerIDs.Length == 0 ? 0 : State.PlayerIDs[1] == Guid.Empty ? 1 : 2;
 
 
         public Game(IConfigReader configReader)
@@ -67,7 +75,7 @@ namespace FLGrains
             {
                 var config = configReader.Config;
                 //?? restore game state from grain state
-                gameLogic = new GameLogicServer(State.CategoryNames.ToList().Select((n, i) => 
+                gameLogic = new GameLogicServer(State.CategoryNames.ToList().Select((n, i) =>
                 {
                     if (n == null)
                         return null;
@@ -147,14 +155,14 @@ namespace FLGrains
             if (mustChooseCategory)
             {
                 var config = configReader.Config;
-                if (State.CategoryChoices == null || State.CategoryChooser != index)
+                if (State.GroupChoices == null || State.GroupChooser != index)
                 {
-                    State.CategoryChooser = index;
-                    State.CategoryChoices =
+                    State.GroupChooser = index;
+                    State.GroupChoices =
                         new Random().GetUnique(0, config.Groups.Count, config.ConfigValues.NumGroupChoices)
                         .Select(i => config.Groups[i].ID).ToList();
                 }
-                return Task.FromResult((default(string), default(TimeSpan?), true, State.CategoryChoices.Select(i => (GroupInfoDTO)config.GroupsByID[i]).ToList().AsEnumerable()));
+                return Task.FromResult((default(string), default(TimeSpan?), true, State.GroupChoices.Select(i => (GroupInfoDTO)config.GroupsByID[i]).ToList().AsEnumerable()));
             }
             else
                 return Task.FromResult((category, roundTime, false, Enumerable.Empty<GroupInfoDTO>()));
@@ -168,11 +176,11 @@ namespace FLGrains
             if (!mustChooseCategory)
                 return Task.FromResult((category, roundTime.Value));
 
-            if (State.CategoryChooser != index || State.CategoryChoices == null)
+            if (State.GroupChooser != index || State.GroupChoices == null)
                 throw new VerbatimException("Not this player's turn to choose a group");
 
-            if (!State.CategoryChoices.Contains(groupID))
-                throw new VerbatimException($"Specified group {groupID} is not a valid choice out of ({string.Join(", ", State.CategoryChoices)})");
+            if (!State.GroupChoices.Contains(groupID))
+                throw new VerbatimException($"Specified group {groupID} is not a valid choice out of ({string.Join(", ", State.GroupChoices)})");
 
             var config = configReader.Config;
 
@@ -192,6 +200,9 @@ namespace FLGrains
             (mustChooseCategory, category, _, roundTime) = StartRound(index);
             if (mustChooseCategory)
                 throw new VerbatimException("Still need to choose category after setting it once");
+
+            State.GroupChooser = -1;
+            State.GroupChoices = null;
 
             return Task.FromResult((category, roundTime.Value));
         }
@@ -324,16 +335,16 @@ namespace FLGrains
         {
             var index = Index(guid);
 
-            if (State.CategoryChooser != index || State.CategoryChoices == null)
+            if (State.GroupChooser != index || State.GroupChoices == null)
                 return null;
 
             var config = configReader.Config;
-            State.CategoryChoices =
-                new Random().GetUniqueExcept(0, config.Groups.Count, config.ConfigValues.NumGroupChoices, 
-                    i => State.CategoryChoices.Contains(config.Groups[i].ID), State.CategoryChoices.Count)
+            State.GroupChoices =
+                new Random().GetUniqueExcept(0, config.Groups.Count, config.ConfigValues.NumGroupChoices,
+                    i => State.GroupChoices.Contains(config.Groups[i].ID), State.GroupChoices.Count)
                 .Select(i => config.Groups[i].ID).ToList();
 
-            return Task.FromResult(State.CategoryChoices.Select(i => config.GroupsByID[i]).ToList());
+            return Task.FromResult(State.GroupChoices.Select(i => config.GroupsByID[i]).ToList());
         }
 
         GameState GetStateInternal()

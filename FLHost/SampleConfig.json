@@ -20,7 +20,7 @@
     "NumRoundsPerGame": 1,
     
     "NumGroupChoices": 3,
-    "PriceToRefreshGroups": 100,
+    "PriceToRefreshGroups": 150,
     
     "ClientTimePerRound": "00:00:50",
     "ExtraTimePerRound": "00:00:10",

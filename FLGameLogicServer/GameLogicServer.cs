@@ -38,7 +38,7 @@ namespace FLGameLogic
                 return StartRoundResult.Error_GameFinished;
             }
 
-            category = categories[RoundNumber].CategoryName;
+            category = categories[RoundNumber]?.CategoryName;
             if (category == null)
                 return StartRoundResult.MustChooseCategory;
 

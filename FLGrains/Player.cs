@@ -70,7 +70,7 @@ namespace FLGrains
 
         public Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo() => Task.FromResult(new PlayerLeaderBoardInfo(State.Name));
 
-        PlayerInfo GetPlayerInfoImpl() => new PlayerInfo { ID = this.GetPrimaryKey(), Name = GetName() }; //?? other info
+        PlayerInfo GetPlayerInfoImpl() => new PlayerInfo { ID = this.GetPrimaryKey(), Name = GetName(), Level = State.Level }; //?? other info
 
         LevelConfig GetLevelConfig(ReadOnlyConfigData config) =>
             config.PlayerLevels.TryGetValue(State.Level, out var result) ? result : config.PlayerLevels[0];

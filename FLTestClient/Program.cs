@@ -10,6 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
+using Orleans.Runtime;
+using OrleansBondUtils;
 using OrleansCassandraUtils;
 using OrleansCassandraUtils.Utils;
 using System;
@@ -21,15 +23,29 @@ using System.Threading.Tasks;
 
 namespace FLTestClient
 {
+    class NullGrainReferenceConverter : IGrainReferenceConverter
+    {
+        public GrainReference GetGrainFromKeyString(string key)
+        {
+            return null;
+        }
+    }
+
     class Program
     {
         static Guid ID(int i) => new Guid(i, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
         static void Main(string[] args)
         {
-            //var svc = new ServiceCollection();
-            //ServiceConfiguration.ConfigureServices(svc, "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy");
-            //var provider = svc.BuildServiceProvider();
+            var svc = new ServiceCollection();
+            ServiceConfiguration.ConfigureServices(svc, "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy");
+            svc.AddSingleton<IGrainReferenceConverter, NullGrainReferenceConverter>();
+            var provider = svc.BuildServiceProvider();
+
+            BondSerializationUtil.Initialize(provider);
+            var s = BondSerializer.Serialize(new GameGrain_State { PlayerIDs = new[] { Guid.Empty, Guid.NewGuid() }, CategoryNames = new[] { "asd", null } });
+            var d = (GameGrain_State)BondSerializer.Deserialize(typeof(GameGrain_State), new ArraySegmentReaderStream(s));
+            Console.WriteLine(d.PlayerIDs.Length);
 
             //var sgs = provider.GetRequiredService<ISuggestionService>();
 

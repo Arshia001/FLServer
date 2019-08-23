@@ -18,7 +18,7 @@ namespace FLGrains
             if (isStateCleared)
                 return base.OnDeactivateAsync();
 
-            return WriteStateAsync().ContinueWith(t => base.OnDeactivateAsync()).Unwrap();
+            return WriteStateAsync().ContinueWith(t => base.OnDeactivateAsync(), TaskContinuationOptions.OnlyOnRanToCompletion).Unwrap();
         }
 
         protected override Task ClearStateAsync()
