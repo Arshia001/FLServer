@@ -20,7 +20,7 @@ namespace FLGrains
         {
             if (State.Level == 0)
             {
-                //?? init stuff
+                //?? initialize stuff
 
                 State.Gold = 1_000_000;
                 State.Level = 1;
