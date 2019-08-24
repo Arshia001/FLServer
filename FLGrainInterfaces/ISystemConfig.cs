@@ -83,6 +83,8 @@ namespace FLGrainInterfaces
 
         public uint RevealWordPrice { get; private set; }
 
+        public uint GetAnswersPrice { get; private set; }
+
         public uint MaxActiveGames { get; private set; }
         public uint InfinitePlayPrice { get; private set; }
         public TimeSpan InfinitePlayTime { get; private set; }

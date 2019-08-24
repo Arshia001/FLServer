@@ -92,16 +92,6 @@ namespace FLGrains
             return await Task.WhenAll(games.Reverse().Select(g => g.GetSimplifiedGameInfo(clientID).UnwrapImmutable()));
         }
 
-        protected override async Task<IEnumerable<WordScorePairDTO>> GetAnswers(Guid clientID, string category) =>
-            await Task.WhenAll(configReader.Config.CategoriesAsGameLogicFormatByName[category].Answers.Select(
-                async s => new WordScorePairDTO
-                {
-                    Word = s,
-                    Score = await GrainFactory.GetGrain<ICategoryStatisticsAggregatorCache>(category).GetScore(s)
-                }
-            ));
-
-
         public override async Task SendGameEnded(Guid clientID, Guid gameID, uint myScore, uint theirScore, uint myPlayerScore, uint myRank)
         {
             if (await IsConnected(clientID))

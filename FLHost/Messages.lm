@@ -70,6 +70,7 @@ contract GameInfo
     OtherPlayerInfo: PlayerInfo?;
     NumRounds: u8;
     Categories: string[];
+	HaveCategoryAnswers: bool[];
     MyWordsPlayed: WordScorePairDTO[][];
     TheirWordsPlayed: WordScorePairDTO[][];
     MyTurnEndTime: datetime;
@@ -96,6 +97,7 @@ contract ConfigValuesDTO castfrom(ConfigValues server oneway)
 	RoundTimeExtension: timespan;
 	RoundTimeExtensionPrice: u32;
 	RevealWordPrice: u32;
+	GetAnswersPrice: u32;
 	MaxActiveGames: u32;
 	InfinitePlayPrice: u32;
 }
@@ -228,6 +230,7 @@ endpoint Game gm
 		->
 		{
 			category: string?;
+			haveAnswers: bool?;
 			roundTime: timespan?;
 			mustChooseGroup: bool;
 			groups: GroupInfoDTO[]?;
@@ -243,6 +246,7 @@ endpoint Game gm
 		->
 		{
 			category: string;
+			haveAnswers: bool;
 			roundTime: timespan;
 		}
 	}
@@ -327,14 +331,15 @@ endpoint Game gm
 		}
 	}
 
-	request GetAnswers ans
+	request GetAnswers ans via Player(clientid).GetAnswers(category)
 	{
 		{
 			category: string;
 		}
 		->
 		{
-			words: WordScorePairDTO[];
+			words: string[];
+			totalGold: u64?;
 		}
 	}
 

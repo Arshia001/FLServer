@@ -30,10 +30,6 @@ namespace FLGrains
                 LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.XP).Set(id, 0).Ignore();
             }
 
-            //??
-            State.LastRoundWinRewardTakeTime = DateTime.Now;
-            State.NumRoundsWonForReward = 2;
-
             return GetOwnPlayerInfo();
         }
 
@@ -230,5 +226,36 @@ namespace FLGrains
             State.InfinitePlayEndTime = DateTime.Now + duration;
             return Task.FromResult((true, State.Gold, duration));
         }
+
+        public Task<(IEnumerable<string> words, ulong? totalGold)> GetAnswers(string category)
+        {
+            var config = configReader.Config;
+
+            var words = config.CategoriesAsGameLogicFormatByName[category].Answers;
+            var gold = default(ulong?);
+
+            if (!State.OwnedCategoryAnswers.Contains(category))
+            {
+                var price = config.ConfigValues.GetAnswersPrice;
+                if (State.Gold < price)
+                    throw new VerbatimException("Insufficient gold");
+
+                State.Gold -= price;
+                gold = State.Gold;
+            }
+
+            return Task.FromResult((words.AsEnumerable(), gold));
+        }
+
+        public Task<Immutable<(PlayerInfo info, bool[] haveCategoryAnswers)>> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories)
+        {
+            var ownedCategories = new bool[categories.Count];
+            for (int i = 0; i < categories.Count; ++i)
+                ownedCategories[i] = State.OwnedCategoryAnswers.Contains(categories[i]);
+
+            return Task.FromResult((GetPlayerInfoImpl(), ownedCategories).AsImmutable());
+        }
+
+        public Task<bool> HaveAnswersForCategory(string category) => Task.FromResult(State.OwnedCategoryAnswers.Contains(category));
     }
 }

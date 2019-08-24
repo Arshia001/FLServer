@@ -146,7 +146,7 @@ namespace FLGrains
         }
 
         //?? this could potentially be bad, timing-wise. Maybe the client should generate their own clock?
-        public Task<(string category, TimeSpan? roundTime, bool mustChooseGroup, IEnumerable<GroupInfoDTO> groups)> StartRound(Guid id)
+        public async Task<(string category, bool? haveAnswers, TimeSpan? roundTime, bool mustChooseGroup, IEnumerable<GroupInfoDTO> groups)> StartRound(Guid id)
         {
             var index = Index(id);
 
@@ -162,19 +162,19 @@ namespace FLGrains
                         new Random().GetUnique(0, config.Groups.Count, config.ConfigValues.NumGroupChoices)
                         .Select(i => config.Groups[i].ID).ToList();
                 }
-                return Task.FromResult((default(string), default(TimeSpan?), true, State.GroupChoices.Select(i => (GroupInfoDTO)config.GroupsByID[i]).ToList().AsEnumerable()));
+                return (default(string), default(bool?), default(TimeSpan?), true, State.GroupChoices.Select(i => (GroupInfoDTO)config.GroupsByID[i]).ToList().AsEnumerable());
             }
             else
-                return Task.FromResult((category, roundTime, false, Enumerable.Empty<GroupInfoDTO>()));
+                return (category, (bool?)await GrainFactory.GetGrain<IPlayer>(id).HaveAnswersForCategory(category), roundTime, false, Enumerable.Empty<GroupInfoDTO>());
         }
 
-        public Task<(string category, TimeSpan roundTime)> ChooseGroup(Guid id, ushort groupID)
+        public async Task<(string category, bool haveAnswers, TimeSpan roundTime)> ChooseGroup(Guid id, ushort groupID)
         {
             var index = Index(id);
 
             var (mustChooseCategory, category, roundIndex, roundTime) = StartRound(index);
             if (!mustChooseCategory)
-                return Task.FromResult((category, roundTime.Value));
+                return (category, await GrainFactory.GetGrain<IPlayer>(id).HaveAnswersForCategory(category), roundTime.Value);
 
             if (State.GroupChooser != index || State.GroupChoices == null)
                 throw new VerbatimException("Not this player's turn to choose a group");
@@ -204,7 +204,7 @@ namespace FLGrains
             State.GroupChooser = -1;
             State.GroupChoices = null;
 
-            return Task.FromResult((category, roundTime.Value));
+            return (category, await GrainFactory.GetGrain<IPlayer>(id).HaveAnswersForCategory(category), roundTime.Value);
         }
 
         Task OnTurnEnded(object state)
@@ -372,16 +372,21 @@ namespace FLGrains
             var turnsTakenInclCurrent = gameLogic.NumTurnsTakenByIncludingCurrent(index);
             var turnsTaken = gameLogic.NumTurnsTakenBy(index);
 
+            var categories = State.CategoryNames.Take(turnsTakenInclCurrent).ToList();
+            var (playerInfo, ownedCategories) = State.PlayerIDs[1 - index] == Guid.Empty ? (null, Array.Empty<bool>()) :
+                await PlayerInfoUtil.GetForPlayerIDWithOwnedAnswers(GrainFactory, State.PlayerIDs[1 - index], categories);
+
             var result = new GameInfo
             {
-                OtherPlayerInfo = State.PlayerIDs[1 - index] == Guid.Empty ? null : await PlayerInfoUtil.GetForPlayerID(GrainFactory, State.PlayerIDs[1 - index]),
+                OtherPlayerInfo = playerInfo,
                 NumRounds = (byte)gameLogic.Categories.Count,
-                Categories = State.CategoryNames.Take(turnsTakenInclCurrent).ToList(),
+                Categories = categories,
                 MyWordsPlayed = gameLogic.GetPlayerAnswers(index).Take(turnsTakenInclCurrent).Select(ws => ws.Select(w => (WordScorePairDTO)w).ToList()).ToList(),
                 TheirWordsPlayed = gameLogic.GetPlayerAnswers(1 - index)?.Take(turnsTaken).Select(ws => ws.Select(w => (WordScorePairDTO)w).ToList()).ToList(), // don't return words for the round currently in progress
                 MyTurnEndTime = gameLogic.GetTurnEndTime(index),
                 MyTurnFirst = gameLogic.FirstTurn == index,
-                NumTurnsTakenByOpponent = (byte)gameLogic.NumTurnsTakenByIncludingCurrent(1 - index)
+                NumTurnsTakenByOpponent = (byte)gameLogic.NumTurnsTakenByIncludingCurrent(1 - index),
+                HaveCategoryAnswers = ownedCategories
             };
 
             return result.AsImmutable();

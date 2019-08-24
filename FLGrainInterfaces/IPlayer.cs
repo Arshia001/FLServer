@@ -14,7 +14,10 @@ namespace FLGrainInterfaces
     {
         public static Task<PlayerInfo> GetForPlayerID(IGrainFactory grainFactory, Guid playerID) => grainFactory.GetGrain<IPlayer>(playerID).GetPlayerInfo().UnwrapImmutable();
 
-        public static Task<OwnPlayerInfo> GetOwnForPlayerID(IGrainFactory grainFactory, Guid playerID) => grainFactory.GetGrain<IPlayer>(playerID).GetOwnPlayerInfo().UnwrapImmutable();
+        public static Task<(PlayerInfo info, bool[] haveCategoryAnswers)> GetForPlayerIDWithOwnedAnswers(IGrainFactory grainFactory, Guid playerID, IReadOnlyList<string> categories) => 
+            grainFactory.GetGrain<IPlayer>(playerID).GetPlayerInfoAndOwnedCategories(categories).UnwrapImmutable();
+
+        // public static Task<OwnPlayerInfo> GetOwnForPlayerID(IGrainFactory grainFactory, Guid playerID) => grainFactory.GetGrain<IPlayer>(playerID).GetOwnPlayerInfo().UnwrapImmutable();
     }
 
     [Immutable]
@@ -60,12 +63,17 @@ namespace FLGrainInterfaces
         [Id(9)]
         public DateTime InfinitePlayEndTime { get; set; }
 
+        [Id(10)]
+        public HashSet<string> OwnedCategoryAnswers { get; set; }
+
         public void OnDeserialized()
         {
             if (ActiveGames == null)
                 ActiveGames = new List<IGame>();
             if (PastGames == null)
                 PastGames = new List<IGame>();
+            if (OwnedCategoryAnswers == null)
+                OwnedCategoryAnswers = new HashSet<string>();
         }
     }
 
@@ -77,6 +85,7 @@ namespace FLGrainInterfaces
         Task<Immutable<PlayerInfo>> GetPlayerInfo();
         Task<Immutable<OwnPlayerInfo>> GetOwnPlayerInfo();
         Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo();
+        Task<Immutable<(PlayerInfo info, bool[] haveCategoryAnswers)>> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories);
 
         Task<Immutable<IReadOnlyList<IGame>>> GetGames();
         Task<bool> CanEnterGame();
@@ -89,6 +98,9 @@ namespace FLGrainInterfaces
 
         Task<(ulong? gold, TimeSpan? remainingTime)> IncreaseRoundTime(Guid gameID);
         Task<(ulong? gold, string word, byte? wordScore)> RevealWord(Guid gameID);
+
+        Task<(IEnumerable<string> words, ulong? totalGold)> GetAnswers(string category);
+        Task<bool> HaveAnswersForCategory(string category);
 
         Task<IEnumerable<GroupInfoDTO>> RefreshGroups(Guid gameID);
 

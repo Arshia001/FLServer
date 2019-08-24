@@ -93,7 +93,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IGame>(array[0].AsGuid.Value).StartRound(input.ClientID);
-            return Success(LightMessage.Common.Messages.Param.String(result.category), LightMessage.Common.Messages.Param.TimeSpan(result.roundTime), LightMessage.Common.Messages.Param.Boolean(result.mustChooseGroup), LightMessage.Common.Messages.Param.Array(result.groups?.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
+            return Success(LightMessage.Common.Messages.Param.String(result.category), LightMessage.Common.Messages.Param.Boolean(result.haveAnswers), LightMessage.Common.Messages.Param.TimeSpan(result.roundTime), LightMessage.Common.Messages.Param.Boolean(result.mustChooseGroup), LightMessage.Common.Messages.Param.Array(result.groups?.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("cgr")]
@@ -101,7 +101,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IGame>(array[0].AsGuid.Value).ChooseGroup(input.ClientID, (ushort)array[1].AsUInt.Value);
-            return Success(LightMessage.Common.Messages.Param.String(result.category), LightMessage.Common.Messages.Param.TimeSpan(result.roundTime));
+            return Success(LightMessage.Common.Messages.Param.String(result.category), LightMessage.Common.Messages.Param.Boolean(result.haveAnswers), LightMessage.Common.Messages.Param.TimeSpan(result.roundTime));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("rgr")]
@@ -166,14 +166,12 @@ namespace FLGrains
             return Success(LightMessage.Common.Messages.Param.Array(result.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
         }
 
-        protected abstract System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<WordScorePairDTO>> GetAnswers(System.Guid clientID, string category);
-
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("ans")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_GetAnswers(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
-            var result = await GetAnswers(input.ClientID, array[0].AsString);
-            return Success(LightMessage.Common.Messages.Param.Array(result.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).GetAnswers(array[0].AsString);
+            return Success(LightMessage.Common.Messages.Param.Array(result.words.Select(a => LightMessage.Common.Messages.Param.String(a))), LightMessage.Common.Messages.Param.UInt(result.totalGold));
         }
 
         protected abstract System.Threading.Tasks.Task Vote(System.Guid clientID, string category, bool up);
