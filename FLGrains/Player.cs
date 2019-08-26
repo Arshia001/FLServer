@@ -241,6 +241,7 @@ namespace FLGrains
                     throw new VerbatimException("Insufficient gold");
 
                 State.Gold -= price;
+                State.OwnedCategoryAnswers.Add(category);
                 gold = State.Gold;
             }
 
@@ -257,5 +258,8 @@ namespace FLGrains
         }
 
         public Task<bool> HaveAnswersForCategory(string category) => Task.FromResult(State.OwnedCategoryAnswers.Contains(category));
+
+        public Task<IReadOnlyList<bool>> HaveAnswersForCategories(IReadOnlyList<string> categories) =>
+            Task.FromResult(categories.Select(c => State.OwnedCategoryAnswers.Contains(c)).ToList() as IReadOnlyList<bool>);
     }
 }

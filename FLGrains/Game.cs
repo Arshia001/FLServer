@@ -373,8 +373,10 @@ namespace FLGrains
             var turnsTaken = gameLogic.NumTurnsTakenBy(index);
 
             var categories = State.CategoryNames.Take(turnsTakenInclCurrent).ToList();
-            var (playerInfo, ownedCategories) = State.PlayerIDs[1 - index] == Guid.Empty ? (null, Array.Empty<bool>()) :
-                await PlayerInfoUtil.GetForPlayerIDWithOwnedAnswers(GrainFactory, State.PlayerIDs[1 - index], categories);
+            var playerInfo = State.PlayerIDs[1 - index] == Guid.Empty ? null :
+                await PlayerInfoUtil.GetForPlayerID(GrainFactory, State.PlayerIDs[1 - index]);
+
+            var ownedCategories = await GrainFactory.GetGrain<IPlayer>(playerID).HaveAnswersForCategories(categories);
 
             var result = new GameInfo
             {

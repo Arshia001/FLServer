@@ -13,11 +13,6 @@ namespace FLGrainInterfaces
     public class PlayerInfoUtil
     {
         public static Task<PlayerInfo> GetForPlayerID(IGrainFactory grainFactory, Guid playerID) => grainFactory.GetGrain<IPlayer>(playerID).GetPlayerInfo().UnwrapImmutable();
-
-        public static Task<(PlayerInfo info, bool[] haveCategoryAnswers)> GetForPlayerIDWithOwnedAnswers(IGrainFactory grainFactory, Guid playerID, IReadOnlyList<string> categories) => 
-            grainFactory.GetGrain<IPlayer>(playerID).GetPlayerInfoAndOwnedCategories(categories).UnwrapImmutable();
-
-        // public static Task<OwnPlayerInfo> GetOwnForPlayerID(IGrainFactory grainFactory, Guid playerID) => grainFactory.GetGrain<IPlayer>(playerID).GetOwnPlayerInfo().UnwrapImmutable();
     }
 
     [Immutable]
@@ -101,6 +96,7 @@ namespace FLGrainInterfaces
 
         Task<(IEnumerable<string> words, ulong? totalGold)> GetAnswers(string category);
         Task<bool> HaveAnswersForCategory(string category);
+        Task<IReadOnlyList<bool>> HaveAnswersForCategories(IReadOnlyList<string> categories);
 
         Task<IEnumerable<GroupInfoDTO>> RefreshGroups(Guid gameID);
 

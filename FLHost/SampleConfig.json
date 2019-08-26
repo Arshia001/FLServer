@@ -18,22 +18,24 @@
   },
   "ConfigValues": {
     "NumRoundsPerGame": 1,
-    
+
+    "GetAnswersPrice": 150,
+
     "NumGroupChoices": 3,
     "PriceToRefreshGroups": 150,
-    
+
     "ClientTimePerRound": "00:00:50",
     "ExtraTimePerRound": "00:00:10",
-    
+
     "RoundTimeExtension": "00:00:30",
     "RoundTimeExtensionPrice": 500,
-    
+
     "RevealWordPrice": 300,
-    
+
     "MaxActiveGames": 5,
     "InfinitePlayPrice": 200,
     "InfinitePlayTime": "12:00:00",
-    
+
     "NumRoundsToWinToGetReward": 2,
     "RoundWinRewardInterval": "00:00:10",
     "NumGoldRewardForWinningRounds": 50,
