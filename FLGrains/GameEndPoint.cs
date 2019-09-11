@@ -81,15 +81,10 @@ namespace FLGrains
             return result.Value?.Select(w => (WordScorePairDTO)w);
         }
 
-        protected override Task<GameInfo> GetGameInfo(Guid clientID, Guid gameID)
-        {
-            return GrainFactory.GetGrain<IGame>(gameID).GetGameInfo(clientID).UnwrapImmutable();
-        }
-
         protected override async Task<IEnumerable<SimplifiedGameInfo>> GetAllGames(Guid clientID)
         {
             var games = (await GrainFactory.GetGrain<IPlayer>(clientID).GetGames()).Value;
-            return await Task.WhenAll(games.Reverse().Select(g => g.GetSimplifiedGameInfo(clientID).UnwrapImmutable()));
+            return await Task.WhenAll(games.Reverse().Select(g => g.GetSimplifiedGameInfo(clientID)));
         }
 
         public override async Task SendGameEnded(Guid clientID, Guid gameID, uint myScore, uint theirScore, uint myPlayerScore, uint myRank)

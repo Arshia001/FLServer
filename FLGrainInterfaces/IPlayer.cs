@@ -12,7 +12,7 @@ namespace FLGrainInterfaces
 {
     public class PlayerInfoUtil
     {
-        public static Task<PlayerInfo> GetForPlayerID(IGrainFactory grainFactory, Guid playerID) => grainFactory.GetGrain<IPlayer>(playerID).GetPlayerInfo().UnwrapImmutable();
+        public static Task<PlayerInfo> GetForPlayerID(IGrainFactory grainFactory, Guid playerID) => grainFactory.GetGrain<IPlayer>(playerID).GetPlayerInfo();
     }
 
     [Immutable]
@@ -29,7 +29,7 @@ namespace FLGrainInterfaces
     public class PlayerState : IOnDeserializedHandler
     {
         [Id(0)]
-        public List<IGame> ActiveGames { get; set; }
+        public List<IGame> ActiveGames { get; private set; }
 
         [Id(1)]
         public string Name { get; set; }
@@ -53,13 +53,16 @@ namespace FLGrainInterfaces
         public ulong Gold { get; set; }
 
         [Id(8)]
-        public List<IGame> PastGames { get; set; }
+        public List<IGame> PastGames { get; private set; }
 
         [Id(9)]
         public DateTime InfinitePlayEndTime { get; set; }
 
         [Id(10)]
-        public HashSet<string> OwnedCategoryAnswers { get; set; }
+        public HashSet<string> OwnedCategoryAnswers { get; private set; }
+
+        [Id(11)]
+        public ulong[] StatisticsValues { get; private set; }
 
         public void OnDeserialized()
         {
@@ -69,18 +72,27 @@ namespace FLGrainInterfaces
                 PastGames = new List<IGame>();
             if (OwnedCategoryAnswers == null)
                 OwnedCategoryAnswers = new HashSet<string>();
+
+            if (StatisticsValues == null)
+                StatisticsValues = new ulong[Statistics.Max.AsIndex()];
+            else if (StatisticsValues.Length < Statistics.Max.AsIndex())
+            {
+                var a = StatisticsValues;
+                Array.Resize(ref a, Statistics.Max.AsIndex());
+                StatisticsValues = a;
+            }
         }
     }
 
     [BondSerializationTag("@p")]
     public interface IPlayer : IGrainWithGuidKey
     {
-        Task<Immutable<OwnPlayerInfo>> PerformStartupTasksAndGetInfo();
+        Task<OwnPlayerInfo> PerformStartupTasksAndGetInfo();
 
-        Task<Immutable<PlayerInfo>> GetPlayerInfo();
-        Task<Immutable<OwnPlayerInfo>> GetOwnPlayerInfo();
+        Task<PlayerInfo> GetPlayerInfo();
+        Task<OwnPlayerInfo> GetOwnPlayerInfo();
         Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo();
-        Task<Immutable<(PlayerInfo info, bool[] haveCategoryAnswers)>> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories);
+        Task<(PlayerInfo info, bool[] haveCategoryAnswers)> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories);
 
         Task<Immutable<IReadOnlyList<IGame>>> GetGames();
         Task<bool> CanEnterGame();

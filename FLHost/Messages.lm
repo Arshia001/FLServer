@@ -16,6 +16,38 @@ enum GameState
     Finished
 }
 
+enum Statistics
+{
+	GamesWon,
+	GamesLost,
+	GamesEndedInDraw,
+	RoundsWon,
+	RoundsLost,
+	RoundsEndedInDraw,
+	BestGameScore,
+	BestRoundScore,
+	WordsPlayedScore0,
+	WordsPlayedScore1,
+	WordsPlayedScore2,
+	WordsPlayedScore3,
+	WordsCorrected,
+	RewardMoneyEarned,
+	RoundWinMoneyEarned,
+	MoneySpentCustomizations,
+	MoneySpentTimePowerup,
+	TimePowerupUsed,
+	MoneySpentHelpPowerup,
+	HelpPowerupUsed,
+	MoneySpentGroupChange,
+	GroupChangeUsed,
+	MoneySpentRevealAnswers,
+	RevealAnswersUsed,
+	MoneySpentInfinitePlay,
+	InfinitePlayUsed,
+
+	Max
+}
+
 enum LeaderBoardSubject
 {
 	Score,
@@ -57,6 +89,7 @@ contract OwnPlayerInfo
 	CurrentNumRoundsWonForReward: u32;
 	NextRoundWinRewardTimeRemaining: timespan;
 	InfinitePlayTimeRemaining: timespan?;
+	StatisticsValues: u64[];
 }
 
 contract WordScorePairDTO castfrom(FLGameLogic.WordScorePair)
@@ -311,7 +344,7 @@ endpoint Game gm
 		}
 	}
 
-	request GetGameInfo info
+	request GetGameInfo info via Game(gameID).GetGameInfo(clientid)
 	{
 		{
 			gameID: guid;

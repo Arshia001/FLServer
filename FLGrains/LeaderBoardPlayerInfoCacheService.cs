@@ -41,11 +41,11 @@ namespace FLGrains
             }
 
             return entries.Select((e, idx) => new LeaderBoardEntryDTO
-            {
-                Rank = e.Rank,
-                Score = e.Score,
-                Name = profiles[idx] == null ? null : (profiles[idx].Name ?? "")
-            }).ToList();
+            (
+                rank: e.Rank,
+                score: e.Score,
+                name: profiles[idx] == null ? null : (profiles[idx].Name ?? "")
+            )).ToList();
         }
     }
 }

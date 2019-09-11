@@ -28,8 +28,8 @@ namespace FLGrainInterfaces
 
         Task<List<GroupConfig>> RefreshGroups(Guid guid);
 
-        Task<Immutable<GameInfo>> GetGameInfo(Guid playerID);
-        Task<Immutable<SimplifiedGameInfo>> GetSimplifiedGameInfo(Guid playerID);
+        Task<GameInfo> GetGameInfo(Guid playerID);
+        Task<SimplifiedGameInfo> GetSimplifiedGameInfo(Guid playerID);
         Task<bool> WasFirstTurnPlayed(); //?? change to notification sent from game to matchmaking sytem
     }
 }

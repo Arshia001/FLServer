@@ -16,7 +16,7 @@ namespace FLGrains
 
         public Player(IConfigReader configReader) => this.configReader = configReader;
 
-        public Task<Immutable<OwnPlayerInfo>> PerformStartupTasksAndGetInfo()
+        public Task<OwnPlayerInfo> PerformStartupTasksAndGetInfo()
         {
             if (State.Level == 0)
             {
@@ -36,7 +36,7 @@ namespace FLGrains
         public Task<Immutable<IReadOnlyList<IGame>>> GetGames() =>
             Task.FromResult(State.ActiveGames.Concat(State.PastGames).ToList().AsImmutable<IReadOnlyList<IGame>>());
 
-        public Task<Immutable<PlayerInfo>> GetPlayerInfo() => Task.FromResult(GetPlayerInfoImpl().AsImmutable());
+        public Task<PlayerInfo> GetPlayerInfo() => Task.FromResult(GetPlayerInfoImpl());
 
         string GetName() => State.Name ?? $"Guest{this.GetPrimaryKey().ToString().Substring(0, 8)}";
 
@@ -44,29 +44,30 @@ namespace FLGrains
 
         TimeSpan InfinitePlayTimeRemaining => State.InfinitePlayEndTime - DateTime.Now;
 
-        public async Task<Immutable<OwnPlayerInfo>> GetOwnPlayerInfo()
+        public async Task<OwnPlayerInfo> GetOwnPlayerInfo()
         {
             var config = configReader.Config;
             var timeTillNextReward = config.ConfigValues.RoundWinRewardInterval - (DateTime.Now - State.LastRoundWinRewardTakeTime);
 
             return new OwnPlayerInfo
-            {
-                Name = GetName(),
-                Level = State.Level,
-                XP = State.XP,
-                NextLevelXPThreshold = GetNextLevelRequiredXP(config),
-                CurrentNumRoundsWonForReward = State.NumRoundsWonForReward,
-                NextRoundWinRewardTimeRemaining = new TimeSpan(Math.Max(0L, timeTillNextReward.Ticks)),
-                Score = State.Score,
-                Rank = (uint)await LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).GetRank(this.GetPrimaryKey()),
-                Gold = State.Gold,
-                InfinitePlayTimeRemaining = IsInfinitePlayActive ? InfinitePlayTimeRemaining : default(TimeSpan?)
-            }.AsImmutable();
+            (
+                name: GetName(),
+                level: State.Level,
+                xp: State.XP,
+                nextLevelXPThreshold: GetNextLevelRequiredXP(config),
+                currentNumRoundsWonForReward: State.NumRoundsWonForReward,
+                nextRoundWinRewardTimeRemaining: new TimeSpan(Math.Max(0L, timeTillNextReward.Ticks)),
+                score: State.Score,
+                rank: (uint)await LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).GetRank(this.GetPrimaryKey()),
+                gold: State.Gold,
+                infinitePlayTimeRemaining: IsInfinitePlayActive ? InfinitePlayTimeRemaining : default(TimeSpan?),
+                statisticsValues: State.StatisticsValues
+            );
         }
 
         public Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo() => Task.FromResult(new PlayerLeaderBoardInfo(State.Name));
 
-        PlayerInfo GetPlayerInfoImpl() => new PlayerInfo { ID = this.GetPrimaryKey(), Name = GetName(), Level = State.Level }; //?? other info
+        PlayerInfo GetPlayerInfoImpl() => new PlayerInfo(id: this.GetPrimaryKey(), name: GetName(), level: State.Level); //?? other info
 
         LevelConfig GetLevelConfig(ReadOnlyConfigData config) =>
             config.PlayerLevels.TryGetValue(State.Level, out var result) ? result : config.PlayerLevels[0];
@@ -248,13 +249,13 @@ namespace FLGrains
             return Task.FromResult((words.AsEnumerable(), gold));
         }
 
-        public Task<Immutable<(PlayerInfo info, bool[] haveCategoryAnswers)>> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories)
+        public Task<(PlayerInfo info, bool[] haveCategoryAnswers)> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories)
         {
             var ownedCategories = new bool[categories.Count];
             for (int i = 0; i < categories.Count; ++i)
                 ownedCategories[i] = State.OwnedCategoryAnswers.Contains(categories[i]);
 
-            return Task.FromResult((GetPlayerInfoImpl(), ownedCategories).AsImmutable());
+            return Task.FromResult((GetPlayerInfoImpl(), ownedCategories));
         }
 
         public Task<bool> HaveAnswersForCategory(string category) => Task.FromResult(State.OwnedCategoryAnswers.Contains(category));

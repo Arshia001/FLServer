@@ -146,13 +146,11 @@ namespace FLGrains
             return Success(LightMessage.Common.Messages.Param.Array(result?.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
         }
 
-        protected abstract System.Threading.Tasks.Task<GameInfo> GetGameInfo(System.Guid clientID, System.Guid gameID);
-
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("info")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_GetGameInfo(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
-            var result = await GetGameInfo(input.ClientID, array[0].AsGuid.Value);
+            var result = await GrainFactory.GetGrain<IGame>(array[0].AsGuid.Value).GetGameInfo(input.ClientID);
             return Success(result?.ToParam() ?? LightMessage.Common.Messages.Param.Null());
         }
 

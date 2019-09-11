@@ -363,7 +363,7 @@ namespace FLGrains
 
         public Task<GameState> GetState() => Task.FromResult(GetStateInternal());
 
-        public async Task<Immutable<GameInfo>> GetGameInfo(Guid playerID)
+        public async Task<GameInfo> GetGameInfo(Guid playerID)
         {
             if (GetStateInternal() == GameState.New)
                 throw new Exception("Game not in progress");
@@ -378,38 +378,34 @@ namespace FLGrains
 
             var ownedCategories = await GrainFactory.GetGrain<IPlayer>(playerID).HaveAnswersForCategories(categories);
 
-            var result = new GameInfo
-            {
-                OtherPlayerInfo = playerInfo,
-                NumRounds = (byte)gameLogic.Categories.Count,
-                Categories = categories,
-                MyWordsPlayed = gameLogic.GetPlayerAnswers(index).Take(turnsTakenInclCurrent).Select(ws => ws.Select(w => (WordScorePairDTO)w).ToList()).ToList(),
-                TheirWordsPlayed = gameLogic.GetPlayerAnswers(1 - index)?.Take(turnsTaken).Select(ws => ws.Select(w => (WordScorePairDTO)w).ToList()).ToList(), // don't return words for the round currently in progress
-                MyTurnEndTime = gameLogic.GetTurnEndTime(index),
-                MyTurnFirst = gameLogic.FirstTurn == index,
-                NumTurnsTakenByOpponent = (byte)gameLogic.NumTurnsTakenByIncludingCurrent(1 - index),
-                HaveCategoryAnswers = ownedCategories
-            };
-
-            return result.AsImmutable();
+            return new GameInfo
+            (
+                otherPlayerInfo: playerInfo,
+                numRounds: (byte)gameLogic.Categories.Count,
+                categories: categories,
+                myWordsPlayed: gameLogic.GetPlayerAnswers(index).Take(turnsTakenInclCurrent).Select(ws => ws.Select(w => (WordScorePairDTO)w).ToList()).ToList(),
+                theirWordsPlayed: gameLogic.GetPlayerAnswers(1 - index)?.Take(turnsTaken).Select(ws => ws.Select(w => (WordScorePairDTO)w).ToList()).ToList(), // don't return words for the round currently in progress
+                myTurnEndTime: gameLogic.GetTurnEndTime(index),
+                myTurnFirst: gameLogic.FirstTurn == index,
+                numTurnsTakenByOpponent: (byte)gameLogic.NumTurnsTakenByIncludingCurrent(1 - index),
+                haveCategoryAnswers: ownedCategories
+            );
         }
 
-        public async Task<Immutable<SimplifiedGameInfo>> GetSimplifiedGameInfo(Guid playerID)
+        public async Task<SimplifiedGameInfo> GetSimplifiedGameInfo(Guid playerID)
         {
             int index = Index(playerID);
             var turnsTaken = gameLogic.NumTurnsTakenBy(index);
 
-            var result = new SimplifiedGameInfo
-            {
-                GameID = this.GetPrimaryKey(),
-                GameState = GetStateInternal(),
-                OtherPlayerName = State.PlayerIDs[1 - index] == Guid.Empty ? null : (await PlayerInfoUtil.GetForPlayerID(GrainFactory, State.PlayerIDs[1 - index])).Name,
-                MyTurn = gameLogic.Turn == index,
-                MyScore = gameLogic.GetNumRoundsWon(index),
-                TheirScore = gameLogic.GetNumRoundsWon(1 - index)
-            };
-
-            return result.AsImmutable();
+            return new SimplifiedGameInfo
+            (
+                gameID: this.GetPrimaryKey(),
+                gameState: GetStateInternal(),
+                otherPlayerName: State.PlayerIDs[1 - index] == Guid.Empty ? null : (await PlayerInfoUtil.GetForPlayerID(GrainFactory, State.PlayerIDs[1 - index])).Name,
+                myTurn: gameLogic.Turn == index,
+                myScore: gameLogic.GetNumRoundsWon(index),
+                theirScore: gameLogic.GetNumRoundsWon(1 - index)
+            );
         }
 
         public Task<bool> WasFirstTurnPlayed() //?? remove - see comment on interface 

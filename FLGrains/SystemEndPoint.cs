@@ -26,7 +26,7 @@ namespace FLGrains
 
         protected override async Task<(OwnPlayerInfo playerInfo, ConfigValuesDTO configData)> GetStartupInfo(Guid clientID)
         {
-            var playerInfo = await GrainFactory.GetGrain<IPlayer>(clientID).PerformStartupTasksAndGetInfo().UnwrapImmutable();
+            var playerInfo = await GrainFactory.GetGrain<IPlayer>(clientID).PerformStartupTasksAndGetInfo();
             return (playerInfo, configReader.Config.ConfigValues);
         }
 
