@@ -62,7 +62,7 @@ namespace FLGrainInterfaces
         public HashSet<string> OwnedCategoryAnswers { get; private set; }
 
         [Id(11)]
-        public ulong[] StatisticsValues { get; private set; }
+        public Dictionary<(Statistics stat, int parameter), ulong> StatisticsValues { get; private set; }
 
         public void OnDeserialized()
         {
@@ -74,13 +74,7 @@ namespace FLGrainInterfaces
                 OwnedCategoryAnswers = new HashSet<string>();
 
             if (StatisticsValues == null)
-                StatisticsValues = new ulong[Statistics.Max.AsIndex()];
-            else if (StatisticsValues.Length < Statistics.Max.AsIndex())
-            {
-                var a = StatisticsValues;
-                Array.Resize(ref a, Statistics.Max.AsIndex());
-                StatisticsValues = a;
-            }
+                StatisticsValues = new Dictionary<(Statistics stat, int extra), ulong>();
         }
     }
 
@@ -94,12 +88,14 @@ namespace FLGrainInterfaces
         Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo();
         Task<(PlayerInfo info, bool[] haveCategoryAnswers)> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories);
 
+        Task AddStats(List<StatisticValue> values);
+
         Task<Immutable<IReadOnlyList<IGame>>> GetGames();
         Task<bool> CanEnterGame();
         Task<byte> JoinGameAsFirstPlayer(IGame game);
         Task<(Guid opponentID, byte numRounds)> JoinGameAsSecondPlayer(IGame game);
-        Task OnRoundWon(IGame game);
-        Task<(uint score, uint rank)> OnGameResult(IGame game, Guid? winnerID);
+        Task OnRoundResult(IGame game, CompetitionResult result, uint myScore);
+        Task<(uint score, uint rank)> OnGameResult(IGame game, CompetitionResult result, uint myScore);
 
         Task<(bool success, ulong totalGold, TimeSpan duration)> ActivateInfinitePlay();
 

@@ -7,6 +7,7 @@ namespace FLGrainInterfaces
     {
         System.Threading.Tasks.Task SendNumRoundsWonForRewardUpdated(System.Guid clientID, uint totalRoundsWon);
         System.Threading.Tasks.Task SendXPUpdated(System.Guid clientID, uint totalXP, uint totalLevel);
+        System.Threading.Tasks.Task SendStatisticUpdated(System.Guid clientID, StatisticValue stat);
     }
 
     public interface ISuggestionEndPoint : LightMessage.OrleansUtils.GrainInterfaces.IEndPointGrain
@@ -41,10 +42,9 @@ namespace FLGrainInterfaces
         RoundsEndedInDraw,
         BestGameScore,
         BestRoundScore,
-        WordsPlayedScore0,
-        WordsPlayedScore1,
-        WordsPlayedScore2,
-        WordsPlayedScore3,
+        GroupChosen_Param,
+        WordsPlayedScore_Param,
+        WordsPlayedDuplicate,
         WordsCorrected,
         RewardMoneyEarned,
         RoundWinMoneyEarned,
@@ -58,8 +58,7 @@ namespace FLGrainInterfaces
         MoneySpentRevealAnswers,
         RevealAnswersUsed,
         MoneySpentInfinitePlay,
-        InfinitePlayUsed,
-        Max
+        InfinitePlayUsed
     }
 
     public enum LeaderBoardSubject
@@ -126,9 +125,34 @@ namespace FLGrainInterfaces
     }
 
     [Orleans.Concurrency.Immutable]
+    public class StatisticValue
+    {
+        public StatisticValue(Statistics statistic, int parameter, ulong value)
+        {
+            this.Statistic = statistic;
+            this.Parameter = parameter;
+            this.Value = value;
+        }
+
+        public Statistics Statistic { get; }
+        public int Parameter { get; }
+        public ulong Value { get; }
+
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.UEnum(Statistic), LightMessage.Common.Messages.Param.Int(Parameter), LightMessage.Common.Messages.Param.UInt(Value));
+
+        public static StatisticValue FromParam(LightMessage.Common.Messages.Param param)
+        {
+            if (param.IsNull)
+                return null;
+            var array = param.AsArray;
+            return new StatisticValue(array[0].AsUEnum<Statistics>().Value, (int)array[1].AsInt.Value, array[2].AsUInt.Value);
+        }
+    }
+
+    [Orleans.Concurrency.Immutable]
     public class OwnPlayerInfo
     {
-        public OwnPlayerInfo(string name, uint xp, uint level, uint nextLevelXPThreshold, uint score, uint rank, ulong gold, uint currentNumRoundsWonForReward, System.TimeSpan nextRoundWinRewardTimeRemaining, System.TimeSpan? infinitePlayTimeRemaining, System.Collections.Generic.IEnumerable<ulong> statisticsValues)
+        public OwnPlayerInfo(string name, uint xp, uint level, uint nextLevelXPThreshold, uint score, uint rank, ulong gold, uint currentNumRoundsWonForReward, System.TimeSpan nextRoundWinRewardTimeRemaining, System.TimeSpan? infinitePlayTimeRemaining, System.Collections.Generic.IEnumerable<StatisticValue> statisticsValues)
         {
             this.Name = name;
             this.XP = xp;
@@ -153,16 +177,16 @@ namespace FLGrainInterfaces
         public uint CurrentNumRoundsWonForReward { get; }
         public System.TimeSpan NextRoundWinRewardTimeRemaining { get; }
         public System.TimeSpan? InfinitePlayTimeRemaining { get; }
-        public System.Collections.Generic.IReadOnlyList<ulong> StatisticsValues { get; }
+        public System.Collections.Generic.IReadOnlyList<StatisticValue> StatisticsValues { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.UInt(XP), LightMessage.Common.Messages.Param.UInt(Level), LightMessage.Common.Messages.Param.UInt(NextLevelXPThreshold), LightMessage.Common.Messages.Param.UInt(Score), LightMessage.Common.Messages.Param.UInt(Rank), LightMessage.Common.Messages.Param.UInt(Gold), LightMessage.Common.Messages.Param.UInt(CurrentNumRoundsWonForReward), LightMessage.Common.Messages.Param.TimeSpan(NextRoundWinRewardTimeRemaining), LightMessage.Common.Messages.Param.TimeSpan(InfinitePlayTimeRemaining), LightMessage.Common.Messages.Param.Array(StatisticsValues.Select(a => LightMessage.Common.Messages.Param.UInt(a))));
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.UInt(XP), LightMessage.Common.Messages.Param.UInt(Level), LightMessage.Common.Messages.Param.UInt(NextLevelXPThreshold), LightMessage.Common.Messages.Param.UInt(Score), LightMessage.Common.Messages.Param.UInt(Rank), LightMessage.Common.Messages.Param.UInt(Gold), LightMessage.Common.Messages.Param.UInt(CurrentNumRoundsWonForReward), LightMessage.Common.Messages.Param.TimeSpan(NextRoundWinRewardTimeRemaining), LightMessage.Common.Messages.Param.TimeSpan(InfinitePlayTimeRemaining), LightMessage.Common.Messages.Param.Array(StatisticsValues.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
 
         public static OwnPlayerInfo FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new OwnPlayerInfo(array[0].AsString, (uint)array[1].AsUInt.Value, (uint)array[2].AsUInt.Value, (uint)array[3].AsUInt.Value, (uint)array[4].AsUInt.Value, (uint)array[5].AsUInt.Value, array[6].AsUInt.Value, (uint)array[7].AsUInt.Value, array[8].AsTimeSpan.Value, array[9].AsTimeSpan, array[10].AsArray.Select(a => a.AsUInt.Value).ToList());
+            return new OwnPlayerInfo(array[0].AsString, (uint)array[1].AsUInt.Value, (uint)array[2].AsUInt.Value, (uint)array[3].AsUInt.Value, (uint)array[4].AsUInt.Value, (uint)array[5].AsUInt.Value, array[6].AsUInt.Value, (uint)array[7].AsUInt.Value, array[8].AsTimeSpan.Value, array[9].AsTimeSpan, array[10].AsArray.Select(a => StatisticValue.FromParam(a)).ToList());
         }
     }
 

@@ -182,6 +182,8 @@ namespace FLGrains
             if (!State.GroupChoices.Contains(groupID))
                 throw new VerbatimException($"Specified group {groupID} is not a valid choice out of ({string.Join(", ", State.GroupChoices)})");
 
+            GrainFactory.GetGrain<IPlayer>(id).AddStats(new List<StatisticValue> { new StatisticValue(Statistics.GroupChosen_Param, groupID, 1) }).Ignore();
+
             var config = configReader.Config;
 
             var categories = config.CategoryNamesByGroupID[groupID];
@@ -232,10 +234,9 @@ namespace FLGrains
             {
                 var score0 = gameLogic.GetPlayerScores(0)[roundIndex];
                 var score1 = gameLogic.GetPlayerScores(1)[roundIndex];
-                if (score0 > score1)
-                    await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[0]).OnRoundWon(this.AsReference<IGame>());
-                else if (score1 > score0)
-                    await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[1]).OnRoundWon(this.AsReference<IGame>());
+
+                await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[0]).OnRoundResult(this.AsReference<IGame>(), CompetitionResultHelper.Get(score0, score1), score0);
+                await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[1]).OnRoundResult(this.AsReference<IGame>(), CompetitionResultHelper.Get(score1, score0), score1);
             }
 
             if (gameLogic.Finished)
@@ -243,11 +244,9 @@ namespace FLGrains
                 var wins0 = gameLogic.GetNumRoundsWon(0);
                 var wins1 = gameLogic.GetNumRoundsWon(1);
 
-                var winner = wins0 > wins1 ? State.PlayerIDs[0] : wins1 > wins0 ? State.PlayerIDs[1] : default(Guid?);
-
                 var me = this.AsReference<IGame>();
-                var (score0, rank0) = await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[0]).OnGameResult(me, winner);
-                var (score1, rank1) = await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[1]).OnGameResult(me, winner);
+                var (score0, rank0) = await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[0]).OnGameResult(me, CompetitionResultHelper.Get(wins0, wins1), wins0);
+                var (score1, rank1) = await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[1]).OnGameResult(me, CompetitionResultHelper.Get(wins1, wins0), wins1);
 
                 await Task.WhenAll(GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(State.PlayerIDs[0], myID, wins0, wins1, score0, rank0),
                     GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(State.PlayerIDs[1], myID, wins1, wins0, score1, rank1));
@@ -264,9 +263,23 @@ namespace FLGrains
 
             var result = await gameLogic.PlayWord(index, word, (c, w) => GetWordScore(gameLogic.RoundNumber, index, c, w), i => maxEditDistances[i]);
 
+            if (result.result == PlayWordResult.Error_TurnOver)
+                throw new VerbatimException("Player's turn is already over");
+
             if (result.result != PlayWordResult.Duplicate)
                 GrainFactory.GetGrain<ICategoryStatisticsAggregationWorker>(result.category.CategoryName)
                     .AddDelta(new CategoryStatisticsDelta.WordUsage { Word = result.corrected }).Ignore();
+
+            var stats = new List<StatisticValue>();
+            if (result.result == PlayWordResult.Duplicate)
+                stats.Add(new StatisticValue(Statistics.WordsPlayedDuplicate, 0, 1));
+            else
+                stats.Add(new StatisticValue(Statistics.WordsPlayedScore_Param, result.score, 1));
+
+            if (result.corrected != word)
+                stats.Add(new StatisticValue(Statistics.WordsCorrected, result.score, 1));
+
+            GrainFactory.GetGrain<IPlayer>(id).AddStats(stats).Ignore();
 
             return (result.score, result.corrected);
         }

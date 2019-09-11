@@ -26,10 +26,9 @@ enum Statistics
 	RoundsEndedInDraw,
 	BestGameScore,
 	BestRoundScore,
-	WordsPlayedScore0,
-	WordsPlayedScore1,
-	WordsPlayedScore2,
-	WordsPlayedScore3,
+	GroupChosen_Param,
+	WordsPlayedScore_Param,
+	WordsPlayedDuplicate,
 	WordsCorrected,
 	RewardMoneyEarned,
 	RoundWinMoneyEarned,
@@ -43,9 +42,7 @@ enum Statistics
 	MoneySpentRevealAnswers,
 	RevealAnswersUsed,
 	MoneySpentInfinitePlay,
-	InfinitePlayUsed,
-
-	Max
+	InfinitePlayUsed
 }
 
 enum LeaderBoardSubject
@@ -77,6 +74,13 @@ contract PlayerInfo
 	//?? avatar
 }
 
+contract StatisticValue
+{
+	Statistic: Statistics;
+	Parameter: i32;
+	Value: u64;
+}
+
 contract OwnPlayerInfo
 {
 	Name: string;
@@ -89,7 +93,7 @@ contract OwnPlayerInfo
 	CurrentNumRoundsWonForReward: u32;
 	NextRoundWinRewardTimeRemaining: timespan;
 	InfinitePlayTimeRemaining: timespan?;
-	StatisticsValues: u64[];
+	StatisticsValues: StatisticValue[];
 }
 
 contract WordScorePairDTO castfrom(FLGameLogic.WordScorePair)
@@ -146,6 +150,11 @@ endpoint System sys
 	{
 		totalXP: u32;
 		totalLevel: u32;
+	}
+
+	notification StatisticUpdated st
+	{
+		stat: StatisticValue;
 	}
 
 	request GetStartupInfo st
