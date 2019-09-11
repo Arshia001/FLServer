@@ -1,14 +1,10 @@
-﻿using FLGrainInterfaces;
-using FLGrains;
-using LightMessage.Common.ProtocolMessages;
-using LightMessage.OrleansUtils.Host;
+﻿using FLGrains;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
-using Orleans.Runtime;
+using Orleans.Statistics;
 using OrleansBondUtils.CassandraInterop;
 using OrleansCassandraUtils;
 using OrleansCassandraUtils.Clustering;
@@ -17,6 +13,7 @@ using OrleansCassandraUtils.Reminders;
 using System;
 using System.Net;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace FLHost
@@ -35,7 +32,7 @@ namespace FLHost
             {
                 try
                 {
-                    silo = new SiloHostBuilder()
+                    var builder = new SiloHostBuilder()
                         .ConfigureServices(e => ServiceConfiguration.ConfigureServices(e, "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy"))
                         .Configure<ClusterOptions>(o =>
                         {
@@ -73,9 +70,16 @@ namespace FLHost
                         {
                             o.SerializationProviders.Add(typeof(LightMessage.OrleansUtils.GrainInterfaces.LightMessageSerializer).GetTypeInfo());
                         })
+                        .Configure<LoadSheddingOptions>(o => o.LoadSheddingEnabled = true)
                         .Configure<ProcessExitHandlingOptions>(o => o.FastKillOnProcessExit = false)
-                        .AddStartupTask<ConfigStartupTask>()
-                        .Build();
+                        .AddStartupTask<ConfigStartupTask>();
+
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        builder.UsePerfCounterEnvironmentStatistics();
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                        builder.UseLinuxEnvironmentStatistics();
+
+                    silo = builder.Build();
 
                     await silo.StartAsync();
 
