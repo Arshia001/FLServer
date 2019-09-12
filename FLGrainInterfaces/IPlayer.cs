@@ -3,6 +3,7 @@ using LightMessage.Common.Messages;
 using Orleans;
 using Orleans.Concurrency;
 using OrleansBondUtils;
+using OrleansIndexingGrainInterfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -64,6 +65,18 @@ namespace FLGrainInterfaces
         [Id(11)]
         public Dictionary<(Statistics stat, int parameter), ulong> StatisticsValues { get; private set; }
 
+        [Id(12)]
+        public byte[] PasswordSalt { get; private set; }
+
+        [Id(13)]
+        public byte[] PasswordHash { get; set; }
+
+        [Id(14)]
+        public string Email { get; set; }
+
+        [Id(15)]
+        public string Username { get; set; }
+
         public void OnDeserialized()
         {
             if (ActiveGames == null)
@@ -72,9 +85,10 @@ namespace FLGrainInterfaces
                 PastGames = new List<IGame>();
             if (OwnedCategoryAnswers == null)
                 OwnedCategoryAnswers = new HashSet<string>();
-
             if (StatisticsValues == null)
                 StatisticsValues = new Dictionary<(Statistics stat, int extra), ulong>();
+            if (PasswordSalt == null)
+                PasswordSalt = CryptographyHelper.GeneratePasswordSalt();
         }
     }
 
@@ -88,13 +102,19 @@ namespace FLGrainInterfaces
         Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo();
         Task<(PlayerInfo info, bool[] haveCategoryAnswers)> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories);
 
+        Task<bool> SetUsername(string username);
+        Task<bool> PerformRegistration(string email, string password);
+        Task<bool> SetEmail(string email);
+        Task<bool> UpdatePassword(string oldPassword, string newPassword);
+        Task<bool> ValidatePassword(string password);
+
         Task AddStats(List<StatisticValue> values);
 
         Task<Immutable<IReadOnlyList<IGame>>> GetGames();
         Task<bool> CanEnterGame();
         Task<byte> JoinGameAsFirstPlayer(IGame game);
         Task<(Guid opponentID, byte numRounds)> JoinGameAsSecondPlayer(IGame game);
-        Task OnRoundResult(IGame game, CompetitionResult result, uint myScore);
+        Task OnRoundResult(IGame game, CompetitionResult result, uint myScore, ushort groupID);
         Task<(uint score, uint rank)> OnGameResult(IGame game, CompetitionResult result, uint myScore);
 
         Task<(bool success, ulong totalGold, TimeSpan duration)> ActivateInfinitePlay();
@@ -109,5 +129,24 @@ namespace FLGrainInterfaces
         Task<IEnumerable<GroupInfoDTO>> RefreshGroups(Guid gameID);
 
         Task<(ulong totalGold, TimeSpan nextRewardTime)> TakeRewardForWinningRounds();
+    }
+
+    public static class PlayerIndex
+    {
+        static GrainIndexManager_Unique<string, IPlayer> byUsername =
+            new GrainIndexManager_Unique<string, IPlayer>("p_un", 16384, new StringHashGenerator());
+
+        static GrainIndexManager_Unique<string, IPlayer> byEmail =
+            new GrainIndexManager_Unique<string, IPlayer>("p_e", 16384, new StringHashGenerator());
+
+        public static Task<bool> UpdateUsernameIfUnique(IGrainFactory grainFactory, IPlayer player, string name) =>
+            byUsername.UpdateIndexIfUnique(grainFactory, name, player);
+
+        public static Task<bool> UpdateEmailIfValidAndUnique(IGrainFactory grainFactory, IPlayer player, string email) =>
+            ValidationHelper.ValidateEmail(email) ?
+                byEmail.UpdateIndexIfUnique(grainFactory, email, player)
+                : Task.FromResult(false);
+
+        public static Task<IPlayer> GetByEmail(IGrainFactory grainFactory, string email) => byEmail.GetGrain(grainFactory, email);
     }
 }

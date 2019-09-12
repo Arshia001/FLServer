@@ -43,4 +43,8 @@
     <ProjectReference Include="..\FLGrains\FLGrains.csproj" />
   </ItemGroup>
 
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command=".\RunLMCodeGen.bat&#xD;&#xA;" />
+  </Target>
+
 </Project>

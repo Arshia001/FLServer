@@ -55,7 +55,7 @@ namespace FLGrains
 
         static bool ShouldReplicateStatToClient(Statistics stat)
         {
-            switch(stat)
+            switch (stat)
             {
                 case Statistics.BestGameScore:
                 case Statistics.BestRoundScore:
@@ -87,9 +87,12 @@ namespace FLGrains
                 gold: State.Gold,
                 infinitePlayTimeRemaining: IsInfinitePlayActive ? InfinitePlayTimeRemaining : default(TimeSpan?),
                 statisticsValues: State.StatisticsValues.Where(kv => ShouldReplicateStatToClient(kv.Key.stat))
-                    .Select(kv => new StatisticValue(kv.Key.stat, kv.Key.parameter, kv.Value))
+                    .Select(kv => new StatisticValue(kv.Key.stat, kv.Key.parameter, kv.Value)),
+                isRegistered: IsRegistered()
             );
         }
+
+        bool IsRegistered() => State.Email != null && State.PasswordHash != null;
 
         public Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo() => Task.FromResult(new PlayerLeaderBoardInfo(State.Name));
 
@@ -120,6 +123,59 @@ namespace FLGrains
 
             return systemEndPoint.SendXPUpdated(id, State.XP, State.Level);
         }
+
+        public async Task<bool> SetUsername(string username)
+        {
+            if (await PlayerIndex.UpdateUsernameIfUnique(GrainFactory, this.AsReference<IPlayer>(), username))
+            {
+                State.Username = username;
+                return true;
+            }
+
+            return false;
+        }
+
+        public async Task<bool> PerformRegistration(string email, string password)
+        {
+            if (!IsRegistered() && await PlayerIndex.UpdateEmailIfValidAndUnique(GrainFactory, this.AsReference<IPlayer>(), email))
+            {
+                State.Email = email;
+                await UpdatePassword(password);
+                return true;
+            }
+
+            return false;
+        }
+
+        private Task UpdatePassword(string password)
+        {
+            State.PasswordHash = CryptographyHelper.HashPassword(State.PasswordSalt, password);
+            return WriteStateAsync();
+        }
+
+        public async Task<bool> SetEmail(string email)
+        {
+            if (IsRegistered() && await PlayerIndex.UpdateEmailIfValidAndUnique(GrainFactory, this.AsReference<IPlayer>(), email))
+            {
+                State.Email = email;
+                return true;
+            }
+
+            return false;
+        }
+
+        public async Task<bool> UpdatePassword(string oldPassword, string newPassword)
+        {
+            if (!ValidatePasswordImpl(oldPassword))
+                return false;
+
+            await UpdatePassword(newPassword);
+            return true;
+        }
+
+        bool ValidatePasswordImpl(string password) => CryptographyHelper.HashPassword(State.PasswordSalt, password) == State.PasswordHash;
+
+        public Task<bool> ValidatePassword(string password) => Task.FromResult(ValidatePasswordImpl(password));
 
         ulong GetStat(Statistics stat, int parameter = 0) =>
             State.StatisticsValues.TryGetValue((stat, parameter), out var value) ? value : 0UL;
@@ -163,7 +219,7 @@ namespace FLGrains
             return result;
         }
 
-        public Task OnRoundResult(IGame game, CompetitionResult result, uint myScore)
+        public Task OnRoundResult(IGame game, CompetitionResult result, uint myScore, ushort groupID)
         {
             //?? convert MyGames to a HashSet? Would mess with ordering, but we probably need custom ordering based on time of last interaction anyway
             if (!State.ActiveGames.Contains(game))
@@ -175,15 +231,18 @@ namespace FLGrains
             {
                 case CompetitionResult.Win:
                     AddStatImpl(1, Statistics.RoundsWon);
+                    AddStatImpl(1, Statistics.GroupWon_Param, groupID);
                     ++State.NumRoundsWonForReward;
                     return systemEndPoint.SendNumRoundsWonForRewardUpdated(this.GetPrimaryKey(), State.NumRoundsWonForReward);
 
                 case CompetitionResult.Loss:
                     AddStatImpl(1, Statistics.RoundsLost);
+                    AddStatImpl(1, Statistics.GroupLost_Param, groupID);
                     return Task.CompletedTask;
 
                 case CompetitionResult.Draw:
                     AddStatImpl(1, Statistics.RoundsEndedInDraw);
+                    AddStatImpl(1, Statistics.GroupEndedInDraw_Param, groupID);
                     return Task.CompletedTask;
 
                 default:

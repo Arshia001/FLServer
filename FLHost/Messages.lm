@@ -4,8 +4,19 @@ namespace serverimpl FLGrains;
 namespace client Network;
 namespace clientcont Network.Types;
 
-handshake { 
+enum HandShakeMode
+{
+	ClientID,
+	EmailAndPassword
+	//?? GFGP token
+}
+
+handshake
+{
+	mode: HandShakeMode;
     clientID: guid?;
+	email: string?;
+	password: string?;
 }
 
 enum GameState
@@ -27,6 +38,9 @@ enum Statistics
 	BestGameScore,
 	BestRoundScore,
 	GroupChosen_Param,
+	GroupWon_Param,
+	GroupLost_Param,
+	GroupEndedInDraw_Param,
 	WordsPlayedScore_Param,
 	WordsPlayedDuplicate,
 	WordsCorrected,
@@ -94,6 +108,7 @@ contract OwnPlayerInfo
 	NextRoundWinRewardTimeRemaining: timespan;
 	InfinitePlayTimeRemaining: timespan?;
 	StatisticsValues: StatisticValue[];
+	IsRegistered: bool;
 }
 
 contract WordScorePairDTO castfrom(FLGameLogic.WordScorePair)

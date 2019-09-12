@@ -188,7 +188,7 @@ namespace FLGrains
     {
         LightMessage.OrleansUtils.Host.LightMessageOrleansHost host = new LightMessage.OrleansUtils.Host.LightMessageOrleansHost();
 
-        public delegate System.Threading.Tasks.Task<System.Guid?> ClientAuthCallbackDelegate(System.Guid? clientID);
+        public delegate System.Threading.Tasks.Task<System.Guid?> ClientAuthCallbackDelegate(HandShakeMode mode, System.Guid? clientID, string email, string password);
 
         ClientAuthCallbackDelegate onClientAuthCallback;
 
@@ -199,6 +199,6 @@ namespace FLGrains
         }
 
         public void Stop() => host.Stop();
-        System.Threading.Tasks.Task<System.Guid?> OnClientAuthRequest(LightMessage.Common.ProtocolMessages.AuthRequestMessage message) => onClientAuthCallback(message.Params[0].AsGuid);
+        System.Threading.Tasks.Task<System.Guid?> OnClientAuthRequest(LightMessage.Common.ProtocolMessages.AuthRequestMessage message) => onClientAuthCallback(message.Params[0].AsUEnum<HandShakeMode>().Value, message.Params[1].AsGuid, message.Params[2].AsString, message.Params[3].AsString);
     }
 }

@@ -1,4 +1,5 @@
-﻿using FLGrains;
+﻿using FLGrainInterfaces;
+using FLGrains;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Orleans;
@@ -132,9 +133,7 @@ namespace FLHost
             await silo.StopAsync();
         }
 
-        static Task<Guid?> OnAuth(Guid? clientID)
-        {
-            return Task.FromResult(clientID ?? (Guid?)Guid.NewGuid()); //?? client.GetGrain<IClientAuthorizer>(0).Authorize(AuthMessage);
-        }
+        static Task<Guid?> OnAuth(HandShakeMode mode, Guid? clientID, string email, string password) =>
+            client.GetGrain<IClientAuthenticator>(0).Authenticate(mode, clientID, email, password);
     }
 }

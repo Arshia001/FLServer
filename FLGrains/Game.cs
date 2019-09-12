@@ -235,8 +235,11 @@ namespace FLGrains
                 var score0 = gameLogic.GetPlayerScores(0)[roundIndex];
                 var score1 = gameLogic.GetPlayerScores(1)[roundIndex];
 
-                await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[0]).OnRoundResult(this.AsReference<IGame>(), CompetitionResultHelper.Get(score0, score1), score0);
-                await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[1]).OnRoundResult(this.AsReference<IGame>(), CompetitionResultHelper.Get(score1, score0), score1);
+                var category = State.CategoryNames[roundIndex];
+                var groupID = configReader.Config.CategoriesByName[category].Group.ID;
+
+                await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[0]).OnRoundResult(this.AsReference<IGame>(), CompetitionResultHelper.Get(score0, score1), score0, groupID);
+                await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[1]).OnRoundResult(this.AsReference<IGame>(), CompetitionResultHelper.Get(score1, score0), score1, groupID);
             }
 
             if (gameLogic.Finished)
