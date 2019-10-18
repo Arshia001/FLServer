@@ -1,6 +1,5 @@
-﻿CLIENT Interesting/Uninteresting
+﻿Shop
 CLIENT Interesting/Uninteresting data per player to disallow duplicated voting? -> store on client, too much work yielding too little value for server
-CLIENT LeaderBoards
 Store game state properly in DB
 XP / Score(?) calculations
 Matchmaking
@@ -14,3 +13,11 @@ Inventory?
 Version checks
 Safe service restart -> reject new connections, turn service off when no connections remain, **might take a lot of time**! Force people out after a while?
 planned down-time -> notify players in some way (broadcast messages?)
+
+ART:
+Notification enabled/disabled
+Sound disabled
+Login
+Create account
+XP bar
+Round win reward

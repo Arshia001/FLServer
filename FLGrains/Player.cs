@@ -13,9 +13,9 @@ namespace FLGrains
     //?? MoneySpentCustomizations
     class Player : SaveStateOnDeactivateGrain<PlayerState>, IPlayer
     {
-        IConfigReader configReader;
+        readonly IConfigReader configReader;
 
-        ISystemEndPoint systemEndPoint { get; set; }
+        ISystemEndPoint systemEndPoint;
 
         public Player(IConfigReader configReader) => this.configReader = configReader;
 
@@ -86,8 +86,8 @@ namespace FLGrains
                 rank: (uint)await LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).GetRank(this.GetPrimaryKey()),
                 gold: State.Gold,
                 infinitePlayTimeRemaining: IsInfinitePlayActive ? InfinitePlayTimeRemaining : default(TimeSpan?),
-                statisticsValues: State.StatisticsValues.Where(kv => ShouldReplicateStatToClient(kv.Key.stat))
-                    .Select(kv => new StatisticValue(kv.Key.stat, kv.Key.parameter, kv.Value)),
+                statisticsValues: State.StatisticsValues.Where(kv => ShouldReplicateStatToClient(kv.Key.Statistic))
+                    .Select(kv => new StatisticValue(kv.Key.Statistic, kv.Key.Parameter, kv.Value)),
                 isRegistered: IsRegistered()
             );
         }
@@ -178,13 +178,13 @@ namespace FLGrains
         public Task<bool> ValidatePassword(string password) => Task.FromResult(ValidatePasswordImpl(password));
 
         ulong GetStat(Statistics stat, int parameter = 0) =>
-            State.StatisticsValues.TryGetValue((stat, parameter), out var value) ? value : 0UL;
+            State.StatisticsValues.TryGetValue(new StatisticWithParameter(stat, parameter), out var value) ? value : 0UL;
 
         void UpdateStatImpl(Statistics stat, int parameter, ulong value)
         {
             if (GetStat(stat) != value)
             {
-                State.StatisticsValues[(stat, parameter)] = value;
+                State.StatisticsValues[new StatisticWithParameter(stat, parameter)] = value;
                 if (ShouldReplicateStatToClient(stat))
                     systemEndPoint.SendStatisticUpdated(this.GetPrimaryKey(), new StatisticValue(stat, parameter, value)).Ignore();
             }
@@ -219,13 +219,17 @@ namespace FLGrains
             return result;
         }
 
-        public Task OnRoundResult(IGame game, CompetitionResult result, uint myScore, ushort groupID)
+        public Task OnRoundCompleted(IGame game, uint myScore)
+        {
+            SetMaxStat(myScore, Statistics.BestRoundScore);
+            return Task.CompletedTask;
+        }
+
+        public Task OnRoundResult(IGame game, CompetitionResult result, ushort groupID)
         {
             //?? convert MyGames to a HashSet? Would mess with ordering, but we probably need custom ordering based on time of last interaction anyway
             if (!State.ActiveGames.Contains(game))
                 return Task.CompletedTask;
-
-            SetMaxStat(myScore, Statistics.BestRoundScore);
 
             switch (result)
             {

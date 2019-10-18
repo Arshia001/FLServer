@@ -25,6 +25,36 @@ namespace FLGrainInterfaces
         public PlayerLeaderBoardInfo(string name) => Name = name;
     }
 
+    [Schema]
+    public struct StatisticWithParameter : IEquatable<StatisticWithParameter>
+    {
+        public StatisticWithParameter(Statistics statistic, int parameter)
+        {
+            Statistic = statistic;
+            Parameter = parameter;
+        }
+
+        [Id(0)] public Statistics Statistic { get; set; }
+        [Id(1)] public int Parameter { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            return obj is StatisticWithParameter parameter &&
+                   Statistic == parameter.Statistic &&
+                   Parameter == parameter.Parameter;
+        }
+
+        public bool Equals(StatisticWithParameter other) => Equals(other as object);
+
+        public override int GetHashCode()
+        {
+            var hashCode = 1808521813;
+            hashCode = hashCode * -1521134295 + Statistic.GetHashCode();
+            hashCode = hashCode * -1521134295 + Parameter.GetHashCode();
+            return hashCode;
+        }
+    }
+
     //?? split into current games and past games, keep full history of past games somewhere else or limit history to a few items
     [Schema, BondSerializationTag("#p")]
     public class PlayerState : IOnDeserializedHandler
@@ -63,7 +93,7 @@ namespace FLGrainInterfaces
         public HashSet<string> OwnedCategoryAnswers { get; private set; }
 
         [Id(11)]
-        public Dictionary<(Statistics stat, int parameter), ulong> StatisticsValues { get; private set; }
+        public Dictionary<StatisticWithParameter, ulong> StatisticsValues { get; private set; }
 
         [Id(12)]
         public byte[] PasswordSalt { get; private set; }
@@ -86,7 +116,7 @@ namespace FLGrainInterfaces
             if (OwnedCategoryAnswers == null)
                 OwnedCategoryAnswers = new HashSet<string>();
             if (StatisticsValues == null)
-                StatisticsValues = new Dictionary<(Statistics stat, int extra), ulong>();
+                StatisticsValues = new Dictionary<StatisticWithParameter, ulong>();
             if (PasswordSalt == null)
                 PasswordSalt = CryptographyHelper.GeneratePasswordSalt();
         }
@@ -114,7 +144,8 @@ namespace FLGrainInterfaces
         Task<bool> CanEnterGame();
         Task<byte> JoinGameAsFirstPlayer(IGame game);
         Task<(Guid opponentID, byte numRounds)> JoinGameAsSecondPlayer(IGame game);
-        Task OnRoundResult(IGame game, CompetitionResult result, uint myScore, ushort groupID);
+        Task OnRoundCompleted(IGame game, uint myScore);
+        Task OnRoundResult(IGame game, CompetitionResult result, ushort groupID);
         Task<(uint score, uint rank)> OnGameResult(IGame game, CompetitionResult result, uint myScore);
 
         Task<(bool success, ulong totalGold, TimeSpan duration)> ActivateInfinitePlay();
@@ -133,10 +164,10 @@ namespace FLGrainInterfaces
 
     public static class PlayerIndex
     {
-        static GrainIndexManager_Unique<string, IPlayer> byUsername =
+        static readonly GrainIndexManager_Unique<string, IPlayer> byUsername =
             new GrainIndexManager_Unique<string, IPlayer>("p_un", 16384, new StringHashGenerator());
 
-        static GrainIndexManager_Unique<string, IPlayer> byEmail =
+        static readonly GrainIndexManager_Unique<string, IPlayer> byEmail =
             new GrainIndexManager_Unique<string, IPlayer>("p_e", 16384, new StringHashGenerator());
 
         public static Task<bool> UpdateUsernameIfUnique(IGrainFactory grainFactory, IPlayer player, string name) =>

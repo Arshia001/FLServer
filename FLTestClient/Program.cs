@@ -1,4 +1,6 @@
-﻿using FLGameLogic;
+﻿using Bond;
+using Bond.Tag;
+using FLGameLogic;
 using FLGrainInterfaces;
 using FLGrains;
 using LightMessage.Client;
@@ -31,6 +33,91 @@ namespace FLTestClient
         }
     }
 
+    [Schema]
+    public class StatisticWithParameter : IEquatable<StatisticWithParameter>
+    {
+        [Obsolete] public StatisticWithParameter() { }
+
+        public StatisticWithParameter(Statistics statistic, int parameter)
+        {
+            Statistic = statistic;
+            Parameter = parameter;
+        }
+
+        [Id(0)] public Statistics Statistic { get; set; }
+        [Id(1)] public int Parameter { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as StatisticWithParameter);
+        }
+
+        public bool Equals(StatisticWithParameter other)
+        {
+            return other != null &&
+                   Statistic == other.Statistic &&
+                   Parameter == other.Parameter;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Statistic, Parameter);
+        }
+    }
+
+    [Schema, BondSerializationTag("#pppppp")]
+    public class PlayerState
+    {
+        [Id(0)]
+        public List<IGame> ActiveGames { get; private set; }
+
+        [Id(1)]
+        public string Name { get; set; }
+
+        [Id(2)]
+        public uint Level { get; set; }
+
+        [Id(3)]
+        public uint XP { get; set; }
+
+        [Id(4)]
+        public uint NumRoundsWonForReward { get; set; }
+
+        [Id(5)]
+        public DateTime LastRoundWinRewardTakeTime { get; set; }
+
+        [Id(6)]
+        public uint Score { get; set; }
+
+        [Id(7)]
+        public ulong Gold { get; set; }
+
+        [Id(8)]
+        public List<IGame> PastGames { get; private set; }
+
+        [Id(9)]
+        public DateTime InfinitePlayEndTime { get; set; }
+
+        [Id(10)]
+        public HashSet<string> OwnedCategoryAnswers { get; set; }
+
+        [Id(11)]
+        public Dictionary<StatisticWithParameter, ulong> StatisticsValues { get; set; }
+
+        [Id(12)]
+        public byte[] PasswordSalt { get; set; }
+
+        [Id(13)]
+        public byte[] PasswordHash { get; set; }
+
+        [Id(14)]
+        public string Email { get; set; }
+
+        [Id(15)]
+        public string Username { get; set; }
+    }
+
+
     class Program
     {
         static Guid ID(int i) => new Guid(i, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -43,9 +130,8 @@ namespace FLTestClient
             var provider = svc.BuildServiceProvider();
 
             BondSerializationUtil.Initialize(provider);
-            var s = BondSerializer.Serialize(new GameGrain_State { PlayerIDs = new[] { Guid.Empty, Guid.NewGuid() }, CategoryNames = new[] { "asd", null } });
-            var d = (GameGrain_State)BondSerializer.Deserialize(typeof(GameGrain_State), new ArraySegmentReaderStream(s));
-            Console.WriteLine(d.PlayerIDs.Length);
+            var s = BondSerializer.Serialize(new PlayerState());
+            var d = (PlayerState)BondSerializer.Deserialize(typeof(PlayerState), new ArraySegmentReaderStream(s));
 
             //var sgs = provider.GetRequiredService<ISuggestionService>();
 

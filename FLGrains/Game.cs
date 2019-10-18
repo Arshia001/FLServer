@@ -54,11 +54,11 @@ namespace FLGrains
 
         readonly IDisposable[] turnTimers = new IDisposable[2]; //?? restore timers when activating
         GameLogicServer gameLogic;
-        IConfigReader configReader;
-        Random random = new Random();
+        readonly IConfigReader configReader;
+        readonly Random random = new Random();
 
 
-        int NumJoinedPlayers => State.PlayerIDs.Length == 0 ? 0 : State.PlayerIDs[1] == Guid.Empty ? 1 : 2;
+        // int NumJoinedPlayers => State.PlayerIDs.Length == 0 ? 0 : State.PlayerIDs[1] == Guid.Empty ? 1 : 2;
 
 
         public Game(IConfigReader configReader)
@@ -230,6 +230,8 @@ namespace FLGrains
             await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentTurnEnded(State.PlayerIDs[1 - playerIndex], myID, (byte)roundIndex,
                 opponentFinishedThisRound ? gameLogic.GetPlayerAnswers(playerIndex, roundIndex).Select(w => (WordScorePairDTO)w).ToList() : null);
 
+            GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[playerIndex]).OnRoundCompleted(this.AsReference<IGame>(), gameLogic.GetPlayerScores(playerIndex)[roundIndex]).Ignore();
+
             if (opponentFinishedThisRound)
             {
                 var score0 = gameLogic.GetPlayerScores(0)[roundIndex];
@@ -238,8 +240,8 @@ namespace FLGrains
                 var category = State.CategoryNames[roundIndex];
                 var groupID = configReader.Config.CategoriesByName[category].Group.ID;
 
-                await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[0]).OnRoundResult(this.AsReference<IGame>(), CompetitionResultHelper.Get(score0, score1), score0, groupID);
-                await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[1]).OnRoundResult(this.AsReference<IGame>(), CompetitionResultHelper.Get(score1, score0), score1, groupID);
+                GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[0]).OnRoundResult(this.AsReference<IGame>(), CompetitionResultHelper.Get(score0, score1), groupID).Ignore();
+                GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[1]).OnRoundResult(this.AsReference<IGame>(), CompetitionResultHelper.Get(score1, score0), groupID).Ignore();
             }
 
             if (gameLogic.Finished)
