@@ -8,16 +8,18 @@ Statistics
 Friendship
 Chat
 IAB
+Notifications (server-side, client-side)
 Registration / login
 Inventory?
 Version checks
 Safe service restart -> reject new connections, turn service off when no connections remain, **might take a lot of time**! Force people out after a while?
 planned down-time -> notify players in some way (broadcast messages?)
+Global notification: Notify those already in the game via broadcast message (implement that too!), notify those that log in on startup
 
 ART:
 Notification enabled/disabled
 Sound disabled
-Login
-Create account
 XP bar
 Round win reward
+Splash
+Logo
