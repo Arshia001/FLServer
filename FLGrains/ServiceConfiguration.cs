@@ -10,7 +10,7 @@ namespace FLGrains
 {
     public static class ServiceConfiguration
     {
-        public static void ConfigureServices(IServiceCollection services, string connectionString)
+        public static IServiceCollection ConfigureGameServer(this IServiceCollection services, string connectionString)
         {
             services.AddSingleton<IGrainReferenceConversionProvider, BondGrainReferenceConversionProvider>();
 
@@ -27,6 +27,8 @@ namespace FLGrains
 
             // this is a really early init stage, we shouldn't care about blocking here
             services.AddSingleton<ISuggestionService>(SuggestionService.CreateInstance(connectionStringProvider).Result);
+
+            return services;
         }
     }
 }
