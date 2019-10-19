@@ -43,6 +43,7 @@ namespace FLGrains
         }
     }
 
+    //?? Now, we only need a way to reactivate these if one of them goes down... Same old challenge.
     class Game : SaveStateOnDeactivateGrain<GameGrain_State>, IGame
     {
         class EndRoundTimerData
@@ -52,22 +53,18 @@ namespace FLGrains
             public IDisposable timerHandle;
         }
 
-
-        readonly IDisposable[] turnTimers = new IDisposable[2]; //?? restore timers when activating
         GameLogicServer gameLogic;
         readonly IConfigReader configReader;
         readonly Random random = new Random();
 
-
-        // int NumJoinedPlayers => State.PlayerIDs.Length == 0 ? 0 : State.PlayerIDs[1] == Guid.Empty ? 1 : 2;
-
+        int NumJoinedPlayers => State.PlayerIDs.Length == 0 ? 0 : State.PlayerIDs[1] == Guid.Empty ? 1 : 2;
 
         public Game(IConfigReader configReader)
         {
             this.configReader = configReader;
         }
 
-        public override Task OnActivateAsync()
+        public override async Task OnActivateAsync()
         {
             if (State.GameData != null)
             {
@@ -86,9 +83,21 @@ namespace FLGrains
                 State.GameData = null;
             }
 
-            //?? handle turn end timers - if past and not processed, process; else, register new timers
+            var numPlayers = NumJoinedPlayers;
+            if (numPlayers >= 1)
+                await SetTimerOrProcessEndTurnIfNecessary(0);
+            if (numPlayers >= 2)
+                await SetTimerOrProcessEndTurnIfNecessary(1);
+        }
 
-            return Task.CompletedTask;
+        async Task SetTimerOrProcessEndTurnIfNecessary(int playerIndex)
+        {
+            var now = DateTime.Now;
+            var roundIndex = gameLogic.NumTurnsTakenBy(playerIndex, now);
+            if (gameLogic.IsTurnInProgress(playerIndex, now))
+                SetEndTurnTimerImpl(playerIndex, gameLogic.GetTurnEndTime(playerIndex) - now, roundIndex);
+            else if (State.LastProcessedEndTurns[playerIndex] < roundIndex)
+                await HandleEndTurn(playerIndex, roundIndex);
         }
 
         protected override async Task WriteStateAsync()
@@ -142,11 +151,16 @@ namespace FLGrains
             if (!result.IsSuccess())
                 throw new Exception("Failed to start round, resulting in " + result.ToString());
 
+            SetEndTurnTimerImpl(playerIndex, roundTime, roundIndex);
+
+            return (false, category, roundIndex, (TimeSpan?)(configValues.ClientTimePerRound));
+        }
+
+        private void SetEndTurnTimerImpl(int playerIndex, TimeSpan roundTime, int roundIndex)
+        {
             var endRoundData = new EndRoundTimerData { playerIndex = playerIndex, roundIndex = roundIndex };
             var timerHandle = RegisterTimer(OnTurnEnded, endRoundData, roundTime, TimeSpan.MaxValue);
             endRoundData.timerHandle = timerHandle;
-
-            return (false, category, roundIndex, (TimeSpan?)(configValues.ClientTimePerRound));
         }
 
         public async Task<(string category, bool? haveAnswers, TimeSpan? roundTime, bool mustChooseGroup, IEnumerable<GroupInfoDTO> groups)> StartRound(Guid id)

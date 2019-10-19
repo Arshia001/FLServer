@@ -46,9 +46,13 @@ namespace FLGameLogic
 
         public DateTime GetTurnEndTime(int player) => turnEndTimes[player];
 
-        public bool IsTurnInProgress(int player) => turnEndTimes[player] > DateTime.Now;
+        public bool IsTurnInProgress(int player) => IsTurnInProgress(player, DateTime.Now);
 
-        public int NumTurnsTakenBy(int player) => playerScores[player].Count + (turnEndTimes[player] > DateTime.Now ? -1 : 0);
+        public bool IsTurnInProgress(int player, DateTime time) => turnEndTimes[player] > time;
+
+        public int NumTurnsTakenBy(int player) => NumTurnsTakenBy(player, DateTime.Now);
+
+        public int NumTurnsTakenBy(int player, DateTime time) => playerScores[player].Count + (turnEndTimes[player] > time ? -1 : 0);
 
         public int NumTurnsTakenByIncludingCurrent(int player) => playerScores[player].Count;
 
