@@ -7,6 +7,6 @@ namespace FLGrainInterfaces
 {
     public interface ILeaderBoardPlayerInfoCacheService
     {
-        Task<IReadOnlyList<LeaderBoardEntryDTO>> ConvertToDTO(Guid clientID, IReadOnlyList<LeaderBoardEntry> entries);
+        Task<IReadOnlyList<PlayerLeaderBoardInfo>> GetProfiles(Guid clientID, IReadOnlyList<LeaderBoardEntry> entries);
     }
 }

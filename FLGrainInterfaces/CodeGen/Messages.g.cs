@@ -84,27 +84,48 @@ namespace FLGrainInterfaces
     }
 
     [Orleans.Concurrency.Immutable]
-    public class LeaderBoardEntryDTO
+    public class PlayerLeaderBoardInfo
     {
-        public LeaderBoardEntryDTO(string name, ulong rank, ulong score)
+        public PlayerLeaderBoardInfo(string name)
         {
             this.Name = name;
+        }
+
+        public string Name { get; }
+
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name));
+
+        public static PlayerLeaderBoardInfo FromParam(LightMessage.Common.Messages.Param param)
+        {
+            if (param.IsNull)
+                return null;
+            var array = param.AsArray;
+            return new PlayerLeaderBoardInfo(array[0].AsString);
+        }
+    }
+
+    [Orleans.Concurrency.Immutable]
+    public class LeaderBoardEntryDTO
+    {
+        public LeaderBoardEntryDTO(PlayerLeaderBoardInfo info, ulong rank, ulong score)
+        {
+            this.Info = info;
             this.Rank = rank;
             this.Score = score;
         }
 
-        public string Name { get; }
+        public PlayerLeaderBoardInfo Info { get; }
         public ulong Rank { get; }
         public ulong Score { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.UInt(Rank), LightMessage.Common.Messages.Param.UInt(Score));
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(Info?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.UInt(Rank), LightMessage.Common.Messages.Param.UInt(Score));
 
         public static LeaderBoardEntryDTO FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new LeaderBoardEntryDTO(array[0].AsString, array[1].AsUInt.Value, array[2].AsUInt.Value);
+            return new LeaderBoardEntryDTO(PlayerLeaderBoardInfo.FromParam(array[0]), array[1].AsUInt.Value, array[2].AsUInt.Value);
         }
     }
 

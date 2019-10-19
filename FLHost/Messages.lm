@@ -72,12 +72,17 @@ enum LeaderBoardGroup
 	Clan
 }
 
+contract PlayerLeaderBoardInfo
+{
+	Name: string;
+	//?? avatar
+}
+
 contract LeaderBoardEntryDTO
 {
-	Name: string?;
+	Info: PlayerLeaderBoardInfo?;
 	Rank: u64;
 	Score: u64;
-	//?? avatar
 }
 
 contract PlayerInfo

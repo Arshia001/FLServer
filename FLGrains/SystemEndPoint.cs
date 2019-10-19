@@ -39,7 +39,9 @@ namespace FLGrains
                 throw new VerbatimException("Only All leader board group is supported at this time");
 
             var entries = await LeaderBoardUtil.GetLeaderBoard(GrainFactory, subject).GetScoresForDisplay(clientID);
-            return await leaderBoardPlayerInfoCache.ConvertToDTO(clientID, entries.Value.entries);
+            return entries.Value.entries
+                .Zip(await leaderBoardPlayerInfoCache.GetProfiles(clientID, entries.Value.entries), (e, p) => (e, p))
+                .Select(e => new LeaderBoardEntryDTO(e.p, e.e.Rank, e.e.Score));
         }
     }
 }

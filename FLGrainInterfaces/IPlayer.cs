@@ -16,15 +16,6 @@ namespace FLGrainInterfaces
         public static Task<PlayerInfo> GetForPlayerID(IGrainFactory grainFactory, Guid playerID) => grainFactory.GetGrain<IPlayer>(playerID).GetPlayerInfo();
     }
 
-    [Immutable]
-    public class PlayerLeaderBoardInfo
-    {
-        public string Name { get; }
-        //?? avatar
-
-        public PlayerLeaderBoardInfo(string name) => Name = name;
-    }
-
     [Schema]
     public struct StatisticWithParameter : IEquatable<StatisticWithParameter>
     {
@@ -53,6 +44,10 @@ namespace FLGrainInterfaces
             hashCode = hashCode * -1521134295 + Parameter.GetHashCode();
             return hashCode;
         }
+
+        public static bool operator ==(StatisticWithParameter left, StatisticWithParameter right) => left.Equals(right);
+
+        public static bool operator !=(StatisticWithParameter left, StatisticWithParameter right) => !(left == right);
     }
 
     //?? keep full history of past games somewhere else if needed, limit history here to a few items
