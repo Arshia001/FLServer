@@ -93,6 +93,8 @@ namespace FLGrains
 
             return GetAggregator().AddDelta(current);
         }
+
+        public override Task OnDeactivateAsync() => UpdateAggregator(null);
     }
 
     //?? shouldn't this be a service?
