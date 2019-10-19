@@ -2,6 +2,7 @@
 using Bond.Tag;
 using FLGameLogic;
 using FLGrainInterfaces;
+using FLGrainInterfaces.Configuration;
 using LightMessage.OrleansUtils.Grains;
 using Orleans;
 using Orleans.Concurrency;

@@ -1,5 +1,6 @@
 ﻿using Cassandra;
 using FLGrainInterfaces;
+using FLGrainInterfaces.Configuration;
 using FLGrains.ServiceInterfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -12,7 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace FLGrains
+namespace FLGrains.Configuration
 {
     public class SystemConfig : Grain, ISystemConfig
     {
@@ -60,7 +61,6 @@ namespace FLGrains
             return Task.FromResult(data.AsImmutable());
         }
 
-        //?? validate
         static ConfigData ParseConfigData(string data) => JsonConvert.DeserializeObject<ConfigData>(data, PrivateAccessorContractResolver.SerializerSettings);
 
         static async Task<ConfigData> ReadConfigDataFromDatabase(ISession session, Queries queries)

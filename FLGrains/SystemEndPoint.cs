@@ -1,5 +1,6 @@
 ﻿using FLGameLogic;
 using FLGrainInterfaces;
+using FLGrainInterfaces.Configuration;
 using LightMessage.Common.Messages;
 using LightMessage.OrleansUtils.GrainInterfaces;
 using LightMessage.OrleansUtils.Grains;

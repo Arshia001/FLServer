@@ -1,11 +1,12 @@
 ﻿using FLGrainInterfaces;
+using FLGrainInterfaces.Configuration;
 using Orleans;
 using Orleans.Placement;
 using Orleans.Runtime;
 using System;
 using System.Threading.Tasks;
 
-namespace FLGrains
+namespace FLGrains.Configuration
 {
     [PreferLocalPlacement]
     class ConfigUpdaterGrain : Grain, IConfigUpdaterGrain

@@ -1,10 +1,11 @@
 ﻿using FLGrainInterfaces;
+using FLGrainInterfaces.Configuration;
 using Orleans;
 using Orleans.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace FLGrains
+namespace FLGrains.Configuration
 {
     public class ConfigStartupTask : IStartupTask
     {

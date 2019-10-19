@@ -1,4 +1,5 @@
 ﻿using FLGrainInterfaces;
+using FLGrainInterfaces.Configuration;
 using LightMessage.OrleansUtils.Grains;
 using Orleans;
 using Orleans.Concurrency;
@@ -227,7 +228,6 @@ namespace FLGrains
 
         public Task OnRoundResult(IGame game, CompetitionResult result, ushort groupID)
         {
-            //?? convert MyGames to a HashSet? Would mess with ordering, but we probably need custom ordering based on time of last interaction anyway
             if (!State.ActiveGames.Contains(game))
                 return Task.CompletedTask;
 

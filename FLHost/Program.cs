@@ -1,5 +1,6 @@
 ﻿using FLGrainInterfaces;
 using FLGrains;
+using FLGrains.Configuration;
 using LightMessage.Common.Util;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

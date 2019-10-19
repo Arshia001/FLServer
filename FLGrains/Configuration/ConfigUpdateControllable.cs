@@ -1,9 +1,10 @@
 ﻿using FLGrainInterfaces;
+using FLGrainInterfaces.Configuration;
 using Orleans;
 using Orleans.Providers;
 using System.Threading.Tasks;
 
-namespace FLGrains
+namespace FLGrains.Configuration
 {
     public class ConfigUpdateControllable : IControllable
     {

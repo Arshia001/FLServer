@@ -1,6 +1,7 @@
 ﻿using FLGrainInterfaces;
+using FLGrainInterfaces.Configuration;
 
-namespace FLGrains
+namespace FLGrains.Configuration
 {
     class ConfigProvider : IConfigReader, IConfigWriter
     {

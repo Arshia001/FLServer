@@ -145,7 +145,7 @@ contract SimplifiedGameInfo
     TheirScore: u8;
 }
 
-contract ConfigValuesDTO castfrom(ConfigValues server oneway)
+contract ConfigValuesDTO castfrom(FLGrainInterfaces.Configuration.ConfigValues server oneway)
 {
 	NumRoundsToWinToGetReward: u8;
 	RoundWinRewardInterval: timespan;
@@ -242,7 +242,7 @@ endpoint Suggestion sg
 	}
 }
 
-contract GroupInfoDTO castfrom (GroupConfig server oneway)
+contract GroupInfoDTO castfrom (FLGrainInterfaces.Configuration.GroupConfig server oneway)
 {
 	Name: string;
 	ID: u16;

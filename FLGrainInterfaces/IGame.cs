@@ -1,4 +1,5 @@
 ﻿using FLGameLogic;
+using FLGrainInterfaces.Configuration;
 using LightMessage.Common.Messages;
 using Orleans;
 using Orleans.Concurrency;

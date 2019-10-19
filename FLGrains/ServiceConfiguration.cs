@@ -1,4 +1,6 @@
 ﻿using FLGrainInterfaces;
+using FLGrainInterfaces.Configuration;
+using FLGrains.Configuration;
 using FLGrains.ServiceInterfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans.Providers;
@@ -14,9 +16,9 @@ namespace FLGrains
         {
             services.AddSingleton<IGrainReferenceConversionProvider, BondGrainReferenceConversionProvider>();
 
-            var ConfigProvider = new ConfigProvider();
-            services.AddSingleton<IConfigWriter>(ConfigProvider);
-            services.AddSingleton<IConfigReader>(ConfigProvider);
+            var configProvider = new ConfigProvider();
+            services.AddSingleton<IConfigWriter>(configProvider);
+            services.AddSingleton<IConfigReader>(configProvider);
 
             services.AddSingletonNamedService<IControllable, ConfigUpdateControllable>(ConfigUpdateControllable.ServiceName);
 
