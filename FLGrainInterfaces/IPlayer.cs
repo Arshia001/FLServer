@@ -55,7 +55,7 @@ namespace FLGrainInterfaces
         }
     }
 
-    //?? split into current games and past games, keep full history of past games somewhere else or limit history to a few items
+    //?? keep full history of past games somewhere else if needed, limit history here to a few items
     [Schema, BondSerializationTag("#p")]
     public class PlayerState : IOnDeserializedHandler
     {

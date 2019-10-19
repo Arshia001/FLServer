@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
 using Orleans.Runtime;
+using Orleans.Serialization;
 using OrleansBondUtils;
 using OrleansCassandraUtils;
 using OrleansCassandraUtils.Utils;
@@ -27,6 +28,11 @@ namespace FLTestClient
 {
     class NullGrainReferenceConverter : IGrainReferenceConverter
     {
+        public GrainReference GetGrainFromKeyInfo(GrainReferenceKeyInfo keyInfo)
+        {
+            return null;
+        }
+
         public GrainReference GetGrainFromKeyString(string key)
         {
             return null;
