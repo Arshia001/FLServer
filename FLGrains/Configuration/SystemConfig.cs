@@ -89,11 +89,13 @@ namespace FLGrains.Configuration
             return result;
         }
 
-        //?? This is not the greatest idea. We should be able to push incremental updates to silos,
-        //   since this data is likely to be some hundreds of megabytes. Each silo could read from
-        //   the database (not likely to change anything), and we should be able to push *incremental*
-        //   updates to silos when something changes. We could have a version, and expect to receive
-        //   sequential versions on the silos, asking for all the data if it goes out of sync.
+        //!!
+        /* This can be improved by reading the categories from the database on each silo.
+         * We could do quorom writes and reads to make sure everybody gets the latest data.
+         * Once we have a way to change the data at runtime, we should add a way to push
+         * incremental updates to other silos. All of this is unlikely to impact performance
+         * unless we have hundreds of megabytes of data here though.
+         */
         static async Task<List<CategoryConfig>> ReadCategoriesFromDatabase(ISession session, Queries queries, IEnumerable<GroupConfig> groups)
         {
             var groupsByID = groups.ToDictionary(g => g.ID);
@@ -147,6 +149,8 @@ namespace FLGrains.Configuration
             var session = await CassandraSessionFactory.CreateSession(connectionString);
 
             var newData = ParseConfigData(jsonConfig);
+            newData.Categories = data.Categories;
+            newData.Groups = data.Groups;
 
             var statement = await session.PrepareAsync("update fl_config set data = :data where key = 0;");
             statement.SetConsistencyLevel(ConsistencyLevel.EachQuorum);
