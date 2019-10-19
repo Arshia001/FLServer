@@ -1,6 +1,7 @@
 ﻿using Bond;
 using Bond.Tag;
 using FLGameLogic;
+using FLGameLogicServer;
 using FLGrainInterfaces;
 using FLGrainInterfaces.Configuration;
 using LightMessage.OrleansUtils.Grains;
@@ -18,8 +19,8 @@ namespace FLGrains
     [Schema, BondSerializationTag("#g")]
     public class GameGrain_State : IOnDeserializedHandler
     {
-        [Id(0), Type(typeof(nullable<wstring>[]))]
-        public string[] CategoryNames { get; set; }
+        [Id(0)]
+        public SerializedGameData GameData { get; set; }
 
         [Id(1)]
         public Guid[] PlayerIDs { get; set; }
@@ -30,7 +31,7 @@ namespace FLGrains
         [Id(3)]
         public int GroupChooser { get; set; } = -1;
 
-        [Id(4), Type(typeof(nullable<List<ushort>>))]
+        [Id(4)]
         public List<ushort> GroupChoices { get; set; }
 
         public void OnDeserialized()
@@ -68,31 +69,35 @@ namespace FLGrains
 
         public override Task OnActivateAsync()
         {
-            //?? restore game state from grain state
-            //?? register turn end timers if any
-            //?? record active turn end timers in state so we can register even if turn time already passed
-            if (State.CategoryNames != null && State.CategoryNames.Length > 0)
+            if (State.GameData != null)
             {
                 var config = configReader.Config;
-                //?? restore game state from grain state
-                gameLogic = new GameLogicServer(State.CategoryNames.ToList().Select((n, i) =>
+                gameLogic = GameLogicServer.DeserializeFrom(State.GameData, c =>
                 {
-                    if (n == null)
+                    if (c == null)
                         return null;
 
-                    if (config.CategoriesAsGameLogicFormatByName.TryGetValue(n, out var category))
+                    if (config.CategoriesAsGameLogicFormatByName.TryGetValue(c, out var category))
                         return category;
 
                     // In case a category was deleted...
-                    category = config.CategoriesAsGameLogicFormat[random.Next(config.CategoriesAsGameLogicFormat.Count)];
-                    State.CategoryNames[i] = category.CategoryName;
-                    return category;
-                }));
+                    return config.CategoriesAsGameLogicFormat[random.Next(config.CategoriesAsGameLogicFormat.Count)];
+                });
+                State.GameData = null;
             }
 
-            DelayDeactivation(TimeSpan.FromDays(20)); //?? store state in DB -.-
+            //?? handle turn end timers - if past and not processed, process; else, register new timers
 
             return Task.CompletedTask;
+        }
+
+        protected override async Task WriteStateAsync()
+        {
+            State.GameData = gameLogic?.Serialize();
+
+            await base.WriteStateAsync();
+
+            State.GameData = null;
         }
 
         int Index(Guid playerID) => State.PlayerIDs[0] == playerID ? 0 : (State.PlayerIDs[1] == playerID ? 1 : throw new Exception("Unknown player ID " + playerID.ToString()));
@@ -103,13 +108,12 @@ namespace FLGrains
                 throw new Exception("Game already started");
 
             var config = configReader.Config;
-            State.CategoryNames = new string[config.ConfigValues.NumRoundsPerGame];
 
             gameLogic = new GameLogicServer(config.ConfigValues.NumRoundsPerGame);
 
             State.PlayerIDs = new[] { playerOneID, Guid.Empty };
 
-            return Task.FromResult((byte)State.CategoryNames.Length);
+            return Task.FromResult((byte)gameLogic.NumRounds);
         }
 
         public async Task<(Guid opponentID, byte numRounds)> AddSecondPlayer(PlayerInfo playerTwo)
@@ -121,7 +125,7 @@ namespace FLGrains
 
             await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentJoined(State.PlayerIDs[0], this.GetPrimaryKey(), playerTwo);
 
-            return (State.PlayerIDs[0], (byte)State.CategoryNames.Length);
+            return (State.PlayerIDs[0], (byte)gameLogic.NumRounds);
         }
 
         (bool shouldChooseCategory, string category, int roundIndex, TimeSpan? roundTime) StartRound(int playerIndex)
@@ -187,12 +191,12 @@ namespace FLGrains
 
             var categories = config.CategoryNamesByGroupID[groupID];
             var random = new Random();
+            var currentCategories = gameLogic.CategoryNames;
             string categoryName;
             do
                 categoryName = categories[random.Next(categories.Count)];
-            while (State.CategoryNames.Contains(categoryName));
+            while (currentCategories.Contains(categoryName));
 
-            State.CategoryNames[roundIndex] = categoryName;
             var result = gameLogic.SetCategory(roundIndex, config.CategoriesAsGameLogicFormatByName[categoryName]);
 
             if (!result.IsSuccess())
@@ -236,7 +240,7 @@ namespace FLGrains
                 var score0 = gameLogic.GetPlayerScores(0)[roundIndex];
                 var score1 = gameLogic.GetPlayerScores(1)[roundIndex];
 
-                var category = State.CategoryNames[roundIndex];
+                var category = gameLogic.Categories[roundIndex].CategoryName;
                 var groupID = configReader.Config.CategoriesByName[category].Group.ID;
 
                 GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[0]).OnRoundResult(this.AsReference<IGame>(), CompetitionResultHelper.Get(score0, score1), groupID).Ignore();
@@ -389,7 +393,7 @@ namespace FLGrains
             var turnsTakenInclCurrent = gameLogic.NumTurnsTakenByIncludingCurrent(index);
             var turnsTaken = gameLogic.NumTurnsTakenBy(index);
 
-            var categories = State.CategoryNames.Take(turnsTakenInclCurrent).ToList();
+            var categories = gameLogic.Categories.Take(turnsTakenInclCurrent).Select(c => c.CategoryName).ToList();
             var playerInfo = State.PlayerIDs[1 - index] == Guid.Empty ? null :
                 await PlayerInfoUtil.GetForPlayerID(GrainFactory, State.PlayerIDs[1 - index]);
 

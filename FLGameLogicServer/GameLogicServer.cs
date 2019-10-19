@@ -1,14 +1,27 @@
-﻿using System;
+﻿using FLGameLogic;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FLGameLogic
+namespace FLGameLogicServer
 {
     public class GameLogicServer : GameLogic
     {
         public delegate Task<byte> GetWordScoreDelegate(WordCategory category, string word);
+
+
+        public static GameLogicServer DeserializeFrom(SerializedGameData gameData, Func<string, WordCategory> getCategory)
+        {
+            var result = new GameLogicServer();
+            result.categories = gameData.CategoryNames.Select(n => n == null ? null : getCategory(n)).ToList();
+            result.playerAnswers = gameData.PlayerAnswers.Select(l => l.Select(ll => ll.Select(ws => new WordScorePair(ws.word, ws.score)).ToList()).ToList()).ToArray();
+            result.playerScores = gameData.PlayerScores.Select(l => l.ToList()).ToArray();
+            result.turnEndTimes = gameData.TurnEndTimes.ToArray();
+            result.firstTurn = gameData.FirstTurn;
+            return result;
+        }
 
 
         List<WordCategory> categories;
@@ -18,16 +31,15 @@ namespace FLGameLogic
 
         public override int NumRounds => Categories.Count;
 
+        public HashSet<string> CategoryNames => new HashSet<string>(Categories.Where(c => c != null).Select(c => c.CategoryName));
+
 
         public GameLogicServer(int numRounds) : base(0)
         {
             categories = Enumerable.Repeat(default(WordCategory), numRounds).ToList();
         }
 
-        public GameLogicServer(IEnumerable<WordCategory> categories) : base(0)
-        {
-            this.categories = categories.ToList();
-        }
+        private GameLogicServer() : base() { }
 
 
         public StartRoundResult StartRound(int player, TimeSpan turnTime, out string category)
@@ -97,6 +109,16 @@ namespace FLGameLogic
             categories[roundIndex] = category;
             return SetCategoryResult.Success;
         }
+
+        public SerializedGameData Serialize() =>
+            new SerializedGameData
+            {
+                CategoryNames = categories.Select(c => c?.CategoryName).ToList(),
+                PlayerAnswers = playerAnswers.Select(l => l.Select(ll => ll.Select(ws => new SerializedGameData.WordScorePair(ws.word, ws.score)).ToList()).ToList()).ToArray(),
+                PlayerScores = playerScores.Select(l => l.ToList()).ToArray(),
+                TurnEndTimes = turnEndTimes.ToArray(),
+                FirstTurn = firstTurn
+            };
 
         public DateTime? ExtendRoundTime(int player, TimeSpan amount)
         {

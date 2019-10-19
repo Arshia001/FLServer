@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace FLGameLogic
+namespace FLGameLogicServer
 {
     public enum SetCategoryResult
     {

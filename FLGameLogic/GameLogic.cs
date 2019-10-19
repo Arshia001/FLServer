@@ -35,6 +35,8 @@ namespace FLGameLogic
             this.firstTurn = firstTurn;
         }
 
+        protected GameLogic() { } // For use in deserialization scenarios
+
 
         public IReadOnlyList<uint> GetPlayerScores(int player) => playerScores[player];
 

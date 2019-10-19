@@ -10,8 +10,8 @@ namespace FLGrainInterfaces.Configuration
 
         public IReadOnlyDictionary<string, CategoryConfig> CategoriesByName { get; }
         public IReadOnlyDictionary<ushort, IReadOnlyList<string>> CategoryNamesByGroupID { get; }
-        public IReadOnlyList<FLGameLogic.WordCategory> CategoriesAsGameLogicFormat { get; }
-        public IReadOnlyDictionary<string, FLGameLogic.WordCategory> CategoriesAsGameLogicFormatByName { get; }
+        public IReadOnlyList<FLGameLogicServer.WordCategory> CategoriesAsGameLogicFormat { get; }
+        public IReadOnlyDictionary<string, FLGameLogicServer.WordCategory> CategoriesAsGameLogicFormatByName { get; }
 
         public IReadOnlyDictionary<uint, LevelConfig> PlayerLevels { get; }
 
@@ -36,7 +36,7 @@ namespace FLGrainInterfaces.Configuration
             CategoryNamesByGroupID = data.Categories.GroupBy(c => c.Group.ID).ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(c => c.Name).ToList());
 
             CategoriesAsGameLogicFormat = data.Categories.Select(
-                c => new FLGameLogic.WordCategory(c.Name, c.Words.ToDictionary(w => w.Word, w => w.Corrections.AsEnumerable()))).ToList();
+                c => new FLGameLogicServer.WordCategory(c.Name, c.Words.ToDictionary(w => w.Word, w => w.Corrections.AsEnumerable()))).ToList();
             CategoriesAsGameLogicFormatByName = CategoriesAsGameLogicFormat.ToDictionary(c => c.CategoryName);
 
             PlayerLevels = data.PlayerLevels.ToDictionary(l => l.Level);
