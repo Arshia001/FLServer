@@ -87,28 +87,28 @@ namespace FLGrains
             return await Task.WhenAll(games.Reverse().Select(g => g.GetSimplifiedGameInfo(clientID)));
         }
 
-        public override async Task SendGameEnded(Guid clientID, Guid gameID, uint myScore, uint theirScore, uint myPlayerScore, uint myRank)
+        public override async Task<bool> SendGameEnded(Guid clientID, Guid gameID, uint myScore, uint theirScore, uint myPlayerScore, uint myRank)
         {
-            if (await IsConnected(clientID))
-                await base.SendGameEnded(clientID, gameID, myScore, theirScore, myPlayerScore, myRank);
-            else
+            if (!await base.SendGameEnded(clientID, gameID, myScore, theirScore, myPlayerScore, myRank))
                 SendPush();
+
+            return true;
         }
 
-        public override async Task SendOpponentJoined(Guid clientID, Guid gameID, PlayerInfo opponentInfo)
+        public override async Task<bool> SendOpponentJoined(Guid clientID, Guid gameID, PlayerInfo opponentInfo)
         {
-            if (await IsConnected(clientID))
-                await base.SendOpponentJoined(clientID, gameID, opponentInfo);
-            else
+            if (!await base.SendOpponentJoined(clientID, gameID, opponentInfo))
                 SendPush();
+
+            return true;
         }
 
-        public override async Task SendOpponentTurnEnded(Guid clientID, Guid gameID, byte roundNumber, IEnumerable<WordScorePairDTO> wordsPlayed)
+        public override async Task<bool> SendOpponentTurnEnded(Guid clientID, Guid gameID, byte roundNumber, IEnumerable<WordScorePairDTO> wordsPlayed)
         {
-            if (await IsConnected(clientID))
-                await base.SendOpponentTurnEnded(clientID, gameID, roundNumber, wordsPlayed);
-            else
+            if (!await base.SendOpponentTurnEnded(clientID, gameID, roundNumber, wordsPlayed))
                 SendPush();
+
+            return true;
         }
 
         protected override Task Vote(Guid clientID, string category, bool up) =>

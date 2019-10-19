@@ -5,9 +5,9 @@ namespace FLGrainInterfaces
 {
     public interface ISystemEndPoint : LightMessage.OrleansUtils.GrainInterfaces.IEndPointGrain
     {
-        System.Threading.Tasks.Task SendNumRoundsWonForRewardUpdated(System.Guid clientID, uint totalRoundsWon);
-        System.Threading.Tasks.Task SendXPUpdated(System.Guid clientID, uint totalXP, uint totalLevel);
-        System.Threading.Tasks.Task SendStatisticUpdated(System.Guid clientID, StatisticValue stat);
+        System.Threading.Tasks.Task<bool> SendNumRoundsWonForRewardUpdated(System.Guid clientID, uint totalRoundsWon);
+        System.Threading.Tasks.Task<bool> SendXPUpdated(System.Guid clientID, uint totalXP, uint totalLevel);
+        System.Threading.Tasks.Task<bool> SendStatisticUpdated(System.Guid clientID, StatisticValue stat);
     }
 
     public interface ISuggestionEndPoint : LightMessage.OrleansUtils.GrainInterfaces.IEndPointGrain
@@ -16,9 +16,9 @@ namespace FLGrainInterfaces
 
     public interface IGameEndPoint : LightMessage.OrleansUtils.GrainInterfaces.IEndPointGrain
     {
-        System.Threading.Tasks.Task SendOpponentJoined(System.Guid clientID, System.Guid gameID, PlayerInfo opponentInfo);
-        System.Threading.Tasks.Task SendOpponentTurnEnded(System.Guid clientID, System.Guid gameID, byte roundNumber, System.Collections.Generic.IEnumerable<WordScorePairDTO> wordsPlayed);
-        System.Threading.Tasks.Task SendGameEnded(System.Guid clientID, System.Guid gameID, uint myScore, uint theirScore, uint myPlayerScore, uint myPlayerRank);
+        System.Threading.Tasks.Task<bool> SendOpponentJoined(System.Guid clientID, System.Guid gameID, PlayerInfo opponentInfo);
+        System.Threading.Tasks.Task<bool> SendOpponentTurnEnded(System.Guid clientID, System.Guid gameID, byte roundNumber, System.Collections.Generic.IEnumerable<WordScorePairDTO> wordsPlayed);
+        System.Threading.Tasks.Task<bool> SendGameEnded(System.Guid clientID, System.Guid gameID, uint myScore, uint theirScore, uint myPlayerScore, uint myPlayerRank);
     }
 }
 
