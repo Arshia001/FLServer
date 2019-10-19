@@ -14,6 +14,8 @@ namespace FLGrainInterfaces.Configuration
 
         public List<LevelConfig> PlayerLevels { get; set; }
 
+        public List<GoldPackConfig> GoldPacks { get; set; }
+
         public EditDistanceConfig EditDistanceConfig { get; set; }
 
         public ConfigValues ConfigValues { get; set; }

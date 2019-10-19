@@ -102,6 +102,9 @@ namespace FLGrainInterfaces
         [Id(15)]
         public string Username { get; set; }
 
+        [Id(16)]
+        public HashSet<string> ProcessedIabTokens { get; private set; }
+
         public void OnDeserialized()
         {
             if (ActiveGames == null)
@@ -114,6 +117,8 @@ namespace FLGrainInterfaces
                 StatisticsValues = new Dictionary<StatisticWithParameter, ulong>();
             if (PasswordSalt == null)
                 PasswordSalt = CryptographyHelper.GeneratePasswordSalt();
+            if (ProcessedIabTokens == null)
+                ProcessedIabTokens = new HashSet<string>();
         }
     }
 
@@ -155,6 +160,8 @@ namespace FLGrainInterfaces
         Task<IEnumerable<GroupInfoDTO>> RefreshGroups(Guid gameID);
 
         Task<(ulong totalGold, TimeSpan nextRewardTime)> TakeRewardForWinningRounds();
+
+        Task<(IabPurchaseResult result, ulong totalGold)> ProcessGoldPackPurchase(string sku, string purchaseToken);
     }
 
     public static class PlayerIndex

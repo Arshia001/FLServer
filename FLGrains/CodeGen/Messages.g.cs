@@ -10,14 +10,14 @@ namespace FLGrains
         public virtual System.Threading.Tasks.Task<bool> SendNumRoundsWonForRewardUpdated(System.Guid clientID, uint totalRoundsWon) => SendMessage(clientID, "rwu", LightMessage.Common.Messages.Param.UInt(totalRoundsWon));
         public virtual System.Threading.Tasks.Task<bool> SendXPUpdated(System.Guid clientID, uint totalXP, uint totalLevel) => SendMessage(clientID, "xp", LightMessage.Common.Messages.Param.UInt(totalXP), LightMessage.Common.Messages.Param.UInt(totalLevel));
         public virtual System.Threading.Tasks.Task<bool> SendStatisticUpdated(System.Guid clientID, StatisticValue stat) => SendMessage(clientID, "st", stat?.ToParam() ?? LightMessage.Common.Messages.Param.Null());
-        protected abstract System.Threading.Tasks.Task<(OwnPlayerInfo playerInfo, ConfigValuesDTO configData)> GetStartupInfo(System.Guid clientID);
+        protected abstract System.Threading.Tasks.Task<(OwnPlayerInfo playerInfo, ConfigValuesDTO configData, System.Collections.Generic.IEnumerable<GoldPackConfigDTO> goldPacks)> GetStartupInfo(System.Guid clientID);
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("st")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_GetStartupInfo(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
             var result = await GetStartupInfo(input.ClientID);
-            return Success(result.playerInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), result.configData?.ToParam() ?? LightMessage.Common.Messages.Param.Null());
+            return Success(result.playerInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), result.configData?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.Array(result.goldPacks.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
         }
 
         protected abstract System.Threading.Tasks.Task<(ulong totalGold, System.TimeSpan timeUntilNextReward)> TakeRewardForWinningRounds(System.Guid clientID);
@@ -46,6 +46,14 @@ namespace FLGrains
             var array = input.Args;
             var result = await GetLeaderBoard(input.ClientID, array[0].AsUEnum<LeaderBoardSubject>().Value, array[1].AsUEnum<LeaderBoardGroup>().Value);
             return Success(LightMessage.Common.Messages.Param.Array(result.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
+        }
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("bgp")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_BuyGoldPack(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).ProcessGoldPackPurchase(array[0].AsString, array[1].AsString);
+            return Success(LightMessage.Common.Messages.Param.UEnum(result.result), LightMessage.Common.Messages.Param.UInt(result.totalGold));
         }
     }
 

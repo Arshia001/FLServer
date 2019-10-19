@@ -17,6 +17,8 @@ Safe service restart -> reject new connections, turn service off when no connect
 planned down-time -> notify players in some way (broadcast messages?)
 Global notification: Notify those already in the game via broadcast message (implement that too!), notify those that log in on startup
 
+C# 8.0 nullability annotation across the server code
+
 ART:
 Notification enabled/disabled
 Sound disabled

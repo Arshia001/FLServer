@@ -72,6 +72,22 @@ enum LeaderBoardGroup
 	Clan
 }
 
+enum GoldPackTag
+{
+	None,
+	BestValue,
+	BestSelling
+}
+
+enum IabPurchaseResult
+{
+	Success,
+	AlreadyProcessed,
+	Invalid,
+	FailedToContactValidationService,
+	UnknownError
+}
+
 contract PlayerLeaderBoardInfo
 {
 	Name: string;
@@ -159,6 +175,13 @@ contract ConfigValuesDTO castfrom(FLGrainInterfaces.Configuration.ConfigValues s
 	InfinitePlayPrice: u32;
 }
 
+contract GoldPackConfigDTO castfrom(FLGrainInterfaces.Configuration.GoldPackConfig server oneway)
+{
+	Sku: string;
+	NumCoins: u32;
+	Tag: GoldPackTag;
+}
+
 endpoint System sys 
 {
 	notification NumRoundsWonForRewardUpdated rwu
@@ -184,6 +207,7 @@ endpoint System sys
 		{
 			playerInfo: OwnPlayerInfo;
 			configData: ConfigValuesDTO;
+			goldPacks: GoldPackConfigDTO[];
 		}
 	}
 
@@ -217,6 +241,19 @@ endpoint System sys
 		->
 		{
 			entries: LeaderBoardEntryDTO[];
+		}
+	}
+
+	request BuyGoldPack bgp via Player(clientid).ProcessGoldPackPurchase(sku, purchaseToken)
+	{
+		{
+			sku: string;
+			purchaseToken: string;
+		}
+		->
+		{
+			result: IabPurchaseResult;
+			totalGold: u64;
 		}
 	}
 }

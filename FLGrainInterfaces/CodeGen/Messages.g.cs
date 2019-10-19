@@ -83,6 +83,22 @@ namespace FLGrainInterfaces
         Clan
     }
 
+    public enum GoldPackTag
+    {
+        None,
+        BestValue,
+        BestSelling
+    }
+
+    public enum IabPurchaseResult
+    {
+        Success,
+        AlreadyProcessed,
+        Invalid,
+        FailedToContactValidationService,
+        UnknownError
+    }
+
     [Orleans.Concurrency.Immutable]
     public class PlayerLeaderBoardInfo
     {
@@ -354,6 +370,33 @@ namespace FLGrainInterfaces
                 return null;
             var array = param.AsArray;
             return new ConfigValuesDTO((byte)array[0].AsUInt.Value, array[1].AsTimeSpan.Value, (uint)array[2].AsUInt.Value, (uint)array[3].AsUInt.Value, array[4].AsTimeSpan.Value, (uint)array[5].AsUInt.Value, (uint)array[6].AsUInt.Value, (uint)array[7].AsUInt.Value, (uint)array[8].AsUInt.Value, (uint)array[9].AsUInt.Value);
+        }
+    }
+
+    [Orleans.Concurrency.Immutable]
+    public class GoldPackConfigDTO
+    {
+        public GoldPackConfigDTO(string sku, uint numCoins, GoldPackTag tag)
+        {
+            this.Sku = sku;
+            this.NumCoins = numCoins;
+            this.Tag = tag;
+        }
+
+        public string Sku { get; }
+        public uint NumCoins { get; }
+        public GoldPackTag Tag { get; }
+
+        public static implicit operator GoldPackConfigDTO(FLGrainInterfaces.Configuration.GoldPackConfig obj) => new GoldPackConfigDTO(obj.Sku, obj.NumCoins, obj.Tag);
+
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Sku), LightMessage.Common.Messages.Param.UInt(NumCoins), LightMessage.Common.Messages.Param.UEnum(Tag));
+
+        public static GoldPackConfigDTO FromParam(LightMessage.Common.Messages.Param param)
+        {
+            if (param.IsNull)
+                return null;
+            var array = param.AsArray;
+            return new GoldPackConfigDTO(array[0].AsString, (uint)array[1].AsUInt.Value, array[2].AsUEnum<GoldPackTag>().Value);
         }
     }
 

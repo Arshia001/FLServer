@@ -25,10 +25,11 @@ namespace FLGrains
             this.configReader = configReader;
         }
 
-        protected override async Task<(OwnPlayerInfo playerInfo, ConfigValuesDTO configData)> GetStartupInfo(Guid clientID)
+        protected override async Task<(OwnPlayerInfo playerInfo, ConfigValuesDTO configData, IEnumerable<GoldPackConfigDTO> goldPacks)> GetStartupInfo(Guid clientID)
         {
             var playerInfo = await GrainFactory.GetGrain<IPlayer>(clientID).PerformStartupTasksAndGetInfo();
-            return (playerInfo, configReader.Config.ConfigValues);
+            var config = configReader.Config;
+            return (playerInfo, config.ConfigValues, config.GoldPacks.Values.Select(g => (GoldPackConfigDTO)g));
         }
 
         protected override Task<(ulong totalGold, TimeSpan timeUntilNextReward)> TakeRewardForWinningRounds(Guid clientID) =>

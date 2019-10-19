@@ -426,5 +426,34 @@ namespace FLGrains
 
         public Task<IReadOnlyList<bool>> HaveAnswersForCategories(IReadOnlyList<string> categories) =>
             Task.FromResult(categories.Select(c => State.OwnedCategoryAnswers.Contains(c)).ToList() as IReadOnlyList<bool>);
+
+        public async Task<(IabPurchaseResult result, ulong totalGold)> ProcessGoldPackPurchase(string sku, string purchaseToken)
+        {
+            if (State.ProcessedIabTokens.Contains(purchaseToken))
+                return (IabPurchaseResult.AlreadyProcessed, State.Gold);
+
+            var config = configReader.Config;
+            if (!config.GoldPacks.TryGetValue(sku, out var packConfig))
+                throw new VerbatimException("Unknown SKU");
+
+            //??
+            var verifyResult = IabPurchaseResult.FailedToContactValidationService;
+
+            switch (verifyResult)
+            {
+                case IabPurchaseResult.Success:
+                    State.Gold += packConfig.NumCoins;
+                    State.ProcessedIabTokens.Add(purchaseToken);
+                    await WriteStateAsync();
+                    return (IabPurchaseResult.Success, State.Gold);
+
+                case IabPurchaseResult.Invalid:
+                case IabPurchaseResult.FailedToContactValidationService:
+                    return (verifyResult, 0ul);
+
+                default:
+                    return (IabPurchaseResult.UnknownError, 0ul);
+            }
+        }
     }
 }

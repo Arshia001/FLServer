@@ -15,6 +15,8 @@ namespace FLGrainInterfaces.Configuration
 
         public IReadOnlyDictionary<uint, LevelConfig> PlayerLevels { get; }
 
+        public IReadOnlyDictionary<string, GoldPackConfig> GoldPacks { get; }
+
         public IReadOnlyList<byte> MaxEditDistanceToCorrentByLetterCount { get; }
 
         public ConfigValues ConfigValues => data.ConfigValues;
@@ -40,6 +42,8 @@ namespace FLGrainInterfaces.Configuration
             CategoriesAsGameLogicFormatByName = CategoriesAsGameLogicFormat.ToDictionary(c => c.CategoryName);
 
             PlayerLevels = data.PlayerLevels.ToDictionary(l => l.Level);
+
+            GoldPacks = data.GoldPacks.ToDictionary(c => c.Sku);
 
             MaxEditDistanceToCorrentByLetterCount = Enumerable.Range(0, 100).Select(i => data.EditDistanceConfig.GetMaxDistanceToCorrectByLetterCount(i)).ToList();
         }
