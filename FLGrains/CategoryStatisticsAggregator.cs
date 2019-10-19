@@ -31,7 +31,7 @@ namespace FLGrains
 
     class CategoryStatisticsAggregationWorker : AggregationWorker<CategoryStatisticsDelta, CategoryStatisticsData>, ICategoryStatisticsAggregationWorker
     {
-        protected override TimeSpan UpdateInterval => TimeSpan.FromSeconds(10); //?? TimeSpan.FromMinutes(10);
+        protected override TimeSpan UpdateInterval => TimeSpan.FromMinutes(10);
 
 
         protected override CategoryStatisticsData AddDelta(CategoryStatisticsData current, CategoryStatisticsDelta delta)
@@ -62,7 +62,7 @@ namespace FLGrains
 
         public CategoryStatisticsAggregatorCache(IConfigReader configReader) => this.configReader = configReader;
 
-        protected override TimeSpan UpdateInterval => TimeSpan.FromSeconds(10); //?? TimeSpan.FromMinutes(1);
+        protected override TimeSpan UpdateInterval => TimeSpan.FromMinutes(1);
 
         protected override IAggregateRetriever<CategoryStatisticsData> GetAggregateRetriever() => GrainFactory.GetGrain<ICategoryStatisticsAggregateRetriever>(this.GetPrimaryKeyString());
 

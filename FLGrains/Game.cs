@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 
 namespace FLGrains
 {
-    //?? the current scheme doesn't support immediate lookup of score details for a round
     [Schema, BondSerializationTag("#g")]
     public class GameGrain_State : IOnDeserializedHandler
     {
@@ -145,7 +144,6 @@ namespace FLGrains
             return (false, category, roundIndex, (TimeSpan?)(configValues.ClientTimePerRound));
         }
 
-        //?? this could potentially be bad, timing-wise. Maybe the client should generate their own clock?
         public async Task<(string category, bool? haveAnswers, TimeSpan? roundTime, bool mustChooseGroup, IEnumerable<GroupInfoDTO> groups)> StartRound(Guid id)
         {
             var index = Index(id);
