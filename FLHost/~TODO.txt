@@ -1,5 +1,5 @@
-﻿Shop
-Settings
+﻿CLIENT Shop
+CLIENT Settings
 CLIENT Interesting/Uninteresting data per player to disallow duplicated voting? -> store on client, too much work yielding too little value for server
 Store game state properly in DB
 XP / Score(?) calculations
