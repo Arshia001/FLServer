@@ -34,23 +34,6 @@ namespace FLHost
                     e
                         .ConfigureGameServer("Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy")
                         .Configure<ProcessExitHandlingOptions>(o => o.FastKillOnProcessExit = false)
-                        .Configure<ClusterOptions>(o =>
-                         {
-                             o.ClusterId = "FLCluster";
-                             o.ServiceId = "FLService";
-                         })
-                        .Configure<EndpointOptions>(o =>
-                        {
-                            o.AdvertisedIPAddress = IPAddress.Parse("127.0.0.1");
-                            o.GatewayPort = 40000;
-                            o.SiloPort = 11111;
-                        })
-                        .Configure<SchedulingOptions>(o => o.AllowCallChainReentrancy = true)
-                        .Configure<SerializationProviderOptions>(o =>
-                         {
-                             o.SerializationProviders.Add(typeof(LightMessage.OrleansUtils.GrainInterfaces.LightMessageSerializer).GetTypeInfo());
-                         })
-                        .Configure<LoadSheddingOptions>(o => o.LoadSheddingEnabled = true)
                         .Configure<LightMessageOptions>(o =>
                         {
                             o.ListenIPAddress = IPAddress.Any;
@@ -65,6 +48,28 @@ namespace FLHost
                 .UseOrleans(s =>
                 {
                     s
+                        .Configure<ClusterOptions>(o =>
+                        {
+                            o.ClusterId = "FLCluster";
+                            o.ServiceId = "FLService";
+                        })
+                        .Configure<EndpointOptions>(o =>
+                        {
+                            o.AdvertisedIPAddress = IPAddress.Parse("127.0.0.1");
+                            o.GatewayPort = 40000;
+                            o.SiloPort = 11111;
+                        })
+                        .Configure<SchedulingOptions>(o => o.AllowCallChainReentrancy = true)
+                        .Configure<SerializationProviderOptions>(o =>
+                        {
+                            o.SerializationProviders.Add(typeof(LightMessage.OrleansUtils.GrainInterfaces.LightMessageSerializer).GetTypeInfo());
+                        })
+                        .Configure<LoadSheddingOptions>(o => o.LoadSheddingEnabled = true)
+                        .Configure<GrainCollectionOptions>(o =>
+                        {
+                            o.ClassSpecificCollectionAge["FLGrains.Game"] = TimeSpan.FromMinutes(5);
+                            o.CollectionQuantum = TimeSpan.FromMinutes(2);
+                        })
                         .UseCassandraClustering((CassandraClusteringOptions o) =>
                         {
                             o.ConnectionString = "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy";
@@ -86,21 +91,21 @@ namespace FLHost
                         })
                         .AddStartupTask<ConfigStartupTask>();
 
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                        s.UsePerfCounterEnvironmentStatistics();
-                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                        s.UseLinuxEnvironmentStatistics();
-                })
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                s.UsePerfCounterEnvironmentStatistics();
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                s.UseLinuxEnvironmentStatistics();
+        })
                 .Build();
 
             using (host)
             {
                 await host.StartAsync();
 
-                client = host.Services.GetRequiredService<IClusterClient>();
+    client = host.Services.GetRequiredService<IClusterClient>();
 
                 await host.WaitForShutdownAsync();
-            }
+}
         }
 
         static Task<Guid?> OnAuth(HandShakeMode mode, Guid? clientID, string email, string password) =>
