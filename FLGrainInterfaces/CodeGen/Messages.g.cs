@@ -376,27 +376,29 @@ namespace FLGrainInterfaces
     [Orleans.Concurrency.Immutable]
     public class GoldPackConfigDTO
     {
-        public GoldPackConfigDTO(string sku, uint numCoins, GoldPackTag tag)
+        public GoldPackConfigDTO(string sku, uint numGold, string title, GoldPackTag tag)
         {
             this.Sku = sku;
-            this.NumCoins = numCoins;
+            this.NumGold = numGold;
+            this.Title = title;
             this.Tag = tag;
         }
 
         public string Sku { get; }
-        public uint NumCoins { get; }
+        public uint NumGold { get; }
+        public string Title { get; }
         public GoldPackTag Tag { get; }
 
-        public static implicit operator GoldPackConfigDTO(FLGrainInterfaces.Configuration.GoldPackConfig obj) => new GoldPackConfigDTO(obj.Sku, obj.NumCoins, obj.Tag);
+        public static implicit operator GoldPackConfigDTO(FLGrainInterfaces.Configuration.GoldPackConfig obj) => new GoldPackConfigDTO(obj.Sku, obj.NumGold, obj.Title, obj.Tag);
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Sku), LightMessage.Common.Messages.Param.UInt(NumCoins), LightMessage.Common.Messages.Param.UEnum(Tag));
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Sku), LightMessage.Common.Messages.Param.UInt(NumGold), LightMessage.Common.Messages.Param.String(Title), LightMessage.Common.Messages.Param.UEnum(Tag));
 
         public static GoldPackConfigDTO FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new GoldPackConfigDTO(array[0].AsString, (uint)array[1].AsUInt.Value, array[2].AsUEnum<GoldPackTag>().Value);
+            return new GoldPackConfigDTO(array[0].AsString, (uint)array[1].AsUInt.Value, array[2].AsString, array[3].AsUEnum<GoldPackTag>().Value);
         }
     }
 

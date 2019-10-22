@@ -442,7 +442,7 @@ namespace FLGrains
             switch (verifyResult)
             {
                 case IabPurchaseResult.Success:
-                    State.Gold += packConfig.NumCoins;
+                    State.Gold += packConfig.NumGold;
                     State.ProcessedIabTokens.Add(purchaseToken);
                     await WriteStateAsync();
                     return (IabPurchaseResult.Success, State.Gold);

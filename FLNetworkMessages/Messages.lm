@@ -178,7 +178,8 @@ contract ConfigValuesDTO castfrom(FLGrainInterfaces.Configuration.ConfigValues s
 contract GoldPackConfigDTO castfrom(FLGrainInterfaces.Configuration.GoldPackConfig server oneway)
 {
 	Sku: string;
-	NumCoins: u32;
+	NumGold: u32;
+	Title: string;
 	Tag: GoldPackTag;
 }
 

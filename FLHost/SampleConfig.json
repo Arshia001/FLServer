@@ -1,4 +1,4 @@
-{
+﻿{
   "PlayerLevels": [
     {
       "Level": 1,
@@ -46,5 +46,43 @@
 
     "WordScoreThreshold2": 1.3,
     "WordScoreThreshold3": 0.7
-  }
+  },
+  "GoldPacks": [
+    {
+      "Sku": "GoldPack1",
+      "NumGold": 100,
+      "Title": "یه خورده سکه",
+      "Tag": "None"
+    },
+    {
+      "Sku": "GoldPack2",
+      "NumGold": 300,
+      "Title": "یه مشت سکه",
+      "Tag": "None"
+    },
+    {
+      "Sku": "GoldPack3",
+      "NumGold": 700,
+      "Title": "یه کیسه سکه",
+      "Tag": "None"
+    },
+    {
+      "Sku": "GoldPack4",
+      "NumGold": 1500,
+      "Title": "یه صندوق سکه",
+      "Tag": "BestSelling"
+    },
+    {
+      "Sku": "GoldPack5",
+      "NumGold": 4000,
+      "Title": "یه گاوصندوق سکه",
+      "Tag": "None"
+    },
+    {
+      "Sku": "GoldPack6",
+      "NumGold": 9000,
+      "Title": "یه کوه سکه",
+      "Tag": "BestValue"
+    }
+  ]
 }

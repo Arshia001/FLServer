@@ -93,7 +93,7 @@ namespace FLGrains
         async Task SetTimerOrProcessEndTurnIfNecessary(int playerIndex)
         {
             var now = DateTime.Now;
-            var roundIndex = gameLogic.NumTurnsTakenBy(playerIndex, now);
+            var roundIndex = gameLogic.NumTurnsTakenByIncludingCurrent(playerIndex) - 1;
             if (gameLogic.IsTurnInProgress(playerIndex, now))
                 SetEndTurnTimerImpl(playerIndex, gameLogic.GetTurnEndTime(playerIndex) - now, roundIndex);
             else if (State.LastProcessedEndTurns[playerIndex] < roundIndex)
