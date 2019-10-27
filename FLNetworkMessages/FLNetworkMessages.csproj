@@ -3,10 +3,15 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command=".\RunLMCodeGen.bat&#xD;&#xA;" />
+  </Target>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="rmdir /S /Q obj&#xD;&#xA;rmdir /S /Q bin" />
   </Target>
 
 </Project>

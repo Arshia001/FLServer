@@ -212,7 +212,7 @@ endpoint System sys
 		}
 	}
 
-	request TakeRewardForWinningRounds trwr
+	request TakeRewardForWinningRounds trwr via Player(clientid).TakeRewardForWinningRounds()
 	{
 		{ }
 		->
@@ -257,6 +257,8 @@ endpoint System sys
 			totalGold: u64;
 		}
 	}
+
+	request SetNotificationsEnabled ne via Player(clientid).SetNotificationsEnabled(enable) { { enable: bool; } -> noresponse }
 }
 
 endpoint Suggestion sg

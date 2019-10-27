@@ -32,9 +32,6 @@ namespace FLGrains
             return (playerInfo, config.ConfigValues, config.GoldPacks.Values.Select(g => (GoldPackConfigDTO)g));
         }
 
-        protected override Task<(ulong totalGold, TimeSpan timeUntilNextReward)> TakeRewardForWinningRounds(Guid clientID) =>
-            GrainFactory.GetGrain<IPlayer>(clientID).TakeRewardForWinningRounds();
-
         protected override async Task<IEnumerable<LeaderBoardEntryDTO>> GetLeaderBoard(Guid clientID, LeaderBoardSubject subject, LeaderBoardGroup group)
         {
             if (group != LeaderBoardGroup.All)

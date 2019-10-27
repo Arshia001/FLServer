@@ -20,13 +20,11 @@ namespace FLGrains
             return Success(result.playerInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), result.configData?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.Array(result.goldPacks.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
         }
 
-        protected abstract System.Threading.Tasks.Task<(ulong totalGold, System.TimeSpan timeUntilNextReward)> TakeRewardForWinningRounds(System.Guid clientID);
-
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("trwr")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_TakeRewardForWinningRounds(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
-            var result = await TakeRewardForWinningRounds(input.ClientID);
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).TakeRewardForWinningRounds();
             return Success(LightMessage.Common.Messages.Param.UInt(result.totalGold), LightMessage.Common.Messages.Param.TimeSpan(result.timeUntilNextReward));
         }
 
@@ -54,6 +52,14 @@ namespace FLGrains
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).ProcessGoldPackPurchase(array[0].AsString, array[1].AsString);
             return Success(LightMessage.Common.Messages.Param.UEnum(result.result), LightMessage.Common.Messages.Param.UInt(result.totalGold));
+        }
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("ne")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_SetNotificationsEnabled(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            await GrainFactory.GetGrain<IPlayer>(input.ClientID).SetNotificationsEnabled(array[0].AsBoolean.Value);
+            return NoResult();
         }
     }
 

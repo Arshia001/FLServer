@@ -105,6 +105,12 @@ namespace FLGrainInterfaces
         [Id(16)]
         public HashSet<string> ProcessedIabTokens { get; private set; }
 
+        [Id(17)]
+        public string FcmToken { get; set; }
+
+        [Id(18)]
+        public bool NotificationsEnabled { get; set; }
+
         public void OnDeserialized()
         {
             if (ActiveGames == null)
@@ -159,9 +165,14 @@ namespace FLGrainInterfaces
 
         Task<IEnumerable<GroupInfoDTO>> RefreshGroups(Guid gameID);
 
-        Task<(ulong totalGold, TimeSpan nextRewardTime)> TakeRewardForWinningRounds();
+        Task<(ulong totalGold, TimeSpan timeUntilNextReward)> TakeRewardForWinningRounds();
 
         Task<(IabPurchaseResult result, ulong totalGold)> ProcessGoldPackPurchase(string sku, string purchaseToken);
+
+        Task SetFcmToken(string token);
+        Task SetNotificationsEnabled(bool enable);
+        Task SendMyTurnStartedNotification(Guid opponentID);
+        Task SendGameEndedNotification(Guid opponentID, bool myWin);
     }
 
     public static class PlayerIndex

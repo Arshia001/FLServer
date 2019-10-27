@@ -1,20 +1,22 @@
-﻿CLIENT Shop
-CLIENT Settings
+﻿CLIENT Settings
 CLIENT Interesting/Uninteresting data per player to disallow duplicated voting? -> store on client, too much work yielding too little value for server
+CLIENT Registration / login
+Integrate FCM
 XP / Score(?) calculations
 Matchmaking
 Game inactivity timeout
 Statistics
-Friendship
-Chat
 IAB
+Ads
 Notifications (server-side, client-side)
-Registration / login
 Inventory?
 Version checks
 Safe service restart -> reject new connections, turn service off when no connections remain, **might take a lot of time**! Force people out after a while?
+"Service status" service
 planned down-time -> notify players in some way (broadcast messages?)
 Global notification: Notify those already in the game via broadcast message (implement that too!), notify those that log in on startup
+Friendship
+Chat
 
 C# 8.0 nullability annotation across the server code
 
@@ -25,3 +27,4 @@ XP bar
 Round win reward
 Splash
 Logo
+Generic profile picture

@@ -16,13 +16,8 @@ namespace FLGrains
 {
     class GameEndPoint : GameEndPointBase
     {
-        IConfigReader configReader;
-
-        static System.Threading.SemaphoreSlim sem = new System.Threading.SemaphoreSlim(1);
-        static HashSet<IGame> pendingGames = new HashSet<IGame>();
-
-
-        public GameEndPoint(IConfigReader configReader) => this.configReader = configReader;
+        static readonly System.Threading.SemaphoreSlim sem = new System.Threading.SemaphoreSlim(1);
+        static readonly HashSet<IGame> pendingGames = new HashSet<IGame>();
 
         protected override async Task<(Guid gameID, PlayerInfo opponentInfo, byte numRounds, bool myTurnFirst)> NewGame(Guid clientID)
         {
@@ -88,34 +83,8 @@ namespace FLGrains
             return await Task.WhenAll(games.Reverse().Select(g => g.GetSimplifiedGameInfo(clientID)));
         }
 
-        public override async Task<bool> SendGameEnded(Guid clientID, Guid gameID, uint myScore, uint theirScore, uint myPlayerScore, uint myRank)
-        {
-            if (!await base.SendGameEnded(clientID, gameID, myScore, theirScore, myPlayerScore, myRank))
-                SendPush();
-
-            return true;
-        }
-
-        public override async Task<bool> SendOpponentJoined(Guid clientID, Guid gameID, PlayerInfo opponentInfo)
-        {
-            if (!await base.SendOpponentJoined(clientID, gameID, opponentInfo))
-                SendPush();
-
-            return true;
-        }
-
-        public override async Task<bool> SendOpponentTurnEnded(Guid clientID, Guid gameID, byte roundNumber, IEnumerable<WordScorePairDTO> wordsPlayed)
-        {
-            if (!await base.SendOpponentTurnEnded(clientID, gameID, roundNumber, wordsPlayed))
-                SendPush();
-
-            return true;
-        }
-
         protected override Task Vote(Guid clientID, string category, bool up) =>
             GrainFactory.GetGrain<ICategoryStatisticsAggregationWorker>(category)
                 .AddDelta(up ? new CategoryStatisticsDelta.UpVote() : (CategoryStatisticsDelta)new CategoryStatisticsDelta.DownVote());
-
-        void SendPush() { } //?? stub
     }
 }

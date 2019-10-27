@@ -350,7 +350,7 @@ namespace FLGrains
             return result.Select(g => (GroupInfoDTO)g).ToList();
         }
 
-        public Task<(ulong totalGold, TimeSpan nextRewardTime)> TakeRewardForWinningRounds()
+        public Task<(ulong totalGold, TimeSpan timeUntilNextReward)> TakeRewardForWinningRounds()
         {
             var configValues = configReader.Config.ConfigValues;
 
@@ -454,6 +454,30 @@ namespace FLGrains
                 default:
                     return (IabPurchaseResult.UnknownError, 0ul);
             }
+        }
+
+        public Task SetFcmToken(string token)
+        {
+            State.FcmToken = token;
+            return Task.CompletedTask;
+        }
+
+        public Task SetNotificationsEnabled(bool enable)
+        {
+            State.NotificationsEnabled = enable;
+            return Task.CompletedTask;
+        }
+
+        public Task SendMyTurnStartedNotification(Guid opponentID)
+        {
+            //??
+            return Task.CompletedTask;
+        }
+
+        public Task SendGameEndedNotification(Guid opponentID, bool myWin)
+        {
+            //??
+            return Task.CompletedTask;
         }
     }
 }
