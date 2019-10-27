@@ -88,6 +88,31 @@ enum IabPurchaseResult
 	UnknownError
 }
 
+enum RegistrationResult
+{
+	Success,
+	EmailAddressInUse,
+	InvalidEmailAddress,
+	PasswordNotComplexEnough,
+	UsernameInUse,
+	AlreadyRegistered
+}
+
+enum SetEmailResult
+{
+	Success,
+	NotRegistered,
+	EmailAddressInUse,
+	InvalidEmailAddress
+}
+
+enum SetPasswordResult
+{
+	Success,
+	NotRegistered,
+	PasswordNotComplexEnough
+}
+
 contract PlayerLeaderBoardInfo
 {
 	Name: string;
@@ -119,6 +144,7 @@ contract StatisticValue
 contract OwnPlayerInfo
 {
 	Name: string;
+	Email: string?;
 	XP: u32;
 	Level: u32;
 	NextLevelXPThreshold: u32;
@@ -259,6 +285,41 @@ endpoint System sys
 	}
 
 	request SetNotificationsEnabled ne via Player(clientid).SetNotificationsEnabled(enable) { { enable: bool; } -> noresponse }
+
+	request Login lg 
+	{
+		{
+			email: string;
+			password: string;
+		}
+		->
+		{
+			clientID: guid?;
+		}
+	}
+
+	request PerformRegistration reg via Player(clientid).PerformRegistration(username, email, password)
+	{
+		{
+			username: string;
+			email: string;
+			password: string;
+		}
+		->
+		{
+			result: RegistrationResult;
+		}
+	}
+
+	request SetUsername unm via Player(clientid).SetUsername(username) { { username: string; } -> { result: bool; } }
+
+	request SetEmail eml via Player(clientid).SetEmail(email) { { email: string; } -> { result: SetEmailResult; } }
+
+	request UpdatePassword pwd via Player(clientid).UpdatePassword(password) { { password: string; } -> { result: SetPasswordResult; } }
+
+	request SendPasswordRecoveryLink pwdrl { { email: string; } -> noresponse }
+
+	request RegisterFcmToken fcm via Player(clientid).SetFcmToken(token) { { token: string; } -> noresponse }
 }
 
 endpoint Suggestion sg

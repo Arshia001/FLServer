@@ -1,17 +1,23 @@
-﻿CLIENT Settings
-CLIENT Interesting/Uninteresting data per player to disallow duplicated voting? -> store on client, too much work yielding too little value for server
-CLIENT Registration / login
+﻿CLIENT Interesting/Uninteresting data per player to disallow duplicated voting? -> store on client, too much work yielding too little value for server
+CLIENT login on startup
+CLIENT handle disconnection
+CLIENT disable buttons while waiting for server, show loading indicators, etc.
 Integrate FCM
+Put SaveStateOnDeactivateGrain on a timer
 XP / Score(?) calculations
 Matchmaking
 Game inactivity timeout
 Statistics
+Email validation / Password complexity check
+Recovery emails!!! -.- -> Bolero? XD
 IAB
 Ads
 Notifications (server-side, client-side)
 Inventory?
+Credits screen
+Sounds
 Version checks
-Safe service restart -> reject new connections, turn service off when no connections remain, **might take a lot of time**! Force people out after a while?
+Safe service restart -> ***stop timing games*** (?), reject new connections, turn service off when no connections remain, **might take a lot of time**! Force people out after a while?
 "Service status" service
 planned down-time -> notify players in some way (broadcast messages?)
 Global notification: Notify those already in the game via broadcast message (implement that too!), notify those that log in on startup
@@ -20,11 +26,15 @@ Chat
 
 C# 8.0 nullability annotation across the server code
 
+Telegram channel link
+
 ART:
 Notification enabled/disabled
+Login / register
 Sound disabled
 XP bar
 Round win reward
 Splash
 Logo
 Generic profile picture
+Credits screen

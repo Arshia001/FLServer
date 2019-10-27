@@ -99,9 +99,6 @@ namespace FLGrainInterfaces
         [Id(14)]
         public string Email { get; set; }
 
-        [Id(15)]
-        public string Username { get; set; }
-
         [Id(16)]
         public HashSet<string> ProcessedIabTokens { get; private set; }
 
@@ -139,10 +136,12 @@ namespace FLGrainInterfaces
         Task<(PlayerInfo info, bool[] haveCategoryAnswers)> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories);
 
         Task<bool> SetUsername(string username);
-        Task<bool> PerformRegistration(string email, string password);
-        Task<bool> SetEmail(string email);
-        Task<bool> UpdatePassword(string oldPassword, string newPassword);
+        Task<RegistrationResult> PerformRegistration(string username, string email, string password);
+        Task<SetEmailResult> SetEmail(string email);
+        Task<SetPasswordResult> UpdatePassword(string newPassword);
         Task<bool> ValidatePassword(string password);
+        Task SendPasswordRecoveryLink();
+
 
         Task AddStats(List<StatisticValue> values);
 
@@ -184,13 +183,11 @@ namespace FLGrainInterfaces
             new GrainIndexManager_Unique<string, IPlayer>("p_e", 16384, new StringHashGenerator());
 
         public static Task<bool> UpdateUsernameIfUnique(IGrainFactory grainFactory, IPlayer player, string name) =>
-            byUsername.UpdateIndexIfUnique(grainFactory, name, player);
+            byUsername.UpdateIndexIfUnique(grainFactory, name.ToLower(), player);
 
-        public static Task<bool> UpdateEmailIfValidAndUnique(IGrainFactory grainFactory, IPlayer player, string email) =>
-            ValidationHelper.ValidateEmail(email) ?
-                byEmail.UpdateIndexIfUnique(grainFactory, email, player)
-                : Task.FromResult(false);
+        public static Task<bool> UpdateEmailIfUnique(IGrainFactory grainFactory, IPlayer player, string email) => 
+            byEmail.UpdateIndexIfUnique(grainFactory, email.ToLower(), player);
 
-        public static Task<IPlayer> GetByEmail(IGrainFactory grainFactory, string email) => byEmail.GetGrain(grainFactory, email);
+        public static Task<IPlayer> GetByEmail(IGrainFactory grainFactory, string email) => byEmail.GetGrain(grainFactory, email.ToLower());
     }
 }

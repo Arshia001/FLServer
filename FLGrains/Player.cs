@@ -78,6 +78,7 @@ namespace FLGrains
             return new OwnPlayerInfo
             (
                 name: GetName(),
+                email: State.Email,
                 level: State.Level,
                 xp: State.XP,
                 nextLevelXPThreshold: GetNextLevelRequiredXP(config),
@@ -95,7 +96,7 @@ namespace FLGrains
 
         bool IsRegistered() => State.Email != null && State.PasswordHash != null;
 
-        public Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo() => Task.FromResult(new PlayerLeaderBoardInfo(State.Name));
+        public Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo() => Task.FromResult(new PlayerLeaderBoardInfo(GetName()));
 
         PlayerInfo GetPlayerInfoImpl() => new PlayerInfo(id: this.GetPrimaryKey(), name: GetName(), level: State.Level);
 
@@ -127,56 +128,80 @@ namespace FLGrains
 
         public async Task<bool> SetUsername(string username)
         {
+            if (State.Name == username)
+                return true;
+
             if (await PlayerIndex.UpdateUsernameIfUnique(GrainFactory, this.AsReference<IPlayer>(), username))
             {
-                State.Username = username;
+                State.Name = username;
                 return true;
             }
 
             return false;
         }
 
-        public async Task<bool> PerformRegistration(string email, string password)
+        public async Task<RegistrationResult> PerformRegistration(string username, string email, string password)
         {
-            if (!IsRegistered() && await PlayerIndex.UpdateEmailIfValidAndUnique(GrainFactory, this.AsReference<IPlayer>(), email))
-            {
-                State.Email = email;
-                await UpdatePassword(password);
-                return true;
-            }
+            if (IsRegistered())
+                return RegistrationResult.AlreadyRegistered;
 
-            return false;
+            if (!RegistrationInfoSpecification.IsEmailAddressValid(email))
+                return RegistrationResult.InvalidEmailAddress;
+
+            if (!await PlayerIndex.UpdateEmailIfUnique(GrainFactory, this.AsReference<IPlayer>(), email))
+                return RegistrationResult.EmailAddressInUse;
+
+            if (!await PlayerIndex.UpdateUsernameIfUnique(GrainFactory, this.AsReference<IPlayer>(), username))
+                return RegistrationResult.UsernameInUse;
+
+            State.Name = username;
+            State.Email = email;
+            await UpdatePasswordImpl(password);
+            return RegistrationResult.Success;
         }
 
-        private Task UpdatePassword(string password)
+        private Task UpdatePasswordImpl(string password)
         {
             State.PasswordHash = CryptographyHelper.HashPassword(State.PasswordSalt, password);
             return WriteStateAsync();
         }
 
-        public async Task<bool> SetEmail(string email)
+        public async Task<SetEmailResult> SetEmail(string email)
         {
-            if (IsRegistered() && await PlayerIndex.UpdateEmailIfValidAndUnique(GrainFactory, this.AsReference<IPlayer>(), email))
-            {
-                State.Email = email;
-                return true;
-            }
+            if (!IsRegistered())
+                return SetEmailResult.NotRegistered;
 
-            return false;
+            if (!RegistrationInfoSpecification.IsEmailAddressValid(email))
+                return SetEmailResult.InvalidEmailAddress;
+
+            if (!await PlayerIndex.UpdateEmailIfUnique(GrainFactory, this.AsReference<IPlayer>(), email))
+                return SetEmailResult.EmailAddressInUse;
+
+            State.Email = email;
+            return SetEmailResult.Success;
         }
 
-        public async Task<bool> UpdatePassword(string oldPassword, string newPassword)
+        public async Task<SetPasswordResult> UpdatePassword(string newPassword)
         {
-            if (!ValidatePasswordImpl(oldPassword))
-                return false;
+            if (!IsRegistered())
+                return SetPasswordResult.NotRegistered;
 
-            await UpdatePassword(newPassword);
-            return true;
+            if (!RegistrationInfoSpecification.IsPasswordComplexEnough(newPassword))
+                return SetPasswordResult.PasswordNotComplexEnough;
+
+            await UpdatePasswordImpl(newPassword);
+            return SetPasswordResult.Success;
         }
 
-        bool ValidatePasswordImpl(string password) => CryptographyHelper.HashPassword(State.PasswordSalt, password) == State.PasswordHash;
+        bool ValidatePasswordImpl(string password) => CryptographyHelper.HashPassword(State.PasswordSalt, password).SequenceEqual(State.PasswordHash);
 
         public Task<bool> ValidatePassword(string password) => Task.FromResult(ValidatePasswordImpl(password));
+
+        public Task SendPasswordRecoveryLink()
+        {
+            //?? email service?!!
+            return Task.CompletedTask;
+        }
 
         ulong GetStat(Statistics stat, int parameter = 0) =>
             State.StatisticsValues.TryGetValue(new StatisticWithParameter(stat, parameter), out var value) ? value : 0UL;

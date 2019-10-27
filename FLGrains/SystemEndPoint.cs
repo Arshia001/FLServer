@@ -42,5 +42,25 @@ namespace FLGrains
                 .Zip(await leaderBoardPlayerInfoCache.GetProfiles(clientID, entries.Value.entries), (e, p) => (e, p))
                 .Select(e => new LeaderBoardEntryDTO(e.p, e.e.Rank, e.e.Score));
         }
+
+        protected override async Task<Guid?> Login(Guid clientID, string email, string password)
+        {
+            var player = await PlayerIndex.GetByEmail(GrainFactory, email);
+
+            if (player == null || !await player.ValidatePassword(password))
+                return null;
+
+            return player.GetPrimaryKey();
+        }
+
+        protected override async Task SendPasswordRecoveryLink(Guid clientID, string email)
+        {
+            var player = await PlayerIndex.GetByEmail(GrainFactory, email);
+
+            if (player == null)
+                return;
+
+            await player.SendPasswordRecoveryLink();
+        }
     }
 }

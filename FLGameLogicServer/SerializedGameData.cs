@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Bond;
+using Bond.Tag;
 
 namespace FLGameLogicServer
 {
@@ -23,7 +24,7 @@ namespace FLGameLogicServer
             }
         }
 
-        [Id(0)]
+        [Id(0), Type(typeof(List<nullable<wstring>>))]
         public List<string> CategoryNames { get; set; }
         [Id(1)]
         public List<List<WordScorePair>>[] PlayerAnswers { get; set; }

@@ -10,8 +10,12 @@
     <Exec Command=".\RunLMCodeGen.bat&#xD;&#xA;" />
   </Target>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="rmdir /S /Q obj&#xD;&#xA;rmdir /S /Q bin" />
-  </Target>
+  <ItemGroup>
+    <None Remove="Messages.lm" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Messages.lm" />
+  </ItemGroup>
 
 </Project>

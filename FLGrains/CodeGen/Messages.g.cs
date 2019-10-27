@@ -61,6 +61,66 @@ namespace FLGrains
             await GrainFactory.GetGrain<IPlayer>(input.ClientID).SetNotificationsEnabled(array[0].AsBoolean.Value);
             return NoResult();
         }
+
+        protected abstract System.Threading.Tasks.Task<System.Guid?> Login(System.Guid clientID, string email, string password);
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("lg")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_Login(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            var result = await Login(input.ClientID, array[0].AsString, array[1].AsString);
+            return Success(LightMessage.Common.Messages.Param.Guid(result));
+        }
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("reg")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_PerformRegistration(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).PerformRegistration(array[0].AsString, array[1].AsString, array[2].AsString);
+            return Success(LightMessage.Common.Messages.Param.UEnum(result));
+        }
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("unm")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_SetUsername(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).SetUsername(array[0].AsString);
+            return Success(LightMessage.Common.Messages.Param.Boolean(result));
+        }
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("eml")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_SetEmail(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).SetEmail(array[0].AsString);
+            return Success(LightMessage.Common.Messages.Param.UEnum(result));
+        }
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("pwd")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_UpdatePassword(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).UpdatePassword(array[0].AsString);
+            return Success(LightMessage.Common.Messages.Param.UEnum(result));
+        }
+
+        protected abstract System.Threading.Tasks.Task SendPasswordRecoveryLink(System.Guid clientID, string email);
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("pwdrl")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_SendPasswordRecoveryLink(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            await SendPasswordRecoveryLink(input.ClientID, array[0].AsString);
+            return NoResult();
+        }
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("fcm")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_RegisterFcmToken(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            await GrainFactory.GetGrain<IPlayer>(input.ClientID).SetFcmToken(array[0].AsString);
+            return NoResult();
+        }
     }
 
     [LightMessage.OrleansUtils.GrainInterfaces.EndPointNameAttribute("sg"), Orleans.Concurrency.StatelessWorkerAttribute(128)]
