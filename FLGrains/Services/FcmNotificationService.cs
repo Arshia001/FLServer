@@ -54,6 +54,6 @@ namespace FLGrains.Services
             Send(token, "بازی تموم شد", $"بازیت با {opponentName} تموم شد. بیا نتیجه رو ببین!", "gameend");
 
         public void SendMyTurnStarted(string token, string opponentName) =>
-            Send(token, "نوبتت شروع شد", $"حریفت {opponentName} نوبتشو بازی کرد، نوبت تو شروع شده!", "turnend")
+            Send(token, "نوبتت شروع شد", $"حریفت {opponentName} نوبتشو بازی کرد، نوبت تو شروع شده!", "turnend");
     }
 }
