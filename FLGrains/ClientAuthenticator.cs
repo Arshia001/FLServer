@@ -19,10 +19,20 @@ namespace FLGrains
                     return clientID ?? Guid.NewGuid();
 
                 case HandShakeMode.EmailAndPassword:
-                    var player = await PlayerIndex.GetByEmail(GrainFactory, email);
-                    if (player == null || !await player.ValidatePassword(password))
+                    {
+                        var player = await PlayerIndex.GetByEmail(GrainFactory, email);
+                        if (player == null || !await player.ValidatePassword(password))
+                            return null;
+                        return player.GetPrimaryKey();
+                    }
+
+                case HandShakeMode.RecoveryEmailRequest:
+                    {
+                        var player = await PlayerIndex.GetByEmail(GrainFactory, email);
+                        if (player != null)
+                            await player.SendPasswordRecoveryLink();
                         return null;
-                    return player.GetPrimaryKey();
+                    }
 
                 default:
                     return null;

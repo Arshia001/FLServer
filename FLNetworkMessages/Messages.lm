@@ -7,7 +7,8 @@ namespace clientcont Network.Types;
 enum HandShakeMode
 {
 	ClientID,
-	EmailAndPassword
+	EmailAndPassword,
+	RecoveryEmailRequest
 	//?? GFGP token
 }
 

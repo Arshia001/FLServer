@@ -27,7 +27,8 @@ namespace FLGrainInterfaces
     public enum HandShakeMode
     {
         ClientID,
-        EmailAndPassword
+        EmailAndPassword,
+        RecoveryEmailRequest
     }
 
     public enum GameState

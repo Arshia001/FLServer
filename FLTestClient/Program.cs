@@ -158,7 +158,7 @@ namespace FLTestClient
         static void Main(string[] args)
         {
             var svc = new ServiceCollection();
-            ServiceConfiguration.ConfigureGameServer(svc, "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy");
+            ServiceConfiguration.ConfigureGameServer(svc, "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy", "");
             svc.AddSingleton<IGrainReferenceConverter, NullGrainReferenceConverter>();
             var provider = svc.BuildServiceProvider();
 
