@@ -4,8 +4,9 @@ using System.Text;
 
 namespace FLGrains.ServiceInterfaces
 {
-    public interface IConnectionStringProvider
+    public interface ISystemSettingsProvider
     {
         string ConnectionString { get; }
+        string FcmServiceAccountKeys { get; }
     }
 }

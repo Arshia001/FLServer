@@ -2,6 +2,7 @@
 using FLGrainInterfaces.Configuration;
 using FLGrains.Configuration;
 using FLGrains.ServiceInterfaces;
+using FLGrains.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans.Providers;
 using Orleans.Runtime;
@@ -12,7 +13,7 @@ namespace FLGrains
 {
     public static class ServiceConfiguration
     {
-        public static IServiceCollection ConfigureGameServer(this IServiceCollection services, string connectionString)
+        public static IServiceCollection ConfigureGameServer(this IServiceCollection services, string connectionString, string fcmServiceAccountKeys)
         {
             services.AddSingleton<IGrainReferenceConversionProvider, BondGrainReferenceConversionProvider>();
 
@@ -22,13 +23,15 @@ namespace FLGrains
 
             services.AddSingletonNamedService<IControllable, ConfigUpdateControllable>(ConfigUpdateControllable.ServiceName);
 
-            var connectionStringProvider = new ConnectionStringProvider(connectionString);
-            services.AddSingleton<IConnectionStringProvider>(connectionStringProvider);
+            var connectionStringProvider = new SystemSettingsProvider(connectionString, fcmServiceAccountKeys);
+            services.AddSingleton<ISystemSettingsProvider>(connectionStringProvider);
 
             services.AddSingleton<ILeaderBoardPlayerInfoCacheService, LeaderBoardPlayerInfoCacheService>();
 
             // this is a really early init stage, we shouldn't care about blocking here
             services.AddSingleton<ISuggestionService>(SuggestionService.CreateInstance(connectionStringProvider).Result);
+
+            services.AddSingleton<IFcmNotificationService, FcmNotificationService>();
 
             return services;
         }

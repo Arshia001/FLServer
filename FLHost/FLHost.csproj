@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="firebase-adminsdk-accountkeys.json" />
     <None Remove="InitializeFLDatabase.cql" />
     <None Remove="SampleConfig.json" />
     <None Remove="update-config" />
@@ -23,6 +24,12 @@
     </Content>
     <Content Include="update-config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="firebase-adminsdk-accountkeys.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 

@@ -13,7 +13,7 @@ namespace FLGrains
     //?? pagination
     class SuggestionService : ISuggestionService
     {
-        public static async Task<SuggestionService> CreateInstance(IConnectionStringProvider connectionStringProvider) =>
+        public static async Task<SuggestionService> CreateInstance(ISystemSettingsProvider connectionStringProvider) =>
             new SuggestionService
             {
                 queries = await Queries.CreateInstance(await CassandraSessionFactory.CreateSession(connectionStringProvider.ConnectionString))

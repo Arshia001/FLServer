@@ -44,6 +44,7 @@ namespace FLGrains
     }
 
     //?? Now, we only need a way to reactivate these if one of them goes down... Same old challenge.
+    //?? cache player names along with games?
     class Game : SaveStateOnDeactivateGrain<GameGrain_State>, IGame
     {
         class EndRoundTimerData
@@ -245,9 +246,11 @@ namespace FLGrains
 
             var myID = this.GetPrimaryKey();
 
-            //?? send push if it is opponent's turn to play
-            await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentTurnEnded(State.PlayerIDs[1 - playerIndex], myID, (byte)roundIndex,
+            var sentEndTurn = await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentTurnEnded(State.PlayerIDs[1 - playerIndex], myID, (byte)roundIndex,
                 opponentFinishedThisRound ? gameLogic.GetPlayerAnswers(playerIndex, roundIndex).Select(w => (WordScorePairDTO)w).ToList() : null);
+
+            if (!sentEndTurn && !opponentFinishedThisRound)
+                await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[1 - playerIndex]).SendMyTurnStartedNotification(State.PlayerIDs[playerIndex]);
 
             GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[playerIndex]).OnRoundCompleted(this.AsReference<IGame>(), gameLogic.GetPlayerScores(playerIndex)[roundIndex]).Ignore();
 
@@ -269,12 +272,16 @@ namespace FLGrains
                 var wins1 = gameLogic.GetNumRoundsWon(1);
 
                 var me = this.AsReference<IGame>();
-                var (score0, rank0) = await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[0]).OnGameResult(me, CompetitionResultHelper.Get(wins0, wins1), wins0);
-                var (score1, rank1) = await GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[1]).OnGameResult(me, CompetitionResultHelper.Get(wins1, wins0), wins1);
+                IPlayer player0 = GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[0]);
+                IPlayer player1 = GrainFactory.GetGrain<IPlayer>(State.PlayerIDs[1]);
 
-                //?? send push
-                await Task.WhenAll(GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(State.PlayerIDs[0], myID, wins0, wins1, score0, rank0),
-                    GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(State.PlayerIDs[1], myID, wins1, wins0, score1, rank1));
+                var (score0, rank0) = await player0.OnGameResult(me, CompetitionResultHelper.Get(wins0, wins1), wins0);
+                var (score1, rank1) = await player1.OnGameResult(me, CompetitionResultHelper.Get(wins1, wins0), wins1);
+
+                if (!await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(State.PlayerIDs[0], myID, wins0, wins1, score0, rank0))
+                    await player0.SendGameEndedNotification(State.PlayerIDs[1]);
+                if (!await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(State.PlayerIDs[1], myID, wins1, wins0, score1, rank1))
+                    await player1.SendGameEndedNotification(State.PlayerIDs[0]);
 
                 // await ClearStateAsync(); // keep game history (separately)
                 DeactivateOnIdle();
@@ -412,7 +419,7 @@ namespace FLGrains
 
             var categories = gameLogic.Categories.Take(turnsTakenInclCurrent).Select(c => c.CategoryName).ToList();
             var playerInfo = State.PlayerIDs[1 - index] == Guid.Empty ? null :
-                await PlayerInfoUtil.GetForPlayerID(GrainFactory, State.PlayerIDs[1 - index]);
+                await PlayerInfoHelper.GetInfo(GrainFactory, State.PlayerIDs[1 - index]);
 
             var ownedCategories = await GrainFactory.GetGrain<IPlayer>(playerID).HaveAnswersForCategories(categories);
 
@@ -439,7 +446,7 @@ namespace FLGrains
             (
                 gameID: this.GetPrimaryKey(),
                 gameState: GetStateInternal(),
-                otherPlayerName: State.PlayerIDs[1 - index] == Guid.Empty ? null : (await PlayerInfoUtil.GetForPlayerID(GrainFactory, State.PlayerIDs[1 - index])).Name,
+                otherPlayerName: State.PlayerIDs[1 - index] == Guid.Empty ? null : (await PlayerInfoHelper.GetInfo(GrainFactory, State.PlayerIDs[1 - index])).Name,
                 myTurn: gameLogic.Turn == index,
                 myScore: gameLogic.GetNumRoundsWon(index),
                 theirScore: gameLogic.GetNumRoundsWon(1 - index)

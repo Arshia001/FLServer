@@ -51,7 +51,7 @@ namespace FLGrains
                 if (gameToEnter != null)
                 {
                     pendingGames.Remove(gameToEnter);
-                    return (gameID, await PlayerInfoUtil.GetForPlayerID(GrainFactory, opponentID), numRounds, false);
+                    return (gameID, await PlayerInfoHelper.GetInfo(GrainFactory, opponentID), numRounds, false);
                 }
 
                 do

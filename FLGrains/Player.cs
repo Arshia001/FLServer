@@ -1,5 +1,6 @@
 ﻿using FLGrainInterfaces;
 using FLGrainInterfaces.Configuration;
+using FLGrains.ServiceInterfaces;
 using LightMessage.OrleansUtils.Grains;
 using Orleans;
 using Orleans.Concurrency;
@@ -15,10 +16,14 @@ namespace FLGrains
     class Player : SaveStateOnDeactivateGrain<PlayerState>, IPlayer
     {
         readonly IConfigReader configReader;
-
+        readonly IFcmNotificationService fcmNotificationService;
         ISystemEndPoint systemEndPoint;
 
-        public Player(IConfigReader configReader) => this.configReader = configReader;
+        public Player(IConfigReader configReader, IFcmNotificationService fcmNotificationService)
+        {
+            this.configReader = configReader;
+            this.fcmNotificationService = fcmNotificationService;
+        }
 
         public override Task OnActivateAsync()
         {
@@ -38,6 +43,8 @@ namespace FLGrains
                 var id = this.GetPrimaryKey();
                 LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).Set(id, 0).Ignore();
                 LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.XP).Set(id, 0).Ignore();
+
+                State.Name = "Guest " + (new Random().Next(100_000, 1_000_000).ToString());
             }
 
             return GetOwnPlayerInfo();
@@ -48,7 +55,7 @@ namespace FLGrains
 
         public Task<PlayerInfo> GetPlayerInfo() => Task.FromResult(GetPlayerInfoImpl());
 
-        string GetName() => State.Name ?? $"Guest{this.GetPrimaryKey().ToString().Substring(0, 8)}";
+        Task<string> IPlayer.GetName() => Task.FromResult(State.Name);
 
         bool IsInfinitePlayActive => State.InfinitePlayEndTime > DateTime.Now;
 
@@ -77,7 +84,7 @@ namespace FLGrains
 
             return new OwnPlayerInfo
             (
-                name: GetName(),
+                name: State.Name,
                 email: State.Email,
                 level: State.Level,
                 xp: State.XP,
@@ -96,9 +103,9 @@ namespace FLGrains
 
         bool IsRegistered() => State.Email != null && State.PasswordHash != null;
 
-        public Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo() => Task.FromResult(new PlayerLeaderBoardInfo(GetName()));
+        public Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo() => Task.FromResult(new PlayerLeaderBoardInfo(State.Name));
 
-        PlayerInfo GetPlayerInfoImpl() => new PlayerInfo(id: this.GetPrimaryKey(), name: GetName(), level: State.Level);
+        PlayerInfo GetPlayerInfoImpl() => new PlayerInfo(id: this.GetPrimaryKey(), name: State.Name, level: State.Level);
 
         LevelConfig GetLevelConfig(ReadOnlyConfigData config) =>
             config.PlayerLevels.TryGetValue(State.Level, out var result) ? result : config.PlayerLevels[0];
@@ -493,16 +500,24 @@ namespace FLGrains
             return Task.CompletedTask;
         }
 
-        public Task SendMyTurnStartedNotification(Guid opponentID)
+        bool CanSendNotification() => State.NotificationsEnabled && !string.IsNullOrEmpty(State.FcmToken);
+
+        public async Task SendMyTurnStartedNotification(Guid opponentID)
         {
-            //??
-            return Task.CompletedTask;
+            if (CanSendNotification())
+            {
+                var opName = await PlayerInfoHelper.GetName(GrainFactory, opponentID);
+                fcmNotificationService.SendMyTurnStarted(State.FcmToken, opName);
+            }
         }
 
-        public Task SendGameEndedNotification(Guid opponentID, bool myWin)
+        public async Task SendGameEndedNotification(Guid opponentID)
         {
-            //??
-            return Task.CompletedTask;
+            if (CanSendNotification())
+            {
+                var opName = await PlayerInfoHelper.GetName(GrainFactory, opponentID);
+                fcmNotificationService.SendGameEnded(State.FcmToken, opName);
+            }
         }
     }
 }

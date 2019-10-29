@@ -1,8 +1,8 @@
-﻿CLIENT Interesting/Uninteresting data per player to disallow duplicated voting? -> store on client, too much work yielding too little value for server
+﻿CLIENT handle disconnection
 CLIENT login on startup
-CLIENT handle disconnection
+CLIENT Integrate FCM
+CLIENT Interesting/Uninteresting data per player to disallow duplicated voting? -> store on client, too much work yielding too little value for server
 CLIENT disable buttons while waiting for server, show loading indicators, etc.
-Integrate FCM
 Put SaveStateOnDeactivateGrain on a timer
 XP / Score(?) calculations
 Matchmaking

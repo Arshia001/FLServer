@@ -11,9 +11,10 @@ using System.Threading.Tasks;
 
 namespace FLGrainInterfaces
 {
-    public class PlayerInfoUtil
+    public class PlayerInfoHelper
     {
-        public static Task<PlayerInfo> GetForPlayerID(IGrainFactory grainFactory, Guid playerID) => grainFactory.GetGrain<IPlayer>(playerID).GetPlayerInfo();
+        public static Task<PlayerInfo> GetInfo(IGrainFactory grainFactory, Guid playerID) => grainFactory.GetGrain<IPlayer>(playerID).GetPlayerInfo();
+        public static Task<string> GetName(IGrainFactory grainFactory, Guid playerID) => grainFactory.GetGrain<IPlayer>(playerID).GetName();
     }
 
     [Schema]
@@ -130,6 +131,7 @@ namespace FLGrainInterfaces
     {
         Task<OwnPlayerInfo> PerformStartupTasksAndGetInfo();
 
+        Task<string> GetName();
         Task<PlayerInfo> GetPlayerInfo();
         Task<OwnPlayerInfo> GetOwnPlayerInfo();
         Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo();
@@ -171,7 +173,7 @@ namespace FLGrainInterfaces
         Task SetFcmToken(string token);
         Task SetNotificationsEnabled(bool enable);
         Task SendMyTurnStartedNotification(Guid opponentID);
-        Task SendGameEndedNotification(Guid opponentID, bool myWin);
+        Task SendGameEndedNotification(Guid opponentID);
     }
 
     public static class PlayerIndex
