@@ -6,7 +6,6 @@ Put SaveStateOnDeactivateGrain on a timer
 XP / Score(?) calculations
 Matchmaking
 Game inactivity timeout
-Statistics
 Email validation / Password complexity check
 Recovery emails!!! -.- -> Bolero? XD
 IAB
@@ -20,6 +19,7 @@ Safe service restart -> ***stop timing games*** (?), reject new connections, tur
 "Service status" service
 planned down-time -> notify players in some way (broadcast messages?)
 Global notification: Notify those already in the game via broadcast message (implement that too!), notify those that log in on startup
+Additional Statistics
 Friendship
 Chat
 
@@ -30,10 +30,7 @@ Telegram channel link
 ART:
 Notification enabled/disabled
 Login / register
-Sound disabled
-XP bar
 Round win reward
 Splash
 Logo
-Generic profile picture
 Credits screen
