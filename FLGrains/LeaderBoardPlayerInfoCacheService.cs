@@ -16,7 +16,6 @@ namespace FLGrains
 
         public LeaderBoardPlayerInfoCacheService(IGrainFactory grainFactory) => this.grainFactory = grainFactory;
 
-        //?? Bad design, this class should be responsible for maintaining the PlayerLeaderBoardInfo's only
         public async Task<IReadOnlyList<PlayerLeaderBoardInfo>> GetProfiles(Guid clientID, IReadOnlyList<LeaderBoardEntry> entries)
         {
             // Cache user info for one hour, evict and update afterwards in case they update their profiles

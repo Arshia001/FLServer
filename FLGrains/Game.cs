@@ -28,7 +28,7 @@ namespace FLGrains
         public Guid[] PlayerIDs { get; set; }
 
         [Id(2)]
-        public int[] LastProcessedEndTurns { get; set; } //?? use to reprocess turn end notifications in case grain goes down
+        public int[] LastProcessedEndTurns { get; set; }
 
         [Id(3)]
         public int GroupChooser { get; set; } = -1;

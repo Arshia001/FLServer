@@ -6,16 +6,17 @@ CLIENT(?) when it's opponent's turn, going back to main menu and entering the ga
 CLIENT auto-refresh the game list when a change notification comes in for one of the games
 CLIENT native input fields are displayed on top of the dialog box in the edit account menu
 
-SERVER Put SaveStateOnDeactivateGrain on a timer
 SERVER XP / Score(?) calculations
 SERVER Matchmaking
 SERVER Game inactivity timeout
 SERVER Email validation / Password complexity check
+SERVER Separate game history, clear history option
 SERVER Recovery emails!!! -.- -> Bolero? XD
 SERVER Safe service restart -> ***stop timing games*** (?), reject new connections, turn service off when no connections remain, **might take a lot of time**! Force people out after a while?
 SERVER "Service status" service
 SERVER planned down-time -> notify players in some way (broadcast messages?)
 SERVER Global notification: Notify those already in the game via broadcast message (implement that too!), notify those that log in on startup
+SERVER C# 8.0 nullability annotation across the server code
 
 IAB
 Ads
@@ -27,8 +28,6 @@ Version checks
 Additional Statistics
 Friendship
 Chat
-
-C# 8.0 nullability annotation across the server code
 
 Telegram channel link
 

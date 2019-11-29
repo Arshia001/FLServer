@@ -86,9 +86,9 @@ namespace FLGameLogic
 
         public new StartRoundResult StartRound(int player, TimeSpan turnTime) => base.StartRound(player, turnTime);
 
-        public bool ForceEndTurn(int player, uint roundNumber)
+        public bool ForceEndTurn(int player, int roundNumber)
         {
-            if (PlayerStartedTurn(player, RoundNumber) && !PlayerStartedTurn(player, RoundNumber + 1))
+            if (PlayerStartedTurn(player, roundNumber) && !PlayerStartedTurn(player, roundNumber + 1))
             {
                 ForceEndTurn(player);
                 return true;

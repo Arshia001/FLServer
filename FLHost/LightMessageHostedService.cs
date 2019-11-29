@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace FLHost
 {
-    //?? Move this into LightMessage itself? There's the issue of the compiler generating a host class for each project...
+    //!! Move this into LightMessage itself? There's the issue of the compiler generating a host class for each project...
     class LightMessageHostedService : IHostedService
     {
         private readonly IGrainFactory grainFactory;

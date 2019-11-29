@@ -12,16 +12,15 @@ namespace FLGameLogicServer
         public delegate Task<byte> GetWordScoreDelegate(WordCategory category, string word);
 
 
-        public static GameLogicServer DeserializeFrom(SerializedGameData gameData, Func<string, WordCategory> getCategory)
-        {
-            var result = new GameLogicServer();
-            result.categories = gameData.CategoryNames.Select(n => n == null ? null : getCategory(n)).ToList();
-            result.playerAnswers = gameData.PlayerAnswers.Select(l => l.Select(ll => ll.Select(ws => new WordScorePair(ws.word, ws.score)).ToList()).ToList()).ToArray();
-            result.playerScores = gameData.PlayerScores.Select(l => l.ToList()).ToArray();
-            result.turnEndTimes = gameData.TurnEndTimes.ToArray();
-            result.firstTurn = gameData.FirstTurn;
-            return result;
-        }
+        public static GameLogicServer DeserializeFrom(SerializedGameData gameData, Func<string, WordCategory> getCategory) =>
+            new GameLogicServer
+            {
+                categories = gameData.CategoryNames.Select(n => n == null ? null : getCategory(n)).ToList(),
+                playerAnswers = gameData.PlayerAnswers.Select(l => l.Select(ll => ll.Select(ws => new WordScorePair(ws.word, ws.score)).ToList()).ToList()).ToArray(),
+                playerScores = gameData.PlayerScores.Select(l => l.ToList()).ToArray(),
+                turnEndTimes = gameData.TurnEndTimes.ToArray(),
+                firstTurn = gameData.FirstTurn
+            };
 
 
         List<WordCategory> categories;

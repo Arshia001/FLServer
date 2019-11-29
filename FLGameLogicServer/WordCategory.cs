@@ -20,7 +20,7 @@ namespace FLGameLogicServer
 
     public class WordCategory
     {
-        Dictionary<string, WordEntry> entries;
+        readonly Dictionary<string, WordEntry> entries;
 
 
         public string CategoryName { get; private set; }

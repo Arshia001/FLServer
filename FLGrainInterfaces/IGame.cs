@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace FLGrainInterfaces
 {
-    //?? we should probably support disconnections during play, as the games are not time-sensitive in nature (IF we can trust clients...)
+    // we could support disconnections during play, but game time is limited already, and it takes too long for the client to actually go into disconnected state
     [BondSerializationTag("@g")]
     public interface IGame : IGrainWithGuidKey
     {
