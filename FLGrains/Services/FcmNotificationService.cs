@@ -17,7 +17,7 @@ namespace FLGrains.Services
         {
             var options = new AppOptions
             {
-                Credential = GoogleCredential.FromJson(settingsProvider.FcmServiceAccountKeys)
+                Credential = GoogleCredential.FromJson(settingsProvider.Settings.FcmServiceAccountKeys)
             };
             FirebaseApp.Create(options);
             this.logger = logger;

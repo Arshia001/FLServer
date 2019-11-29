@@ -13,6 +13,7 @@
     <None Remove="firebase-adminsdk-accountkeys.json" />
     <None Remove="InitializeFLDatabase.cql" />
     <None Remove="SampleConfig.json" />
+    <None Remove="system-settings.json" />
     <None Remove="update-config" />
   </ItemGroup>
 
@@ -21,6 +22,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="SampleConfig.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="system-settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="update-config">

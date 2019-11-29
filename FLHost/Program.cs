@@ -1,4 +1,5 @@
 ﻿using FLGrainInterfaces;
+using FLGrainInterfaces.Configuration;
 using FLGrains;
 using FLGrains.Configuration;
 using LightMessage.Common.Util;
@@ -29,11 +30,13 @@ namespace FLHost
 
         static async Task Main(string[] args)
         {
+            var systemSettings = new SystemSettings(File.ReadAllText("system-settings.json"), File.ReadAllText("firebase-adminsdk-accountkeys.json"));
+
             var host = new HostBuilder()
                 .ConfigureServices(e =>
                 {
                     e
-                    .ConfigureGameServer("Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy", File.ReadAllText("firebase-adminsdk-accountkeys.json"))
+                    .ConfigureGameServer(systemSettings)
                     .Configure<ProcessExitHandlingOptions>(o => o.FastKillOnProcessExit = false)
                     .Configure<LightMessageOptions>(o =>
                     {

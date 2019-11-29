@@ -13,7 +13,7 @@ namespace FLGrains
 {
     public static class ServiceConfiguration
     {
-        public static IServiceCollection ConfigureGameServer(this IServiceCollection services, string connectionString, string fcmServiceAccountKeys)
+        public static IServiceCollection ConfigureGameServer(this IServiceCollection services, SystemSettings systemSettings)
         {
             services.AddSingleton<IGrainReferenceConversionProvider, BondGrainReferenceConversionProvider>();
 
@@ -23,7 +23,7 @@ namespace FLGrains
 
             services.AddSingletonNamedService<IControllable, ConfigUpdateControllable>(ConfigUpdateControllable.ServiceName);
 
-            var connectionStringProvider = new SystemSettingsProvider(connectionString, fcmServiceAccountKeys);
+            var connectionStringProvider = new SystemSettingsProvider(systemSettings);
             services.AddSingleton<ISystemSettingsProvider>(connectionStringProvider);
 
             services.AddSingleton<ILeaderBoardPlayerInfoCacheService, LeaderBoardPlayerInfoCacheService>();

@@ -3,6 +3,7 @@ using Bond.Tag;
 using FLGameLogic;
 using FLGameLogicServer;
 using FLGrainInterfaces;
+using FLGrainInterfaces.Configuration;
 using FLGrains;
 using LightMessage.Client;
 using LightMessage.Client.EndPoints;
@@ -158,7 +159,7 @@ namespace FLTestClient
         static void Main(string[] args)
         {
             var svc = new ServiceCollection();
-            ServiceConfiguration.ConfigureGameServer(svc, "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy", "");
+            ServiceConfiguration.ConfigureGameServer(svc, new SystemSettings(@"{""ConnectionString"":""Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy""}", ""));
             svc.AddSingleton<IGrainReferenceConverter, NullGrainReferenceConverter>();
             var provider = svc.BuildServiceProvider();
 

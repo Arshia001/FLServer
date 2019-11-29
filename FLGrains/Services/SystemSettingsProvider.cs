@@ -1,4 +1,5 @@
-﻿using FLGrains.ServiceInterfaces;
+﻿using FLGrainInterfaces.Configuration;
+using FLGrains.ServiceInterfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,14 +8,8 @@ namespace FLGrains.Services
 {
     class SystemSettingsProvider : ISystemSettingsProvider
     {
-        public string ConnectionString { get; }
+        public SystemSettings Settings { get; }
 
-        public string FcmServiceAccountKeys { get; }
-
-        public SystemSettingsProvider(string connectionString, string fcmServiceAccountKeys)
-        {
-            ConnectionString = connectionString;
-            FcmServiceAccountKeys = fcmServiceAccountKeys;
-        }
+        public SystemSettingsProvider(SystemSettings settings) => Settings = settings;
     }
 }

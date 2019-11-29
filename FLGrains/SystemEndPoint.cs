@@ -1,6 +1,7 @@
 ﻿using FLGameLogic;
 using FLGrainInterfaces;
 using FLGrainInterfaces.Configuration;
+using FLGrains.ServiceInterfaces;
 using LightMessage.Common.Messages;
 using LightMessage.OrleansUtils.GrainInterfaces;
 using LightMessage.OrleansUtils.Grains;
@@ -18,10 +19,12 @@ namespace FLGrains
     {
         readonly IConfigReader configReader;
         readonly ILeaderBoardPlayerInfoCacheService leaderBoardPlayerInfoCache;
+        readonly ISystemSettingsProvider systemSettings;
 
-        public SystemEndPoint(IConfigReader configReader, ILeaderBoardPlayerInfoCacheService leaderBoardPlayerInfoCache)
+        public SystemEndPoint(IConfigReader configReader, ILeaderBoardPlayerInfoCacheService leaderBoardPlayerInfoCache, ISystemSettingsProvider systemSettings)
         {
             this.leaderBoardPlayerInfoCache = leaderBoardPlayerInfoCache;
+            this.systemSettings = systemSettings;
             this.configReader = configReader;
         }
 
@@ -62,5 +65,8 @@ namespace FLGrains
 
             await player.SendPasswordRecoveryLink();
         }
+
+        protected override Task<(uint latest, uint minimumSupported)> GetClientVersion(Guid clientID) =>
+            Task.FromResult((systemSettings.Settings.LatestVersion, systemSettings.Settings.MinimumSupportedVersion));
     }
 }

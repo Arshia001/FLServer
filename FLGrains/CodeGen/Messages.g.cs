@@ -122,6 +122,16 @@ namespace FLGrains
             await GrainFactory.GetGrain<IPlayer>(input.ClientID).SetFcmToken(array[0].AsString);
             return NoResult();
         }
+
+        protected abstract System.Threading.Tasks.Task<(uint latest, uint minimumSupported)> GetClientVersion(System.Guid clientID);
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("cvn")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_GetClientVersion(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            var result = await GetClientVersion(input.ClientID);
+            return Success(LightMessage.Common.Messages.Param.UInt(result.latest), LightMessage.Common.Messages.Param.UInt(result.minimumSupported));
+        }
     }
 
     [LightMessage.OrleansUtils.GrainInterfaces.EndPointNameAttribute("sg"), Orleans.Concurrency.StatelessWorkerAttribute(128)]
