@@ -184,7 +184,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).RefreshGroups(array[0].AsGuid.Value);
-            return Success(LightMessage.Common.Messages.Param.Array(result.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
+            return Success(LightMessage.Common.Messages.Param.Array(result?.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("word")]

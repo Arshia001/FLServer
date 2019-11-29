@@ -422,7 +422,7 @@ endpoint Game gm
 		}
 		->
 		{
-			groups: GroupInfoDTO[];
+			groups: GroupInfoDTO[]?;
 		}
 	}
 
