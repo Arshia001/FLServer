@@ -11,7 +11,7 @@ namespace FLGrains.Configuration
     [PreferLocalPlacement]
     class ConfigUpdaterGrain : Grain, IConfigUpdaterGrain
     {
-        IDisposable Timer;
+        IDisposable? Timer;
 
         public Task PushUpdateToAllSilos(int Version)
         {
@@ -25,7 +25,7 @@ namespace FLGrains.Configuration
         {
             try
             {
-                Timer.Dispose();
+                Timer?.Dispose();
                 Timer = null;
 
                 await GrainFactory.GetGrain<IManagementGrain>(0).SendControlCommandToProvider(typeof(ConfigUpdateControllable).FullName, ConfigUpdateControllable.ServiceName, (int)State);

@@ -9,7 +9,7 @@ namespace FLGrains
 {
     public class TestGrainState
     {
-        public string SomeProperty1 { get; set; }
+        public string SomeProperty1 { get; set; } = "";
     }
 
     public class TestGrain : Grain<TestGrainState>, ITestGrain

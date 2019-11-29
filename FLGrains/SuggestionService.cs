@@ -14,16 +14,11 @@ namespace FLGrains
     class SuggestionService : ISuggestionService
     {
         public static async Task<SuggestionService> CreateInstance(ISystemSettingsProvider connectionStringProvider) =>
-            new SuggestionService
-            {
-                queries = await Queries.CreateInstance(await CassandraSessionFactory.CreateSession(connectionStringProvider.ConnectionString))
-            };
-
+            new SuggestionService(await Queries.CreateInstance(await CassandraSessionFactory.CreateSession(connectionStringProvider.ConnectionString)));
 
         Queries queries;
 
-
-        private SuggestionService() { }
+        private SuggestionService(Queries queries) => this.queries = queries;
 
         public Task RegisterCategorySuggestion(Guid ownerID, string categoryName, IEnumerable<string> words) =>
             queries.Session.ExecuteAsync(queries["fl_UpsertSuggestedCategory"].Bind(new

@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace FLGrainInterfaces.Configuration
 {
     public class ReadOnlyConfigData
     {
-        public IReadOnlyList<GroupConfig> Groups => data.Groups;
+        public IReadOnlyList<GroupConfig> Groups => data.Groups ?? throw new Exception("Groups not specified in config");
         public IReadOnlyDictionary<ushort, GroupConfig> GroupsByID { get; }
 
         public IReadOnlyDictionary<string, CategoryConfig> CategoriesByName { get; }
@@ -19,7 +20,7 @@ namespace FLGrainInterfaces.Configuration
 
         public IReadOnlyList<byte> MaxEditDistanceToCorrentByLetterCount { get; }
 
-        public ConfigValues ConfigValues => data.ConfigValues;
+        public ConfigValues ConfigValues => data.ConfigValues ?? throw new Exception("ConfigValues not specified");
 
 
         public int Version => data.Version;
@@ -43,9 +44,12 @@ namespace FLGrainInterfaces.Configuration
 
             PlayerLevels = data.PlayerLevels.ToDictionary(l => l.Level);
 
-            GoldPacks = data.GoldPacks.ToDictionary(c => c.Sku);
+            GoldPacks = data.GoldPacks?.ToDictionary(c => c.Sku ?? throw new Exception("Null SKU not allowed")) 
+                ?? throw new Exception("Groups not specified in config");
 
-            MaxEditDistanceToCorrentByLetterCount = Enumerable.Range(0, 100).Select(i => data.EditDistanceConfig.GetMaxDistanceToCorrectByLetterCount(i)).ToList();
+            MaxEditDistanceToCorrentByLetterCount = Enumerable.Range(0, 100)
+                .Select(i => data.EditDistanceConfig?.GetMaxDistanceToCorrectByLetterCount(i) ?? throw new Exception("MaxDistanceToCorrectByLetterCount not specified"))
+                .ToList();
         }
     }
 }

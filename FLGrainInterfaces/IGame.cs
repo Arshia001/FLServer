@@ -19,15 +19,15 @@ namespace FLGrainInterfaces
         Task<GameState> GetState();
         Task<byte> StartNew(Guid playerOneID); // Returns number of rounds
         Task<(Guid opponentID, byte numRounds)> AddSecondPlayer(PlayerInfo playerTwo);
-        Task<(string category, bool? haveAnswers, TimeSpan? roundTime, bool mustChooseGroup, IEnumerable<GroupInfoDTO> groups)> StartRound(Guid id);
+        Task<(string? category, bool? haveAnswers, TimeSpan? roundTime, bool mustChooseGroup, IEnumerable<GroupInfoDTO> groups)> StartRound(Guid id);
         Task<(string category, bool haveAnswers, TimeSpan roundTime)> ChooseGroup(Guid id, ushort groupID);
         Task<(byte wordScore, string corrected)> PlayWord(Guid id, string word);
-        Task<Immutable<IEnumerable<WordScorePair>>> EndRound(Guid playerID); // Returns words opponent played this round, if they took their turn already
+        Task<Immutable<IEnumerable<WordScorePair>?>> EndRound(Guid playerID); // Returns words opponent played this round, if they took their turn already
 
         Task<TimeSpan?> IncreaseRoundTime(Guid playerID);
         Task<(string word, byte wordScore)?> RevealWord(Guid playerID);
 
-        Task<List<GroupConfig>> RefreshGroups(Guid guid);
+        Task<List<GroupConfig>?> RefreshGroups(Guid guid);
 
         Task<GameInfo> GetGameInfo(Guid playerID);
         Task<SimplifiedGameInfo> GetSimplifiedGameInfo(Guid playerID);

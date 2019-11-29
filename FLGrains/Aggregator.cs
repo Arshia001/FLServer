@@ -11,17 +11,11 @@ using System.Threading.Tasks;
 namespace FLGrains
 {
     [Schema, BondSerializationTag("#a")]
-    class AggregatorState<T> : IOnDeserializedHandler
+    class AggregatorState<T>
         where T: class, new()
     {
         [Id(0)]
-        public T Data { get; set; }
-
-        public void OnDeserialized()
-        {
-            if (Data == null)
-                Data = new T();
-        }
+        public T Data { get; set; } = new T();
     }
 
     abstract class Aggregator<TData, TAggregateDelta> : Grain<AggregatorState<TData>>, IAggregator<TAggregateDelta>, IAggregateRetriever<TData> 
@@ -51,7 +45,7 @@ namespace FLGrains
     [StatelessWorker]
     abstract class AggregationWorker<TDelta, TAggregateDelta> : Grain, IAggregationWorker<TDelta, TAggregateDelta>
     {
-        IDisposable timerHandle;
+        IDisposable? timerHandle;
         bool haveAnyData = false;
         TAggregateDelta aggregate;
 
@@ -64,11 +58,7 @@ namespace FLGrains
         protected abstract IAggregator<TAggregateDelta> GetAggregator();
 
 
-        public override Task OnActivateAsync()
-        {
-            aggregate = GetDefault();
-            return base.OnActivateAsync();
-        }
+        public AggregationWorker() => aggregate = GetDefault();
 
         public Task AddDelta(TDelta delta)
         {
@@ -81,7 +71,7 @@ namespace FLGrains
             return Task.CompletedTask;
         }
 
-        Task UpdateAggregator(object _)
+        Task UpdateAggregator(object? _)
         {
             if (!haveAnyData)
                 return Task.CompletedTask;
@@ -100,8 +90,9 @@ namespace FLGrains
     //!! shouldn't this be a service?
     [StatelessWorker]
     abstract class AggregatorCache<TData, TTransformedData> : Grain, IAggregatorCache<TTransformedData>
+        where TTransformedData : class
     {
-        TTransformedData cached;
+        TTransformedData? cached;
         DateTime updateTime;
 
 
@@ -127,7 +118,7 @@ namespace FLGrains
                 }
             }
 
-            return cached;
+            return cached ?? throw new Exception("Internal error: failed to refresh cached data correctly");
         }
     }
 }

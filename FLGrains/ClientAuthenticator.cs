@@ -11,7 +11,7 @@ namespace FLGrains
     [StatelessWorker]
     public class ClientAuthenticator : Grain, IClientAuthenticator
     {
-        public async Task<Guid?> Authenticate(HandShakeMode mode, Guid? clientID, string email, string password)
+        public async Task<Guid?> Authenticate(HandShakeMode mode, Guid? clientID, string? email, string? password)
         {
             switch (mode)
             {
@@ -20,6 +20,8 @@ namespace FLGrains
 
                 case HandShakeMode.EmailAndPassword:
                     {
+                        if (email == null || password == null)
+                            return null;
                         var player = await PlayerIndex.GetByEmail(GrainFactory, email);
                         if (player == null || !await player.ValidatePassword(password))
                             return null;
@@ -28,6 +30,8 @@ namespace FLGrains
 
                 case HandShakeMode.RecoveryEmailRequest:
                     {
+                        if (email == null)
+                            return null;
                         var player = await PlayerIndex.GetByEmail(GrainFactory, email);
                         if (player != null)
                             await player.SendPasswordRecoveryLink();

@@ -26,8 +26,8 @@ using System.Diagnostics;
 namespace FLGrainInterfaces.Util
 {
     public class SkipList<TValue, TScore> : IEnumerable<KeyValuePair<TValue, TScore>>
-        where TValue : IEquatable<TValue>, IComparable
-        where TScore : IComparable
+        where TValue : struct, IEquatable<TValue>, IComparable
+        where TScore : struct, IComparable
     {
         public class Node
         {
@@ -47,13 +47,13 @@ namespace FLGrainInterfaces.Util
         {
             public struct SkipListLevel
             {
-                public SkipListNode Forward;
+                public SkipListNode? Forward;
                 public ulong Span;
             }
 
             public TValue Value;
             public TScore Score;
-            public SkipListNode Backward;
+            public SkipListNode? Backward;
             public SkipListLevel[] Level;
 
             public SkipListNode(int Level, TScore Score, TValue Value)
@@ -66,8 +66,8 @@ namespace FLGrainInterfaces.Util
 
         Dictionary<TValue, TScore> ValueCache;
         SkipListNode Head;
-        SkipListNode Tail;
-        SkipListNode[] DeserializationTails;
+        SkipListNode? Tail;
+        SkipListNode[]? DeserializationTails;
         public ulong Length { get; private set; }
         int Level;
 
@@ -84,7 +84,7 @@ namespace FLGrainInterfaces.Util
 
             Level = 1;
             Length = 0;
-            Head = new SkipListNode(MaxLevel, default(TScore), default(TValue));
+            Head = new SkipListNode(MaxLevel, default, default);
             for (int j = 0; j < MaxLevel; j++)
             {
                 Head.Level[j].Forward = null;
@@ -126,13 +126,14 @@ namespace FLGrainInterfaces.Util
             {
                 /* store rank that is crossed to reach the insert position */
                 rank[i] = i == (this.Level - 1) ? 0 : rank[i + 1];
-                var comp = x.Level[i].Forward?.Score.CompareTo(Score) ?? 1;
-                while (x.Level[i].Forward != null &&
-                    (comp > 0 || (comp == 0 && x.Level[i].Forward.Value.CompareTo(Value) > 0)))
+                var thisLevel = x.Level[i];
+                var comp = thisLevel.Forward?.Score.CompareTo(Score) ?? 1;
+                while (thisLevel.Forward != null &&
+                    (comp > 0 || (comp == 0 && thisLevel.Forward.Value.CompareTo(Value) > 0)))
                 {
-                    rank[i] += x.Level[i].Span;
-                    x = x.Level[i].Forward;
-                    comp = x.Level[i].Forward?.Score.CompareTo(Score) ?? 1;
+                    rank[i] += thisLevel.Span;
+                    x = thisLevel.Forward;
+                    comp = thisLevel.Forward?.Score.CompareTo(Score) ?? 1;
                 }
                 update[i] = x;
             }
@@ -167,8 +168,9 @@ namespace FLGrainInterfaces.Util
             }
 
             x.Backward = (update[0] == this.Head) ? null : update[0];
-            if (x.Level[0].Forward != null)
-                x.Level[0].Forward.Backward = x;
+            var level0 = x.Level[0];
+            if (level0.Forward != null)
+                level0.Forward.Backward = x;
             else
                 this.Tail = x;
             this.Length++;
@@ -247,9 +249,10 @@ namespace FLGrainInterfaces.Util
                     update[i].Level[i].Span -= 1;
                 }
             }
-            if (x.Level[0].Forward != null)
+            var level0 = x.Level[0];
+            if (level0.Forward != null)
             {
-                x.Level[0].Forward.Backward = x.Backward;
+                level0.Forward.Backward = x.Backward;
             }
             else
             {
@@ -274,20 +277,21 @@ namespace FLGrainInterfaces.Util
             x = this.Head;
             for (i = this.Level - 1; i >= 0; i--)
             {
-                var comp = x.Level[i].Forward?.Score.CompareTo(score) ?? 1;
-                while (x.Level[i].Forward != null &&
-                    (comp > 0 || (comp == 0 && x.Level[i].Forward.Value.CompareTo(obj) > 0)))
+                var thisLevel = x.Level[i];
+                var comp = thisLevel.Forward?.Score.CompareTo(score) ?? 1;
+                while (thisLevel.Forward != null &&
+                    (comp > 0 || (comp == 0 && thisLevel.Forward.Value.CompareTo(obj) > 0)))
                 {
-                    x = x.Level[i].Forward;
-                    comp = x.Level[i].Forward?.Score.CompareTo(score) ?? 1;
+                    x = thisLevel.Forward;
+                    comp = thisLevel.Forward?.Score.CompareTo(score) ?? 1;
                 }
                 update[i] = x;
             }
 
-            x = x.Level[0].Forward;
-            if (x != null && score.CompareTo(x.Score) == 0 && x.Value.Equals(obj))
+            var toDelete = x.Level[0].Forward;
+            if (toDelete != null && score.CompareTo(x.Score) == 0 && x.Value.Equals(obj))
             {
-                DeleteNode(x, update);
+                DeleteNode(toDelete, update);
                 return true;
             }
             return false;
@@ -305,16 +309,17 @@ namespace FLGrainInterfaces.Util
             x = this.Head;
             for (i = this.Level - 1; i >= 0; i--)
             {
-                var comp = x.Level[i].Forward?.Score.CompareTo(score) ?? 1;
-                while (x.Level[i].Forward != null &&
-                    (comp > 0 || (comp == 0 && x.Level[i].Forward.Value.CompareTo(o) >= 0)))
+                var thisLevel = x.Level[i];
+                var comp = thisLevel.Forward?.Score.CompareTo(score) ?? 1;
+                while (thisLevel.Forward != null &&
+                    (comp > 0 || (comp == 0 && thisLevel.Forward.Value.CompareTo(o) >= 0)))
                 {
-                    rank += x.Level[i].Span;
-                    x = x.Level[i].Forward;
-                    comp = x.Level[i].Forward?.Score.CompareTo(score) ?? 1;
+                    rank += thisLevel.Span;
+                    x = thisLevel.Forward;
+                    comp = thisLevel.Forward?.Score.CompareTo(score) ?? 1;
                 }
 
-                if (x.Value != null && x.Value.Equals(o))
+                if (x.Value.Equals(o))
                 {
                     return rank;
                 }
@@ -322,13 +327,13 @@ namespace FLGrainInterfaces.Util
             return 0;
         }
 
-        public Node GetElementByRank(ulong rank)
+        public Node? GetElementByRank(ulong rank)
         {
             var Res = GetElementByRank_Int(rank);
             return Res == null ? null : new Node(Res);
         }
 
-        SkipListNode GetElementByRank_Int(ulong rank)
+        SkipListNode? GetElementByRank_Int(ulong rank)
         {
             SkipListNode x;
             ulong traversed = 0;
@@ -337,10 +342,11 @@ namespace FLGrainInterfaces.Util
             x = this.Head;
             for (i = this.Level - 1; i >= 0; i--)
             {
-                while (x.Level[i].Forward != null && (traversed + x.Level[i].Span) <= rank)
+                var thisLevel = x.Level[i];
+                while (thisLevel.Forward != null && (traversed + thisLevel.Span) <= rank)
                 {
-                    traversed += x.Level[i].Span;
-                    x = x.Level[i].Forward;
+                    traversed += thisLevel.Span;
+                    x = thisLevel.Forward;
                 }
                 if (traversed == rank)
                 {
@@ -375,7 +381,7 @@ namespace FLGrainInterfaces.Util
 
             var Result = new List<Node>();
 
-            SkipListNode ln;
+            SkipListNode? ln;
 
             if (reverse)
             {
@@ -390,11 +396,14 @@ namespace FLGrainInterfaces.Util
                     ln = GetElementByRank_Int((ulong)(start + 1));
             }
 
-            while (rangelen-- > 0)
-            {
-                Result.Add(new Node(ln));
-                ln = reverse ? ln.Backward : ln.Level[0].Forward;
-            }
+            if (ln != null)
+                while (rangelen-- > 0)
+                {
+                    Result.Add(new Node(ln));
+                    ln = (reverse ? ln.Backward : ln.Level[0].Forward) ?? throw new Exception("Failed to get next node in traversal");
+                }
+            else
+                throw new Exception("Failed to find range start node");
 
             return Result;
         }
@@ -430,9 +439,10 @@ namespace FLGrainInterfaces.Util
 
             public bool MoveNext()
             {
-                if (Node.Level[0].Forward != null)
+                var level0 = Node.Level[0];
+                if (level0.Forward != null)
                 {
-                    Node = Node.Level[0].Forward;
+                    Node = level0.Forward;
                     return true;
                 }
                 else

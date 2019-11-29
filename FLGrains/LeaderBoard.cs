@@ -77,7 +77,7 @@ namespace FLGrains
 
     class LeaderBoard : Grain<LeaderBoardState>, ILeaderBoard
     {
-        IDisposable writeStateTimer;
+        IDisposable? writeStateTimer;
         bool changedSinceLastWrite;
 
         ILogger logger;
@@ -92,7 +92,7 @@ namespace FLGrains
             return base.OnActivateAsync();
         }
 
-        Task WriteStateTimerCallback(object state)
+        Task WriteStateTimerCallback(object? state)
         {
             if (changedSinceLastWrite)
             {

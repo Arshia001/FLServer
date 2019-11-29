@@ -9,27 +9,21 @@ using System.Threading.Tasks;
 namespace FLGrainInterfaces
 {
     [Schema, BondSerializationTag("~csd")]
-    public class CategoryStatisticsData : IOnDeserializedHandler
+    public class CategoryStatisticsData
     {
         [Id(0)]
-        public Dictionary<string, int> WordScores { get; set; }
+        public Dictionary<string, int> WordScores { get; set; } = new Dictionary<string, int>();
 
         [Id(1)]
         public ulong UpVotes { get; set; }
 
         [Id(2)]
         public ulong DownVotes { get; set; }
-
-        public void OnDeserialized()
-        {
-            if (WordScores == null)
-                WordScores = new Dictionary<string, int>();
-        }
     }
 
     public class AggregatedCategoryStatisticsData
     {
-        public Dictionary<string, byte> WordScores { get; set; }
+        public Dictionary<string, byte> WordScores { get; set; } = new Dictionary<string, byte>();
         public ulong UpVotes { get; set; }
         public ulong DownVotes { get; set; }
     }
@@ -39,6 +33,8 @@ namespace FLGrainInterfaces
         public class WordUsage : CategoryStatisticsDelta
         {
             public string Word { get; set; }
+
+            public WordUsage(string word) => Word = word;
         }
 
         public class UpVote : CategoryStatisticsDelta { }

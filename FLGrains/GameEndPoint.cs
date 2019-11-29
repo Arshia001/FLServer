@@ -19,7 +19,7 @@ namespace FLGrains
         static readonly System.Threading.SemaphoreSlim sem = new System.Threading.SemaphoreSlim(1);
         static readonly HashSet<IGame> pendingGames = new HashSet<IGame>();
 
-        protected override async Task<(Guid gameID, PlayerInfo opponentInfo, byte numRounds, bool myTurnFirst)> NewGame(Guid clientID)
+        protected override async Task<(Guid gameID, PlayerInfo? opponentInfo, byte numRounds, bool myTurnFirst)> NewGame(Guid clientID)
         {
             var userProfile = GrainFactory.GetGrain<IPlayer>(clientID);
 
@@ -71,7 +71,7 @@ namespace FLGrains
             }
         }
 
-        protected override async Task<IEnumerable<WordScorePairDTO>> EndRound(Guid clientID, Guid gameID)
+        protected override async Task<IEnumerable<WordScorePairDTO>?> EndRound(Guid clientID, Guid gameID)
         {
             var result = await GrainFactory.GetGrain<IGame>(gameID).EndRound(clientID);
             return result.Value?.Select(w => (WordScorePairDTO)w);

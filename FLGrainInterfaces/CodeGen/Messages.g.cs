@@ -1,5 +1,6 @@
 using System.Linq;
 using FLGrainInterfaces;
+#nullable enable annotations 
 
 namespace FLGrainInterfaces
 {
@@ -17,10 +18,11 @@ namespace FLGrainInterfaces
     public interface IGameEndPoint : LightMessage.OrleansUtils.GrainInterfaces.IEndPointGrain
     {
         System.Threading.Tasks.Task<bool> SendOpponentJoined(System.Guid clientID, System.Guid gameID, PlayerInfo opponentInfo);
-        System.Threading.Tasks.Task<bool> SendOpponentTurnEnded(System.Guid clientID, System.Guid gameID, byte roundNumber, System.Collections.Generic.IEnumerable<WordScorePairDTO> wordsPlayed);
+        System.Threading.Tasks.Task<bool> SendOpponentTurnEnded(System.Guid clientID, System.Guid gameID, byte roundNumber, System.Collections.Generic.IEnumerable<WordScorePairDTO>? wordsPlayed);
         System.Threading.Tasks.Task<bool> SendGameEnded(System.Guid clientID, System.Guid gameID, uint myScore, uint theirScore, uint myPlayerScore, uint myPlayerRank);
     }
 }
+#nullable enable annotations 
 
 namespace FLGrainInterfaces
 {
@@ -149,14 +151,14 @@ namespace FLGrainInterfaces
     [Orleans.Concurrency.Immutable]
     public class LeaderBoardEntryDTO
     {
-        public LeaderBoardEntryDTO(PlayerLeaderBoardInfo info, ulong rank, ulong score)
+        public LeaderBoardEntryDTO(PlayerLeaderBoardInfo? info, ulong rank, ulong score)
         {
             this.Info = info;
             this.Rank = rank;
             this.Score = score;
         }
 
-        public PlayerLeaderBoardInfo Info { get; }
+        public PlayerLeaderBoardInfo? Info { get; }
         public ulong Rank { get; }
         public ulong Score { get; }
 
@@ -224,7 +226,7 @@ namespace FLGrainInterfaces
     [Orleans.Concurrency.Immutable]
     public class OwnPlayerInfo
     {
-        public OwnPlayerInfo(string name, string email, uint xp, uint level, uint nextLevelXPThreshold, uint score, uint rank, ulong gold, uint currentNumRoundsWonForReward, System.TimeSpan nextRoundWinRewardTimeRemaining, System.TimeSpan? infinitePlayTimeRemaining, System.Collections.Generic.IEnumerable<StatisticValue> statisticsValues, bool isRegistered)
+        public OwnPlayerInfo(string name, string? email, uint xp, uint level, uint nextLevelXPThreshold, uint score, uint rank, ulong gold, uint currentNumRoundsWonForReward, System.TimeSpan nextRoundWinRewardTimeRemaining, System.TimeSpan? infinitePlayTimeRemaining, System.Collections.Generic.IEnumerable<StatisticValue> statisticsValues, bool isRegistered)
         {
             this.Name = name;
             this.Email = email;
@@ -242,7 +244,7 @@ namespace FLGrainInterfaces
         }
 
         public string Name { get; }
-        public string Email { get; }
+        public string? Email { get; }
         public uint XP { get; }
         public uint Level { get; }
         public uint NextLevelXPThreshold { get; }
@@ -295,44 +297,44 @@ namespace FLGrainInterfaces
     [Orleans.Concurrency.Immutable]
     public class GameInfo
     {
-        public GameInfo(PlayerInfo otherPlayerInfo, byte numRounds, System.Collections.Generic.IEnumerable<string> categories, System.Collections.Generic.IEnumerable<bool> haveCategoryAnswers, System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<WordScorePairDTO>> myWordsPlayed, System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<WordScorePairDTO>> theirWordsPlayed, System.DateTime myTurnEndTime, bool myTurnFirst, byte numTurnsTakenByOpponent)
+        public GameInfo(PlayerInfo? otherPlayerInfo, byte numRounds, System.Collections.Generic.IEnumerable<string> categories, System.Collections.Generic.IEnumerable<bool> haveCategoryAnswers, System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<WordScorePairDTO>> myWordsPlayed, System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<WordScorePairDTO>>? theirWordsPlayed, System.DateTime myTurnEndTime, bool myTurnFirst, byte numTurnsTakenByOpponent)
         {
             this.OtherPlayerInfo = otherPlayerInfo;
             this.NumRounds = numRounds;
             this.Categories = categories.ToList();
             this.HaveCategoryAnswers = haveCategoryAnswers.ToList();
             this.MyWordsPlayed = myWordsPlayed.Select(a => a.ToList()).ToList();
-            this.TheirWordsPlayed = theirWordsPlayed.Select(a => a.ToList()).ToList();
+            this.TheirWordsPlayed = theirWordsPlayed?.Select(a => a.ToList()).ToList();
             this.MyTurnEndTime = myTurnEndTime;
             this.MyTurnFirst = myTurnFirst;
             this.NumTurnsTakenByOpponent = numTurnsTakenByOpponent;
         }
 
-        public PlayerInfo OtherPlayerInfo { get; }
+        public PlayerInfo? OtherPlayerInfo { get; }
         public byte NumRounds { get; }
         public System.Collections.Generic.IReadOnlyList<string> Categories { get; }
         public System.Collections.Generic.IReadOnlyList<bool> HaveCategoryAnswers { get; }
         public System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<WordScorePairDTO>> MyWordsPlayed { get; }
-        public System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<WordScorePairDTO>> TheirWordsPlayed { get; }
+        public System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<WordScorePairDTO>>? TheirWordsPlayed { get; }
         public System.DateTime MyTurnEndTime { get; }
         public bool MyTurnFirst { get; }
         public byte NumTurnsTakenByOpponent { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(OtherPlayerInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.UInt(NumRounds), LightMessage.Common.Messages.Param.Array(Categories.Select(a => LightMessage.Common.Messages.Param.String(a))), LightMessage.Common.Messages.Param.Array(HaveCategoryAnswers.Select(a => LightMessage.Common.Messages.Param.Boolean(a))), LightMessage.Common.Messages.Param.Array(MyWordsPlayed.Select(a => LightMessage.Common.Messages.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.Messages.Param.Null())))), LightMessage.Common.Messages.Param.Array(TheirWordsPlayed.Select(a => LightMessage.Common.Messages.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.Messages.Param.Null())))), LightMessage.Common.Messages.Param.DateTime(MyTurnEndTime), LightMessage.Common.Messages.Param.Boolean(MyTurnFirst), LightMessage.Common.Messages.Param.UInt(NumTurnsTakenByOpponent));
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(OtherPlayerInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.UInt(NumRounds), LightMessage.Common.Messages.Param.Array(Categories.Select(a => LightMessage.Common.Messages.Param.String(a))), LightMessage.Common.Messages.Param.Array(HaveCategoryAnswers.Select(a => LightMessage.Common.Messages.Param.Boolean(a))), LightMessage.Common.Messages.Param.Array(MyWordsPlayed.Select(a => LightMessage.Common.Messages.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.Messages.Param.Null())))), LightMessage.Common.Messages.Param.Array(TheirWordsPlayed?.Select(a => LightMessage.Common.Messages.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.Messages.Param.Null())))), LightMessage.Common.Messages.Param.DateTime(MyTurnEndTime), LightMessage.Common.Messages.Param.Boolean(MyTurnFirst), LightMessage.Common.Messages.Param.UInt(NumTurnsTakenByOpponent));
 
         public static GameInfo FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new GameInfo(PlayerInfo.FromParam(array[0]), (byte)array[1].AsUInt.Value, array[2].AsArray.Select(a => a.AsString).ToList(), array[3].AsArray.Select(a => a.AsBoolean.Value).ToList(), array[4].AsArray.Select(a => a.AsArray.Select(b => WordScorePairDTO.FromParam(b)).ToList()).ToList(), array[5].AsArray.Select(a => a.AsArray.Select(b => WordScorePairDTO.FromParam(b)).ToList()).ToList(), array[6].AsDateTime.Value, array[7].AsBoolean.Value, (byte)array[8].AsUInt.Value);
+            return new GameInfo(PlayerInfo.FromParam(array[0]), (byte)array[1].AsUInt.Value, array[2].AsArray.Select(a => a.AsString).ToList(), array[3].AsArray.Select(a => a.AsBoolean.Value).ToList(), array[4].AsArray.Select(a => a.AsArray.Select(b => WordScorePairDTO.FromParam(b)).ToList()).ToList(), array[5].AsArray?.Select(a => a.AsArray.Select(b => WordScorePairDTO.FromParam(b)).ToList()).ToList(), array[6].AsDateTime.Value, array[7].AsBoolean.Value, (byte)array[8].AsUInt.Value);
         }
     }
 
     [Orleans.Concurrency.Immutable]
     public class SimplifiedGameInfo
     {
-        public SimplifiedGameInfo(System.Guid gameID, GameState gameState, string otherPlayerName, bool myTurn, byte myScore, byte theirScore)
+        public SimplifiedGameInfo(System.Guid gameID, GameState gameState, string? otherPlayerName, bool myTurn, byte myScore, byte theirScore)
         {
             this.GameID = gameID;
             this.GameState = gameState;
@@ -344,7 +346,7 @@ namespace FLGrainInterfaces
 
         public System.Guid GameID { get; }
         public GameState GameState { get; }
-        public string OtherPlayerName { get; }
+        public string? OtherPlayerName { get; }
         public bool MyTurn { get; }
         public byte MyScore { get; }
         public byte TheirScore { get; }

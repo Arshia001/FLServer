@@ -25,7 +25,7 @@ namespace FLHost
 {
     class Program
     {
-        static IClusterClient client;
+        static IClusterClient? client;
 
         static async Task Main(string[] args)
         {
@@ -110,7 +110,7 @@ namespace FLHost
             }
         }
 
-        static Task<Guid?> OnAuth(HandShakeMode mode, Guid? clientID, string email, string password) =>
-            client.GetGrain<IClientAuthenticator>(0).Authenticate(mode, clientID, email, password);
+        static Task<Guid?> OnAuth(HandShakeMode mode, Guid? clientID, string? email, string? password) =>
+            client?.GetGrain<IClientAuthenticator>(0).Authenticate(mode, clientID, email, password) ?? Task.FromResult(default(Guid?));
     }
 }

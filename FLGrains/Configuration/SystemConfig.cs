@@ -38,7 +38,7 @@ namespace FLGrains.Configuration
         }
 
 
-        ConfigData data;
+        ConfigData? data;
         ISystemSettingsProvider systemSettingsProvider;
 
 
@@ -58,8 +58,10 @@ namespace FLGrains.Configuration
 
         public Task<Immutable<ConfigData>> GetConfig()
         {
-            return Task.FromResult(data.AsImmutable());
+            return Task.FromResult(GetData().AsImmutable());
         }
+
+        private ConfigData GetData() => data ?? throw new Exception("Config data not initialized yet");
 
         static ConfigData ParseConfigData(string data) => JsonConvert.DeserializeObject<ConfigData>(data, PrivateAccessorContractResolver.SerializerSettings);
 
@@ -134,7 +136,7 @@ namespace FLGrains.Configuration
             data = newData;
         }
 
-        Task PushUpdateToAllSilos() => GrainFactory.GetGrain<IConfigUpdaterGrain>(0).PushUpdateToAllSilos(data.Version);
+        Task PushUpdateToAllSilos() => GrainFactory.GetGrain<IConfigUpdaterGrain>(0).PushUpdateToAllSilos(GetData().Version);
 
         public async Task UpdateConfigFromDatabase()
         {
@@ -148,6 +150,7 @@ namespace FLGrains.Configuration
             var connectionString = systemSettingsProvider.ConnectionString;
             var session = await CassandraSessionFactory.CreateSession(connectionString);
 
+            var data = GetData();
             var newData = ParseConfigData(jsonConfig);
             newData.Categories = data.Categories;
             newData.Groups = data.Groups;

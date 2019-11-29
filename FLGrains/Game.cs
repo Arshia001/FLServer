@@ -19,30 +19,22 @@ using System.Threading.Tasks;
 namespace FLGrains
 {
     [Schema, BondSerializationTag("#g")]
-    public class GameGrainState : IOnDeserializedHandler
+    public class GameGrainState
     {
         [Id(0)]
-        public SerializedGameData GameData { get; set; }
+        public SerializedGameData? GameData { get; set; }
 
         [Id(1)]
-        public Guid[] PlayerIDs { get; set; }
+        public Guid[] PlayerIDs { get; set; } = Array.Empty<Guid>();
 
         [Id(2)]
-        public int[] LastProcessedEndTurns { get; set; }
+        public int[] LastProcessedEndTurns { get; set; } = new[] { -1, -1 };
 
         [Id(3)]
         public int GroupChooser { get; set; } = -1;
 
         [Id(4)]
-        public List<ushort> GroupChoices { get; set; }
-
-        public void OnDeserialized()
-        {
-            if (PlayerIDs == null)
-                PlayerIDs = Array.Empty<Guid>();
-            if (LastProcessedEndTurns == null)
-                LastProcessedEndTurns = new[] { -1, -1 };
-        }
+        public List<ushort>? GroupChoices { get; set; }
     }
 
     //?? Now, we only need a way to reactivate these if one of them goes down... Same old challenge.
@@ -53,10 +45,16 @@ namespace FLGrains
         {
             public int playerIndex;
             public int roundIndex;
-            public IDisposable timerHandle;
+            public IDisposable? timerHandle;
+
+            public EndRoundTimerData(int playerIndex, int roundIndex)
+            {
+                this.playerIndex = playerIndex;
+                this.roundIndex = roundIndex;
+            }
         }
 
-        GameLogicServer gameLogic;
+        GameLogicServer? gameLogic;
         readonly IConfigReader configReader;
         readonly Random random = new Random();
         readonly GrainStateWrapper<GameGrainState> state;
@@ -101,12 +99,14 @@ namespace FLGrains
                 await SetTimerOrProcessEndTurnIfNecessary(1);
         }
 
+        GameLogicServer GameLogic => gameLogic ?? throw new Exception("Internal error: game logic not initialized");
+
         async Task SetTimerOrProcessEndTurnIfNecessary(int playerIndex)
         {
             var now = DateTime.Now;
-            var roundIndex = gameLogic.NumTurnsTakenByIncludingCurrent(playerIndex) - 1;
-            if (gameLogic.IsTurnInProgress(playerIndex, now))
-                SetEndTurnTimerImpl(playerIndex, gameLogic.GetTurnEndTime(playerIndex) - now, roundIndex);
+            var roundIndex = GameLogic.NumTurnsTakenByIncludingCurrent(playerIndex) - 1;
+            if (GameLogic.IsTurnInProgress(playerIndex, now))
+                SetEndTurnTimerImpl(playerIndex, GameLogic.GetTurnEndTime(playerIndex) - now, roundIndex);
             else if (state.UseState(state => state.LastProcessedEndTurns[playerIndex]) < roundIndex)
                 await HandleEndTurn(playerIndex, roundIndex);
         }
@@ -146,13 +146,13 @@ namespace FLGrains
                 return (state.PlayerIDs[0], (byte)gameLogic.NumRounds);
             });
 
-        (bool shouldChooseCategory, string category, int roundIndex, TimeSpan? roundTime) StartRound(int playerIndex)
+        (bool shouldChooseCategory, string? category, int roundIndex, TimeSpan? roundTime) StartRound(int playerIndex)
         {
             var configValues = configReader.Config.ConfigValues;
             var roundTime = configValues.ClientTimePerRound + configValues.ExtraTimePerRound;
 
-            int roundIndex = gameLogic.NumTurnsTakenBy(playerIndex);
-            var result = gameLogic.StartRound(playerIndex, roundTime, out var category);
+            int roundIndex = GameLogic.NumTurnsTakenBy(playerIndex);
+            var result = GameLogic.StartRound(playerIndex, roundTime, out var category);
 
             if (result == StartRoundResult.MustChooseCategory)
                 return (true, default(string), roundIndex, default(TimeSpan?));
@@ -167,18 +167,18 @@ namespace FLGrains
 
         private void SetEndTurnTimerImpl(int playerIndex, TimeSpan roundTime, int roundIndex)
         {
-            var endRoundData = new EndRoundTimerData { playerIndex = playerIndex, roundIndex = roundIndex };
+            var endRoundData = new EndRoundTimerData(playerIndex, roundIndex);
             var timerHandle = RegisterTimer(OnTurnEnded, endRoundData, roundTime, TimeSpan.MaxValue);
             endRoundData.timerHandle = timerHandle;
         }
 
-        public async Task<(string category, bool? haveAnswers, TimeSpan? roundTime, bool mustChooseGroup, IEnumerable<GroupInfoDTO> groups)> StartRound(Guid id)
+        public async Task<(string? category, bool? haveAnswers, TimeSpan? roundTime, bool mustChooseGroup, IEnumerable<GroupInfoDTO> groups)> StartRound(Guid id)
         {
             var index = Index(id);
 
             var (mustChooseCategory, category, _, roundTime) = StartRound(index);
 
-            if (mustChooseCategory)
+            if (mustChooseCategory || category == null)
             {
                 return await state.UseStateAndPersist(state =>
                 {
@@ -203,7 +203,7 @@ namespace FLGrains
 
             var (mustChooseCategory, category, roundIndex, roundTime) = StartRound(index);
             if (!mustChooseCategory)
-                return (category, await GrainFactory.GetGrain<IPlayer>(id).HaveAnswersForCategory(category), roundTime.Value);
+                return (category ?? throw new Exception("Don't have a category"), await GrainFactory.GetGrain<IPlayer>(id).HaveAnswersForCategory(category), roundTime.Value);
 
             state.UseState(state =>
             {
@@ -220,13 +220,13 @@ namespace FLGrains
 
             var categories = config.CategoryNamesByGroupID[groupID];
             var random = new Random();
-            var currentCategories = gameLogic.CategoryNames;
+            var currentCategories = GameLogic.CategoryNames;
             string categoryName;
             do
                 categoryName = categories[random.Next(categories.Count)];
             while (currentCategories.Contains(categoryName));
 
-            var result = gameLogic.SetCategory(roundIndex, config.CategoriesAsGameLogicFormatByName[categoryName]);
+            var result = GameLogic.SetCategory(roundIndex, config.CategoriesAsGameLogicFormatByName[categoryName]);
 
             if (!result.IsSuccess())
                 throw new VerbatimException($"Failed to set category, result is {result}");
@@ -241,13 +241,13 @@ namespace FLGrains
                 state.GroupChoices = null;
             });
 
-            return (category, await GrainFactory.GetGrain<IPlayer>(id).HaveAnswersForCategory(category), roundTime.Value);
+            return (category ?? throw new Exception("Don't have a category"), await GrainFactory.GetGrain<IPlayer>(id).HaveAnswersForCategory(category), roundTime.Value);
         }
 
         Task OnTurnEnded(object state)
         {
             var data = (EndRoundTimerData)state;
-            data.timerHandle.Dispose();
+            data.timerHandle?.Dispose();
 
             return HandleEndTurn(data.playerIndex, data.roundIndex);
         }
@@ -260,34 +260,34 @@ namespace FLGrains
 
                 state.LastProcessedEndTurns[playerIndex] = roundIndex;
 
-                var opponentFinishedThisRound = gameLogic.PlayerFinishedTurn(1 - playerIndex, roundIndex);
+                var opponentFinishedThisRound = GameLogic.PlayerFinishedTurn(1 - playerIndex, roundIndex);
 
                 var myID = this.GetPrimaryKey();
 
                 var sentEndTurn = await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentTurnEnded(state.PlayerIDs[1 - playerIndex], myID, (byte)roundIndex,
-                    opponentFinishedThisRound ? gameLogic.GetPlayerAnswers(playerIndex, roundIndex).Select(w => (WordScorePairDTO)w).ToList() : null);
+                    opponentFinishedThisRound ? GameLogic.GetPlayerAnswers(playerIndex, roundIndex).Select(w => (WordScorePairDTO)w).ToList() : null);
 
                 if (!sentEndTurn && !opponentFinishedThisRound)
                     await GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[1 - playerIndex]).SendMyTurnStartedNotification(state.PlayerIDs[playerIndex]);
 
-                GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[playerIndex]).OnRoundCompleted(this.AsReference<IGame>(), gameLogic.GetPlayerScores(playerIndex)[roundIndex]).Ignore();
+                GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[playerIndex]).OnRoundCompleted(this.AsReference<IGame>(), GameLogic.GetPlayerScores(playerIndex)[roundIndex]).Ignore();
 
                 if (opponentFinishedThisRound)
                 {
-                    var score0 = gameLogic.GetPlayerScores(0)[roundIndex];
-                    var score1 = gameLogic.GetPlayerScores(1)[roundIndex];
+                    var score0 = GameLogic.GetPlayerScores(0)[roundIndex];
+                    var score1 = GameLogic.GetPlayerScores(1)[roundIndex];
 
-                    var category = gameLogic.Categories[roundIndex].CategoryName;
+                    var category = GameLogic.Categories[roundIndex].CategoryName;
                     var groupID = configReader.Config.CategoriesByName[category].Group.ID;
 
                     GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]).OnRoundResult(this.AsReference<IGame>(), CompetitionResultHelper.Get(score0, score1), groupID).Ignore();
                     GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[1]).OnRoundResult(this.AsReference<IGame>(), CompetitionResultHelper.Get(score1, score0), groupID).Ignore();
                 }
 
-                if (gameLogic.Finished)
+                if (GameLogic.Finished)
                 {
-                    var wins0 = gameLogic.GetNumRoundsWon(0);
-                    var wins1 = gameLogic.GetNumRoundsWon(1);
+                    var wins0 = GameLogic.GetNumRoundsWon(0);
+                    var wins1 = GameLogic.GetNumRoundsWon(1);
 
                     var me = this.AsReference<IGame>();
                     IPlayer player0 = GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]);
@@ -313,14 +313,14 @@ namespace FLGrains
             var index = Index(id);
             var maxEditDistances = configReader.Config.MaxEditDistanceToCorrentByLetterCount;
 
-            var result = await gameLogic.PlayWord(index, word, (c, w) => GetWordScore(gameLogic.RoundNumber, index, c, w), i => maxEditDistances[i]);
+            var result = await GameLogic.PlayWord(index, word, (c, w) => GetWordScore(GameLogic.RoundNumber, index, c, w), i => maxEditDistances[i]);
 
             if (result.result == PlayWordResult.Error_TurnOver)
                 throw new VerbatimException("Player's turn is already over");
 
             if (result.result != PlayWordResult.Duplicate)
                 GrainFactory.GetGrain<ICategoryStatisticsAggregationWorker>(result.category.CategoryName)
-                    .AddDelta(new CategoryStatisticsDelta.WordUsage { Word = result.corrected }).Ignore();
+                    .AddDelta(new CategoryStatisticsDelta.WordUsage(result.corrected)).Ignore();
 
             var stats = new List<StatisticValue>();
             if (result.result == PlayWordResult.Duplicate)
@@ -339,9 +339,9 @@ namespace FLGrains
         Task<byte> GetWordScore(int round, int playerIndex, WordCategory category, string word)
         {
             // If other player played this word, we want to make sure we give this one the same score
-            if (gameLogic.PlayerFinishedTurn(1 - playerIndex, round))
+            if (GameLogic.PlayerFinishedTurn(1 - playerIndex, round))
             {
-                var answer = gameLogic.GetPlayerAnswers(1 - playerIndex, round).FirstOrDefault(w => w.word == word);
+                var answer = GameLogic.GetPlayerAnswers(1 - playerIndex, round).FirstOrDefault(w => w.word == word);
                 if (answer.word != null)
                     return Task.FromResult(answer.score);
             }
@@ -349,18 +349,18 @@ namespace FLGrains
             return GrainFactory.GetGrain<ICategoryStatisticsAggregatorCache>(category.CategoryName).GetScore(word);
         }
 
-        public async Task<Immutable<IEnumerable<WordScorePair>>> EndRound(Guid playerID)
+        public async Task<Immutable<IEnumerable<WordScorePair>?>> EndRound(Guid playerID)
         {
             int index = Index(playerID);
 
-            gameLogic.ForceEndTurn(index);
+            GameLogic.ForceEndTurn(index);
 
-            var turnIndex = gameLogic.NumTurnsTakenBy(index) - 1;
+            var turnIndex = GameLogic.NumTurnsTakenBy(index) - 1;
 
             await HandleEndTurn(index, turnIndex);
 
-            if (gameLogic.PlayerFinishedTurn(1 - index, turnIndex))
-                return gameLogic.GetPlayerAnswers(1 - index, turnIndex).AsEnumerable().AsImmutable();
+            if (GameLogic.PlayerFinishedTurn(1 - index, turnIndex))
+                return GameLogic.GetPlayerAnswers(1 - index, turnIndex).AsEnumerable().AsNullable().AsImmutable();
             else
                 return default(IEnumerable<WordScorePair>).AsImmutable();
         }
@@ -369,19 +369,19 @@ namespace FLGrains
         {
             var extension = configReader.Config.ConfigValues.RoundTimeExtension;
             var index = Index(playerID);
-            var endTime = gameLogic.ExtendRoundTime(index, extension);
+            var endTime = GameLogic.ExtendRoundTime(index, extension);
             return Task.FromResult(endTime == null ? default(TimeSpan?) : extension);
         }
 
         public async Task<(string word, byte wordScore)?> RevealWord(Guid playerID)
         {
             var index = Index(playerID);
-            if (!gameLogic.IsTurnInProgress(index))
+            if (!GameLogic.IsTurnInProgress(index))
                 return null;
 
-            var turnIndex = gameLogic.NumTurnsTakenBy(index);
-            var category = gameLogic.Categories[turnIndex];
-            var answers = gameLogic.GetPlayerAnswers(index, turnIndex);
+            var turnIndex = GameLogic.NumTurnsTakenBy(index);
+            var category = GameLogic.Categories[turnIndex];
+            var answers = GameLogic.GetPlayerAnswers(index, turnIndex);
 
             if (answers.Count == category.Answers.Count)
                 return null;
@@ -396,13 +396,13 @@ namespace FLGrains
             return (word, score);
         }
 
-        public Task<List<GroupConfig>> RefreshGroups(Guid guid) =>
+        public Task<List<GroupConfig>?> RefreshGroups(Guid guid) =>
             state.UseStateAndMaybePersist(state =>
             {
                 var index = Index(guid);
 
                 if (state.GroupChooser != index || state.GroupChoices == null)
-                    return Task.FromResult((false, default(List<GroupConfig>)));
+                    return (false, default(List<GroupConfig>));
 
                 var config = configReader.Config;
                 state.GroupChoices =
@@ -410,7 +410,7 @@ namespace FLGrains
                         i => state.GroupChoices.Contains(config.Groups[i].ID), state.GroupChoices.Count)
                     .Select(i => config.Groups[i].ID).ToList();
 
-                return Task.FromResult((true, state.GroupChoices.Select(i => config.GroupsByID[i]).ToList()));
+                return (true, state.GroupChoices.Select(i => config.GroupsByID[i]).ToList());
             });
 
         GameState GetStateInternal(GameGrainState state)
@@ -421,7 +421,7 @@ namespace FLGrains
             if (state.PlayerIDs[1] == Guid.Empty)
                 return GameState.WaitingForSecondPlayer;
 
-            if (gameLogic.Finished)
+            if (GameLogic.Finished)
                 return GameState.Finished;
 
             return GameState.InProgress;
@@ -436,10 +436,10 @@ namespace FLGrains
                     throw new Exception("Game not in progress");
 
                 int index = Index(playerID);
-                var turnsTakenInclCurrent = gameLogic.NumTurnsTakenByIncludingCurrent(index);
-                var turnsTaken = gameLogic.NumTurnsTakenBy(index);
+                var turnsTakenInclCurrent = GameLogic.NumTurnsTakenByIncludingCurrent(index);
+                var turnsTaken = GameLogic.NumTurnsTakenBy(index);
 
-                var categories = gameLogic.Categories.Take(turnsTakenInclCurrent).Select(c => c.CategoryName).ToList();
+                var categories = GameLogic.Categories.Take(turnsTakenInclCurrent).Select(c => c.CategoryName).ToList();
                 var playerInfo = state.PlayerIDs[1 - index] == Guid.Empty ? null :
                     await PlayerInfoHelper.GetInfo(GrainFactory, state.PlayerIDs[1 - index]);
 
@@ -448,13 +448,13 @@ namespace FLGrains
                 return new GameInfo
                 (
                     otherPlayerInfo: playerInfo,
-                    numRounds: (byte)gameLogic.Categories.Count,
+                    numRounds: (byte)GameLogic.Categories.Count,
                     categories: categories,
-                    myWordsPlayed: gameLogic.GetPlayerAnswers(index).Take(turnsTakenInclCurrent).Select(ws => ws.Select(w => (WordScorePairDTO)w).ToList()).ToList(),
-                    theirWordsPlayed: gameLogic.GetPlayerAnswers(1 - index)?.Take(turnsTaken).Select(ws => ws.Select(w => (WordScorePairDTO)w).ToList()).ToList(), // don't return words for the round currently in progress
-                    myTurnEndTime: gameLogic.GetTurnEndTime(index),
-                    myTurnFirst: gameLogic.FirstTurn == index,
-                    numTurnsTakenByOpponent: (byte)gameLogic.NumTurnsTakenByIncludingCurrent(1 - index),
+                    myWordsPlayed: GameLogic.GetPlayerAnswers(index).Take(turnsTakenInclCurrent).Select(ws => ws.Select(w => (WordScorePairDTO)w).ToList()).ToList(),
+                    theirWordsPlayed: GameLogic.GetPlayerAnswers(1 - index)?.Take(turnsTaken).Select(ws => ws.Select(w => (WordScorePairDTO)w).ToList()).ToList(), // don't return words for the round currently in progress
+                    myTurnEndTime: GameLogic.GetTurnEndTime(index),
+                    myTurnFirst: GameLogic.FirstTurn == index,
+                    numTurnsTakenByOpponent: (byte)GameLogic.NumTurnsTakenByIncludingCurrent(1 - index),
                     haveCategoryAnswers: ownedCategories
                 );
             });
@@ -463,22 +463,22 @@ namespace FLGrains
             state.UseState(async state =>
             {
                 int index = Index(playerID);
-                var turnsTaken = gameLogic.NumTurnsTakenBy(index);
+                var turnsTaken = GameLogic.NumTurnsTakenBy(index);
 
                 return new SimplifiedGameInfo
                 (
                     gameID: this.GetPrimaryKey(),
                     gameState: GetStateInternal(state),
                     otherPlayerName: state.PlayerIDs[1 - index] == Guid.Empty ? null : (await PlayerInfoHelper.GetInfo(GrainFactory, state.PlayerIDs[1 - index])).Name,
-                    myTurn: gameLogic.Turn == index,
-                    myScore: gameLogic.GetNumRoundsWon(index),
-                    theirScore: gameLogic.GetNumRoundsWon(1 - index)
+                    myTurn: GameLogic.Turn == index,
+                    myScore: GameLogic.GetNumRoundsWon(index),
+                    theirScore: GameLogic.GetNumRoundsWon(1 - index)
                 );
             });
 
         public Task<bool> WasFirstTurnPlayed() //?? remove - see comment on interface
         {
-            return Task.FromResult(gameLogic.PlayerFinishedTurn(0, 0));
+            return Task.FromResult(GameLogic.PlayerFinishedTurn(0, 0));
         }
     }
 }

@@ -24,7 +24,7 @@ namespace FLGrains
         readonly IConfigReader configReader;
         readonly IFcmNotificationService fcmNotificationService;
         private readonly GrainStateWrapper<PlayerState> state;
-        ISystemEndPoint systemEndPoint;
+        ISystemEndPoint? systemEndPoint;
 
         public Player(IConfigReader configReader, IFcmNotificationService fcmNotificationService, [PersistentState("State")] IPersistentState<PlayerState> state)
         {
@@ -147,7 +147,8 @@ namespace FLGrains
 
                 LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.XP).AddDelta(id, delta).Ignore();
 
-                await systemEndPoint.SendXPUpdated(id, state.XP, state.Level);
+                if (systemEndPoint != null)
+                    await systemEndPoint.SendXPUpdated(id, state.XP, state.Level);
             });
 
         public Task<bool> SetUsername(string username) =>
@@ -237,7 +238,7 @@ namespace FLGrains
                 {
                     state.StatisticsValues[new StatisticWithParameter(stat, parameter)] = value;
                     if (ShouldReplicateStatToClient(stat))
-                        systemEndPoint.SendStatisticUpdated(this.GetPrimaryKey(), new StatisticValue(stat, parameter, value)).Ignore();
+                        systemEndPoint?.SendStatisticUpdated(this.GetPrimaryKey(), new StatisticValue(stat, parameter, value))?.Ignore();
                 }
             });
 
@@ -290,7 +291,7 @@ namespace FLGrains
                         AddStatImpl(1, Statistics.RoundsWon);
                         AddStatImpl(1, Statistics.GroupWon_Param, groupID);
                         ++state.NumRoundsWonForReward;
-                        return systemEndPoint.SendNumRoundsWonForRewardUpdated(this.GetPrimaryKey(), state.NumRoundsWonForReward);
+                        return systemEndPoint?.SendNumRoundsWonForRewardUpdated(this.GetPrimaryKey(), state.NumRoundsWonForReward) ?? Task.CompletedTask;
 
                     case CompetitionResult.Loss:
                         AddStatImpl(1, Statistics.RoundsLost);
@@ -372,8 +373,8 @@ namespace FLGrains
                 return (state.Gold, time.Value);
             });
 
-        public Task<(ulong? gold, string word, byte? wordScore)> RevealWord(Guid gameID) =>
-            state.UseStateAndLazyPersist<Task<(ulong? gold, string word, byte? wordScore)>>(async state =>
+        public Task<(ulong? gold, string? word, byte? wordScore)> RevealWord(Guid gameID) =>
+            state.UseStateAndLazyPersist<Task<(ulong? gold, string? word, byte? wordScore)>>(async state =>
             {
                 var price = configReader.Config.ConfigValues.RevealWordPrice;
                 if (state.Gold < price)
@@ -390,7 +391,7 @@ namespace FLGrains
                 return (state.Gold, result.Value.word, result.Value.wordScore);
             });
 
-        public Task<IEnumerable<GroupInfoDTO>> RefreshGroups(Guid gameID) =>
+        public Task<IEnumerable<GroupInfoDTO>?> RefreshGroups(Guid gameID) =>
             state.UseStateAndLazyPersist(async state =>
             {
                 var price = configReader.Config.ConfigValues.PriceToRefreshGroups;
@@ -522,24 +523,30 @@ namespace FLGrains
 
         public Task SetNotificationsEnabled(bool enable) => state.UseStateAndPersist(state => { state.NotificationsEnabled = enable; });
 
-        bool CanSendNotification() => state.UseState(state => state.NotificationsEnabled && !string.IsNullOrEmpty(state.FcmToken));
+        bool CanSendNotification(PlayerState state) => state.NotificationsEnabled && !string.IsNullOrEmpty(state.FcmToken);
 
-        public async Task SendMyTurnStartedNotification(Guid opponentID)
+        public Task SendMyTurnStartedNotification(Guid opponentID)
         {
-            if (CanSendNotification())
+            return state.UseState(async state =>
             {
-                var opName = await PlayerInfoHelper.GetName(GrainFactory, opponentID);
-                fcmNotificationService.SendMyTurnStarted(state.UseState(state => state.FcmToken), opName);
-            }
+                if (CanSendNotification(state) && state.FcmToken != null)
+                {
+                    var opName = await PlayerInfoHelper.GetName(GrainFactory, opponentID);
+                    fcmNotificationService.SendMyTurnStarted(state.FcmToken, opName);
+                }
+            });
         }
 
-        public async Task SendGameEndedNotification(Guid opponentID)
+        public Task SendGameEndedNotification(Guid opponentID)
         {
-            if (CanSendNotification())
+            return state.UseState(async state =>
             {
-                var opName = await PlayerInfoHelper.GetName(GrainFactory, opponentID);
-                fcmNotificationService.SendGameEnded(state.UseState(state => state.FcmToken), opName);
-            }
+                if (CanSendNotification(state) && state.FcmToken != null)
+                {
+                    var opName = await PlayerInfoHelper.GetName(GrainFactory, opponentID);
+                    fcmNotificationService.SendGameEnded(state.FcmToken, opName);
+                }
+            });
         }
     }
 }

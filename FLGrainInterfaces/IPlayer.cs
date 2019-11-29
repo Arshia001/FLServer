@@ -53,13 +53,13 @@ namespace FLGrainInterfaces
 
     //?? keep full history of past games somewhere else if needed, limit history here to a few items
     [Schema, BondSerializationTag("#p")]
-    public class PlayerState : IOnDeserializedHandler
+    public class PlayerState
     {
         [Id(0)]
-        public List<IGame> ActiveGames { get; private set; }
+        public List<IGame> ActiveGames { get; private set; } = new List<IGame>();
 
         [Id(1)]
-        public string Name { get; set; }
+        public string Name { get; set; } = "";
 
         [Id(2)]
         public uint Level { get; set; }
@@ -80,50 +80,34 @@ namespace FLGrainInterfaces
         public ulong Gold { get; set; }
 
         [Id(8)]
-        public List<IGame> PastGames { get; private set; }
+        public List<IGame> PastGames { get; private set; } = new List<IGame>();
 
         [Id(9)]
         public DateTime InfinitePlayEndTime { get; set; }
 
         [Id(10)]
-        public HashSet<string> OwnedCategoryAnswers { get; private set; }
+        public HashSet<string> OwnedCategoryAnswers { get; private set; } = new HashSet<string>();
 
         [Id(11)]
-        public Dictionary<StatisticWithParameter, ulong> StatisticsValues { get; private set; }
+        public Dictionary<StatisticWithParameter, ulong> StatisticsValues { get; private set; } = new Dictionary<StatisticWithParameter, ulong>();
 
         [Id(12)]
-        public byte[] PasswordSalt { get; private set; }
+        public byte[] PasswordSalt { get; private set; } = CryptographyHelper.GeneratePasswordSalt();
 
         [Id(13)]
-        public byte[] PasswordHash { get; set; }
+        public byte[]? PasswordHash { get; set; }
 
         [Id(14)]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [Id(16)]
-        public HashSet<string> ProcessedIabTokens { get; private set; }
+        public HashSet<string> ProcessedIabTokens { get; private set; } = new HashSet<string>();
 
         [Id(17)]
-        public string FcmToken { get; set; }
+        public string? FcmToken { get; set; }
 
         [Id(18)]
         public bool NotificationsEnabled { get; set; }
-
-        public void OnDeserialized()
-        {
-            if (ActiveGames == null)
-                ActiveGames = new List<IGame>();
-            if (PastGames == null)
-                PastGames = new List<IGame>();
-            if (OwnedCategoryAnswers == null)
-                OwnedCategoryAnswers = new HashSet<string>();
-            if (StatisticsValues == null)
-                StatisticsValues = new Dictionary<StatisticWithParameter, ulong>();
-            if (PasswordSalt == null)
-                PasswordSalt = CryptographyHelper.GeneratePasswordSalt();
-            if (ProcessedIabTokens == null)
-                ProcessedIabTokens = new HashSet<string>();
-        }
     }
 
     [BondSerializationTag("@p")]
@@ -158,13 +142,13 @@ namespace FLGrainInterfaces
         Task<(bool success, ulong totalGold, TimeSpan duration)> ActivateInfinitePlay();
 
         Task<(ulong? gold, TimeSpan? remainingTime)> IncreaseRoundTime(Guid gameID);
-        Task<(ulong? gold, string word, byte? wordScore)> RevealWord(Guid gameID);
+        Task<(ulong? gold, string? word, byte? wordScore)> RevealWord(Guid gameID);
 
         Task<(IEnumerable<string> words, ulong? totalGold)> GetAnswers(string category);
         Task<bool> HaveAnswersForCategory(string category);
         Task<IReadOnlyList<bool>> HaveAnswersForCategories(IReadOnlyList<string> categories);
 
-        Task<IEnumerable<GroupInfoDTO>> RefreshGroups(Guid gameID);
+        Task<IEnumerable<GroupInfoDTO>?> RefreshGroups(Guid gameID);
 
         Task<(ulong totalGold, TimeSpan timeUntilNextReward)> TakeRewardForWinningRounds();
 
@@ -187,7 +171,7 @@ namespace FLGrainInterfaces
         public static Task<bool> UpdateUsernameIfUnique(IGrainFactory grainFactory, IPlayer player, string name) =>
             byUsername.UpdateIndexIfUnique(grainFactory, name.ToLower(), player);
 
-        public static Task<bool> UpdateEmailIfUnique(IGrainFactory grainFactory, IPlayer player, string email) => 
+        public static Task<bool> UpdateEmailIfUnique(IGrainFactory grainFactory, IPlayer player, string email) =>
             byEmail.UpdateIndexIfUnique(grainFactory, email.ToLower(), player);
 
         public static Task<IPlayer> GetByEmail(IGrainFactory grainFactory, string email) => byEmail.GetGrain(grainFactory, email.ToLower());

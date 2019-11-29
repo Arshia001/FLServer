@@ -40,5 +40,7 @@ namespace FLGrains
 
             return set;
         }
+
+        public static T? AsNullable<T>(this T t) where T : class => t;
     }
 }

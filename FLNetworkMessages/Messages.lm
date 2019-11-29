@@ -172,7 +172,7 @@ contract GameInfo
     Categories: string[];
 	HaveCategoryAnswers: bool[];
     MyWordsPlayed: WordScorePairDTO[][];
-    TheirWordsPlayed: WordScorePairDTO[][];
+    TheirWordsPlayed: WordScorePairDTO[][]?;
     MyTurnEndTime: datetime;
     MyTurnFirst: bool;
     NumTurnsTakenByOpponent: u8;
@@ -380,7 +380,7 @@ endpoint Game gm
 		->
 		{
 			gameID: guid;
-			opponentInfo: PlayerInfo;
+			opponentInfo: PlayerInfo?;
 			numRounds: u8;
 			myTurnFirst: bool;
 		}

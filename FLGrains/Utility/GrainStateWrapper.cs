@@ -18,7 +18,7 @@ namespace FLGrains.Utilities
     class GrainStateWrapper<TState>
         where TState : new()
     {
-        public event EventHandler<PersistStateEventArgs<TState>> Persist;
+        public event EventHandler<PersistStateEventArgs<TState>> Persist = delegate { };
 
         readonly IPersistentState<TState> state;
 

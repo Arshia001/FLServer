@@ -8,9 +8,8 @@ namespace FLHost
 {
     class LightMessageOptions
     {
-        public IPAddress ListenIPAddress { get; set; }
+        public IPAddress? ListenIPAddress { get; set; }
         public int ListenPort { get; set; }
-        public ClientAuthCallbackDelegate ClientAuthCallback { get; set; }
-
+        public ClientAuthCallbackDelegate? ClientAuthCallback { get; set; }
     }
 }

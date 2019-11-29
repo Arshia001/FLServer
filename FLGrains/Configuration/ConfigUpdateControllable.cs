@@ -19,7 +19,7 @@ namespace FLGrains.Configuration
             this.ConfigWriter = ConfigWriter;
         }
 
-        public async Task<object> ExecuteCommand(int command, object arg)
+        public async Task<object?> ExecuteCommand(int command, object arg)
         {
             if (command > ConfigWriter.Version)
                 ConfigWriter.Config = (await GrainFactory.GetGrain<ISystemConfig>(0).GetConfig()).Value;

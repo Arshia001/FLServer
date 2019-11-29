@@ -20,7 +20,7 @@ namespace FLHost
         readonly IOptions<LightMessageOptions> options;
         readonly ILogProvider logProvider;
 
-        LightMessageHost host;
+        LightMessageHost? host;
 
         public LightMessageHostedService(IGrainFactory grainFactory, IClusterClient client, IOptions<LightMessageOptions> options, ILogProvider logProvider)
         {
@@ -33,12 +33,13 @@ namespace FLHost
         public Task StartAsync(CancellationToken cancellationToken)
         {
             host = new LightMessageHost();
-            return host.Start(grainFactory, new IPEndPoint(options.Value.ListenIPAddress, options.Value.ListenPort), options.Value.ClientAuthCallback, logProvider);
+            return host.Start(grainFactory, new IPEndPoint(options.Value.ListenIPAddress, options.Value.ListenPort),
+                options.Value.ClientAuthCallback ?? throw new Exception("Client authentication callback not set"), logProvider);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            host.Stop();
+            host?.Stop();
             return Task.CompletedTask;
         }
     }
