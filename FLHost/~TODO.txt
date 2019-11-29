@@ -12,7 +12,6 @@ CLIENT Ads
 
 SERVER XP / Score(?) calculations
 SERVER Game inactivity timeout -> 24 hours per turn
-SERVER Email validation / Password complexity check
 SERVER Separate game history, clear history option
 SERVER Recovery emails!!! -.- -> Bolero? XD
 SERVER Safe service restart -> ***stop timing games*** (?), reject new connections, turn service off when no connections remain, **might take a lot of time**! Force people out after a while?
