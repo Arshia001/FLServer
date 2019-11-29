@@ -31,7 +31,7 @@ namespace FLGrainInterfaces.Util
     {
         public class Node
         {
-            SkipListNode slNode;
+            readonly SkipListNode slNode;
 
             public TValue Value => slNode.Value;
             public TScore Score => slNode.Score;
@@ -64,8 +64,8 @@ namespace FLGrainInterfaces.Util
             }
         }
 
-        Dictionary<TValue, TScore> ValueCache;
-        SkipListNode Head;
+        readonly Dictionary<TValue, TScore> ValueCache;
+        readonly SkipListNode Head;
         SkipListNode? Tail;
         SkipListNode[]? DeserializationTails;
         public ulong Length { get; private set; }
@@ -107,7 +107,7 @@ namespace FLGrainInterfaces.Util
             if (ValueCache.TryGetValue(Value, out var Score))
                 return Score;
 
-            return default(TScore);
+            return default;
         }
 
         public bool TryGetScore(TValue Value, out TScore score) => ValueCache.TryGetValue(Value, out score);
@@ -420,7 +420,7 @@ namespace FLGrainInterfaces.Util
 
         class Enumerator : IEnumerator<KeyValuePair<TValue, TScore>>
         {
-            SkipList<TValue, TScore> List;
+            readonly SkipList<TValue, TScore> List;
             SkipListNode Node;
 
             public Enumerator(SkipList<TValue, TScore> List)

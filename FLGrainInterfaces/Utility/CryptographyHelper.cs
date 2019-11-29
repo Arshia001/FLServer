@@ -18,13 +18,11 @@ namespace FLGrainInterfaces
 
         public static byte[] HashPassword(byte[] salt, string password)
         {
-            using (var hash = new SHA512Managed())
-            {
-                var bytes = new byte[salt.Length + Encoding.UTF8.GetByteCount(password)];
-                Array.Copy(salt, 0, bytes, 0, salt.Length);
-                Encoding.UTF8.GetBytes(password, 0, password.Length, bytes, salt.Length);
-                return hash.ComputeHash(bytes);
-            }
+            using var hash = new SHA512Managed();
+            var bytes = new byte[salt.Length + Encoding.UTF8.GetByteCount(password)];
+            Array.Copy(salt, 0, bytes, 0, salt.Length);
+            Encoding.UTF8.GetBytes(password, 0, password.Length, bytes, salt.Length);
+            return hash.ComputeHash(bytes);
         }
     }
 }

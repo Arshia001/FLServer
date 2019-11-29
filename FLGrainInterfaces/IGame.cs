@@ -31,6 +31,5 @@ namespace FLGrainInterfaces
 
         Task<GameInfo> GetGameInfo(Guid playerID);
         Task<SimplifiedGameInfo> GetSimplifiedGameInfo(Guid playerID);
-        Task<bool> WasFirstTurnPlayed(); //?? change to notification sent from game to matchmaking sytem
     }
 }

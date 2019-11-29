@@ -16,59 +16,14 @@ namespace FLGrains
 {
     class GameEndPoint : GameEndPointBase
     {
-        static readonly System.Threading.SemaphoreSlim sem = new System.Threading.SemaphoreSlim(1);
-        static readonly HashSet<IGame> pendingGames = new HashSet<IGame>();
-
         protected override async Task<(Guid gameID, PlayerInfo? opponentInfo, byte numRounds, bool myTurnFirst)> NewGame(Guid clientID)
         {
-            var userProfile = GrainFactory.GetGrain<IPlayer>(clientID);
+            var player = GrainFactory.GetGrain<IPlayer>(clientID);
 
-            if (!await userProfile.CanEnterGame())
+            if (!await player.CanEnterGame())
                 throw new VerbatimException("Cannot enter game at this time");
 
-            await sem.WaitAsync();
-            try
-            {
-                var gameToEnter = default(IGame);
-                var opponentID = Guid.Empty;
-                var numRounds = default(byte);
-                var gameID = Guid.Empty;
-
-                foreach (var game in pendingGames)
-                {
-                    if (!await game.WasFirstTurnPlayed())
-                        continue;
-                    try
-                    {
-                        (opponentID, numRounds) = await userProfile.JoinGameAsSecondPlayer(game);
-                        gameID = game.GetPrimaryKey();
-                        gameToEnter = game;
-                        break;
-                    }
-                    catch { }
-                }
-
-                if (gameToEnter != null)
-                {
-                    pendingGames.Remove(gameToEnter);
-                    return (gameID, await PlayerInfoHelper.GetInfo(GrainFactory, opponentID), numRounds, false);
-                }
-
-                do
-                    gameToEnter = GrainFactory.GetGrain<IGame>(Guid.NewGuid());
-                while (await gameToEnter.GetState() != GameState.New);
-
-                numRounds = await userProfile.JoinGameAsFirstPlayer(gameToEnter);
-
-                pendingGames.Add(gameToEnter);
-
-                return (gameToEnter.GetPrimaryKey(), null, numRounds, true);
-
-            }
-            finally
-            {
-                sem.Release();
-            }
+            return await GrainFactory.GetGrain<IMatchMakingGrain>(0).FindOrCreateGame(player);
         }
 
         protected override async Task<IEnumerable<WordScorePairDTO>?> EndRound(Guid clientID, Guid gameID)

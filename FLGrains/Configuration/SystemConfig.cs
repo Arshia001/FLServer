@@ -39,7 +39,7 @@ namespace FLGrains.Configuration
 
 
         ConfigData? data;
-        ISystemSettingsProvider systemSettingsProvider;
+        readonly ISystemSettingsProvider systemSettingsProvider;
 
 
         public SystemConfig(ISystemSettingsProvider systemSettingsProvider)

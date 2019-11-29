@@ -1,14 +1,13 @@
-﻿using Jint;
+﻿#pragma warning disable IDE0052 // Remove unread private members
+
+using Jint;
 using Jint.Native;
 using Jint.Parser;
 using Jint.Parser.Ast;
-using Jint.Runtime.References;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace FLGrainInterfaces.Util
 {

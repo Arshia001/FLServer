@@ -119,6 +119,8 @@ namespace FLGrains
 
         public Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo() => state.UseState(state => Task.FromResult(new PlayerLeaderBoardInfo(state.Name)));
 
+        public Task<(uint score, uint level)> GetMatchMakingInfo() => state.UseState(state => Task.FromResult((state.Score, state.Level)));
+
         PlayerInfo GetPlayerInfoImpl() => state.UseState(state => new PlayerInfo(id: this.GetPrimaryKey(), name: state.Name, level: state.Level));
 
         LevelConfig GetLevelConfig(ReadOnlyConfigData config) =>

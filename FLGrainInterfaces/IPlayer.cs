@@ -119,6 +119,7 @@ namespace FLGrainInterfaces
         Task<PlayerInfo> GetPlayerInfo();
         Task<OwnPlayerInfo> GetOwnPlayerInfo();
         Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo();
+        Task<(uint score, uint level)> GetMatchMakingInfo();
         Task<(PlayerInfo info, bool[] haveCategoryAnswers)> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories);
 
         Task<bool> SetUsername(string username);

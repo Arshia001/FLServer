@@ -26,7 +26,7 @@ namespace FLGrainInterfaces.Configuration
         public int Version => data.Version;
 
 
-        ConfigData data;
+        readonly ConfigData data;
 
 
         public ReadOnlyConfigData(ConfigData data)

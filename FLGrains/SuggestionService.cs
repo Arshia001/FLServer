@@ -16,7 +16,7 @@ namespace FLGrains
         public static async Task<SuggestionService> CreateInstance(ISystemSettingsProvider connectionStringProvider) =>
             new SuggestionService(await Queries.CreateInstance(await CassandraSessionFactory.CreateSession(connectionStringProvider.ConnectionString)));
 
-        Queries queries;
+        readonly Queries queries;
 
         private SuggestionService(Queries queries) => this.queries = queries;
 

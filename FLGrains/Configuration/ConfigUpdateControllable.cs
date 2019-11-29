@@ -10,19 +10,19 @@ namespace FLGrains.Configuration
     {
         public static string ServiceName = "ConfigUpdater";
 
-        IGrainFactory GrainFactory;
-        IConfigWriter ConfigWriter;
+        readonly IGrainFactory grainFactory;
+        readonly IConfigWriter configWriter;
 
-        public ConfigUpdateControllable(IGrainFactory GrainFactory, IConfigWriter ConfigWriter)
+        public ConfigUpdateControllable(IGrainFactory grainFactory, IConfigWriter configWriter)
         {
-            this.GrainFactory = GrainFactory;
-            this.ConfigWriter = ConfigWriter;
+            this.grainFactory = grainFactory;
+            this.configWriter = configWriter;
         }
 
         public async Task<object?> ExecuteCommand(int command, object arg)
         {
-            if (command > ConfigWriter.Version)
-                ConfigWriter.Config = (await GrainFactory.GetGrain<ISystemConfig>(0).GetConfig()).Value;
+            if (command > configWriter.Version)
+                configWriter.Config = (await grainFactory.GetGrain<ISystemConfig>(0).GetConfig()).Value;
             return null;
         }
     }

@@ -19,6 +19,7 @@ namespace FLGrains
 {
     public class LeaderBoardConverter
     {
+#pragma warning disable IDE0060 // Remove unused parameter
         public static ArraySegment<byte> Convert(SkipList<Guid, ulong> value, ArraySegment<byte> unused, Type expectedType)
         {
             if (value == null)
@@ -42,19 +43,22 @@ namespace FLGrains
                 return new SkipList<Guid, ulong>();
 
             var result = new SkipList<Guid, ulong>();
-            var stream = new MemoryStream(value.Array, value.Offset, value.Count);
-            var idBuf = new byte[16];
-            var scoreBuf = new byte[16];
-            while (stream.Position < stream.Length)
+            using (var stream = new MemoryStream(value.Array, value.Offset, value.Count))
             {
-                stream.Read(idBuf, 0, 16);
-                stream.Read(scoreBuf, 0, 8);
-                result.AddLast_ForDeserialization(new Guid(idBuf), BitConverter.ToUInt64(scoreBuf, 0));
+                var idBuf = new byte[16];
+                var scoreBuf = new byte[16];
+                while (stream.Position < stream.Length)
+                {
+                    stream.Read(idBuf, 0, 16);
+                    stream.Read(scoreBuf, 0, 8);
+                    result.AddLast_ForDeserialization(new Guid(idBuf), BitConverter.ToUInt64(scoreBuf, 0));
+                }
             }
 
             result.FinalizeDeserialization();
             return result;
         }
+#pragma warning restore IDE0060 // Remove unused parameter
     }
 
     [Schema, BondSerializationTag("#lb")]
@@ -79,9 +83,8 @@ namespace FLGrains
     {
         IDisposable? writeStateTimer;
         bool changedSinceLastWrite;
-
-        ILogger logger;
-
+        
+        readonly ILogger logger;
 
         public LeaderBoard(ILogger<ILeaderBoard> logger) => this.logger = logger;
 

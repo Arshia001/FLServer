@@ -11,7 +11,6 @@ namespace FLGrains.Services
 {
     class FcmNotificationService : IFcmNotificationService
     {
-        FirebaseApp firebaseApp;
         private readonly ILogger<FcmNotificationService> logger;
 
         public FcmNotificationService(ISystemSettingsProvider settingsProvider, ILogger<FcmNotificationService> logger)
@@ -20,7 +19,7 @@ namespace FLGrains.Services
             {
                 Credential = GoogleCredential.FromJson(settingsProvider.FcmServiceAccountKeys)
             };
-            firebaseApp = FirebaseApp.Create(options);
+            FirebaseApp.Create(options);
             this.logger = logger;
         }
 

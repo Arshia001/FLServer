@@ -258,6 +258,9 @@ namespace FLGrains
                 if (state.LastProcessedEndTurns[playerIndex] >= roundIndex)
                     return false;
 
+                if (playerIndex == 0 && roundIndex == 0)
+                    await GrainFactory.GetGrain<IMatchMakingGrain>(0).AddGame(this.AsReference<IGame>(), GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]));
+
                 state.LastProcessedEndTurns[playerIndex] = roundIndex;
 
                 var opponentFinishedThisRound = GameLogic.PlayerFinishedTurn(1 - playerIndex, roundIndex);
@@ -475,10 +478,5 @@ namespace FLGrains
                     theirScore: GameLogic.GetNumRoundsWon(1 - index)
                 );
             });
-
-        public Task<bool> WasFirstTurnPlayed() //?? remove - see comment on interface
-        {
-            return Task.FromResult(GameLogic.PlayerFinishedTurn(0, 0));
-        }
     }
 }

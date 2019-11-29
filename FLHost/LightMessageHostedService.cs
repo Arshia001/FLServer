@@ -16,16 +16,14 @@ namespace FLHost
     class LightMessageHostedService : IHostedService
     {
         private readonly IGrainFactory grainFactory;
-        readonly IClusterClient client;
         readonly IOptions<LightMessageOptions> options;
         readonly ILogProvider logProvider;
 
         LightMessageHost? host;
 
-        public LightMessageHostedService(IGrainFactory grainFactory, IClusterClient client, IOptions<LightMessageOptions> options, ILogProvider logProvider)
+        public LightMessageHostedService(IGrainFactory grainFactory, IOptions<LightMessageOptions> options, ILogProvider logProvider)
         {
             this.grainFactory = grainFactory;
-            this.client = client;
             this.options = options;
             this.logProvider = logProvider;
         }

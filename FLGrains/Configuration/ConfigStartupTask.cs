@@ -9,18 +9,18 @@ namespace FLGrains.Configuration
 {
     public class ConfigStartupTask : IStartupTask
     {
-        IGrainFactory GrainFactory;
-        IConfigWriter ConfigWriter;
+        readonly IGrainFactory grainFactory;
+        readonly IConfigWriter configWriter;
 
-        public ConfigStartupTask(IGrainFactory GrainFactory, IConfigWriter ConfigWriter)
+        public ConfigStartupTask(IGrainFactory grainFactory, IConfigWriter configWriter)
         {
-            this.GrainFactory = GrainFactory;
-            this.ConfigWriter = ConfigWriter;
+            this.grainFactory = grainFactory;
+            this.configWriter = configWriter;
         }
 
         public async Task Execute(CancellationToken cancellationToken)
         {
-            ConfigWriter.Config = (await GrainFactory.GetGrain<ISystemConfig>(0).GetConfig()).Value;
+            configWriter.Config = (await grainFactory.GetGrain<ISystemConfig>(0).GetConfig()).Value;
         }
     }
 }

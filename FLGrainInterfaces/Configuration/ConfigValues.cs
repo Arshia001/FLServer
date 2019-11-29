@@ -31,5 +31,8 @@ namespace FLGrainInterfaces.Configuration
         public int WinDeltaScore { get; private set; }
         public int LossDeltaScore { get; private set; }
         public int DrawDeltaScore { get; private set; }
+
+        public uint MatchmakingScoreDifference { get; private set; }
+        public uint MatchmakingLevelDifference { get; private set; }
     }
 }
