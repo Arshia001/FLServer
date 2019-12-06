@@ -11,6 +11,7 @@ CLIENT Credits screen
 CLIENT Sounds
 CLIENT Ads
 CLIENT Version check
+CLIENT Telegram channel link
 
 SERVER XP / Score(?) calculations
 SERVER Game inactivity timeout -> 24 hours per turn
@@ -24,12 +25,11 @@ SERVER Global notification: Notify those already in the game via broadcast messa
 Only one time extension per round
 IAB
 Notifications (server-side, client-side)
+
 Inventory?
 Additional Statistics
 Friendship
 Chat
-
-Telegram channel link
 
 ART:
 Notification enabled/disabled

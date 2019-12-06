@@ -2,7 +2,6 @@
 using FLGrainInterfaces.Configuration;
 using FLGrains.ServiceInterfaces;
 using FLGrains.Utilities;
-using FLGrains.Utility;
 using LightMessage.OrleansUtils.Grains;
 using Orleans;
 using Orleans.Concurrency;
@@ -56,10 +55,10 @@ namespace FLGrains
 
                     state.Name = "Guest " + (new Random().Next(100_000, 1_000_000).ToString());
 
-                    return TaskEx.True;
+                    return FLTaskExtensions.True;
                 }
 
-                return TaskEx.False;
+                return FLTaskExtensions.False;
             });
 
             return await GetOwnPlayerInfo();
