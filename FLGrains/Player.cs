@@ -14,9 +14,7 @@ using System.Threading.Tasks;
 
 namespace FLGrains
 {
-    //?? MoneySpentCustomizations
-
-    //?? The StateWrapper allows us to know exactly when we need to persist. Now, do we need a timer for periodic persistance?
+    //!! The StateWrapper allows us to know exactly when we need to persist. Now, do we need a timer for periodic persistance?
     // I think not, since we're likely to give player grains low lifetimes. If we don't, we should probably put the timer in.
     class Player : Grain, IPlayer
     {
@@ -120,6 +118,8 @@ namespace FLGrains
 
         public Task<(uint score, uint level)> GetMatchMakingInfo() => state.UseState(state => Task.FromResult((state.Score, state.Level)));
 
+        public Task<uint> GetScore() => state.UseState(state => Task.FromResult(state.Score));
+
         PlayerInfo GetPlayerInfoImpl() => state.UseState(state => new PlayerInfo(id: this.GetPrimaryKey(), name: state.Name, level: state.Level));
 
         LevelConfig GetLevelConfig(ReadOnlyConfigData config) =>
@@ -129,11 +129,13 @@ namespace FLGrains
 
         uint GetNextLevelRequiredXP(ReadOnlyConfigData config) => state.UseState(state => GetLevelConfig(config).GetRequiredXP(state));
 
-        Task AddXP(uint delta) =>
-            state.UseStateAndLazyPersist(async state =>
+        ulong GiveGold(uint delta) => state.UseStateAndLazyPersist(s => s.Gold += delta);
+
+        (uint level, uint xp) AddXP(uint delta) =>
+            state.UseStateAndLazyPersist(state =>
             {
                 if (delta == 0)
-                    return;
+                    return (state.Level, state.XP);
 
                 var reqXP = GetNextLevelRequiredXP(configReader.Config);
 
@@ -148,8 +150,7 @@ namespace FLGrains
 
                 LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.XP).AddDelta(id, delta).Ignore();
 
-                if (systemEndPoint != null)
-                    await systemEndPoint.SendXPUpdated(id, state.XP, state.Level);
+                return (state.Level, state.XP);
             });
 
         public Task<bool> SetUsername(string username) =>
@@ -321,39 +322,57 @@ namespace FLGrains
                 return lb.SetAndGetRank(this.GetPrimaryKey(), state.Score);
             });
 
+        Task<ulong> GetRank() => LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).GetRank(this.GetPrimaryKey());
 
-        public Task<(uint score, uint rank)> OnGameResult(IGame game, CompetitionResult result, uint myScore) =>
+        public Task<(uint score, uint rank, uint level, uint xp, ulong gold)> OnGameResult(IGame game, CompetitionResult result, uint myScore, uint scoreGain) =>
             state.UseStateAndPersist(async state =>
             {
-                //?? gold rewards?
-                //?? AddStat RewardMoneyEarned
-
                 SetMaxStat(myScore, Statistics.BestGameScore);
 
                 state.ActiveGames.Remove(game);
                 state.PastGames.Add(game);
 
-                ulong rank = 0;
+                var rank = 0UL;
+                var gold = 0UL;
+                var xp = 0U;
+                var level = 0U;
+
+                var config = configReader.Config.ConfigValues;
 
                 switch (result)
                 {
                     case CompetitionResult.Draw:
-                        rank = await AddScore(configReader.Config.ConfigValues.DrawDeltaScore);
+                        rank = await GetRank();
+                        (level, xp) = AddXP(config.DrawXPGain);
+                        gold = GiveGold(config.DrawGoldGain);
+                        
                         AddStatImpl(1, Statistics.GamesEndedInDraw);
+                        AddStatImpl(config.DrawGoldGain, Statistics.RewardMoneyEarned);
+                        
                         break;
 
                     case CompetitionResult.Win:
-                        rank = await AddScore(configReader.Config.ConfigValues.WinDeltaScore);
+                        rank = await AddScore((int)scoreGain);
+                        (level, xp) = AddXP(config.WinnerXPGain);
+                        gold = GiveGold(config.WinnerGoldGain);
+                        
                         AddStatImpl(1, Statistics.GamesWon);
+                        AddStatImpl(config.WinnerGoldGain, Statistics.RewardMoneyEarned);
+                        
                         break;
 
                     case CompetitionResult.Loss:
-                        rank = await AddScore(configReader.Config.ConfigValues.LossDeltaScore);
+                        rank = await AddScore(-(int)(scoreGain * config.LoserScoreLossRatio));
+                        (level, xp) = AddXP(config.LoserXPGain);
+                        gold = GiveGold(config.LoserGoldGain);
+                        
                         AddStatImpl(1, Statistics.GamesLost);
+                        AddStatImpl(config.LoserGoldGain, Statistics.RewardMoneyEarned);
+                        
                         break;
                 }
 
-                return (state.Score, (uint)rank);
+                return (state.Score, (uint)rank, level, xp, gold);
             });
 
         public Task<(ulong? gold, TimeSpan? remainingTime)> IncreaseRoundTime(Guid gameID) =>

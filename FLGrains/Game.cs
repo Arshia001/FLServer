@@ -5,6 +5,7 @@ using FLGameLogicServer;
 using FLGrainInterfaces;
 using FLGrainInterfaces.Configuration;
 using FLGrains.Utilities;
+using FLGrains.Utility;
 using LightMessage.OrleansUtils.Grains;
 using Orleans;
 using Orleans.Concurrency;
@@ -296,12 +297,17 @@ namespace FLGrains
                     IPlayer player0 = GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]);
                     IPlayer player1 = GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[1]);
 
-                    var (score0, rank0) = await player0.OnGameResult(me, CompetitionResultHelper.Get(wins0, wins1), wins0);
-                    var (score1, rank1) = await player1.OnGameResult(me, CompetitionResultHelper.Get(wins1, wins0), wins1);
+                    var initScore0 = await player0.GetScore();
+                    var initScore1 = await player1.GetScore();
 
-                    if (!await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(state.PlayerIDs[0], myID, wins0, wins1, score0, rank0))
+                    var scoreGain = ScoreGainCalculator.CalculateGain(initScore0, wins0, initScore1, wins1, configReader.Config);
+
+                    var (score0, rank0, level0, xp0, gold0) = await player0.OnGameResult(me, CompetitionResultHelper.Get(wins0, wins1), wins0, scoreGain);
+                    var (score1, rank1, level1, xp1, gold1) = await player1.OnGameResult(me, CompetitionResultHelper.Get(wins1, wins0), wins1, scoreGain);
+
+                    if (!await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(state.PlayerIDs[0], myID, wins0, wins1, score0, rank0, level0, xp0, gold0))
                         await player0.SendGameEndedNotification(state.PlayerIDs[1]);
-                    if (!await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(state.PlayerIDs[1], myID, wins1, wins0, score1, rank1))
+                    if (!await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(state.PlayerIDs[1], myID, wins1, wins0, score1, rank1, level1, xp1, gold1))
                         await player1.SendGameEndedNotification(state.PlayerIDs[0]);
 
                     // await ClearStateAsync(); // keep game history (separately)

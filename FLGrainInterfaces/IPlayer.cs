@@ -120,6 +120,7 @@ namespace FLGrainInterfaces
         Task<OwnPlayerInfo> GetOwnPlayerInfo();
         Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo();
         Task<(uint score, uint level)> GetMatchMakingInfo();
+        Task<uint> GetScore();
         Task<(PlayerInfo info, bool[] haveCategoryAnswers)> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories);
 
         Task<bool> SetUsername(string username);
@@ -138,7 +139,7 @@ namespace FLGrainInterfaces
         Task<(Guid opponentID, byte numRounds)> JoinGameAsSecondPlayer(IGame game);
         Task OnRoundCompleted(IGame game, uint myScore);
         Task OnRoundResult(IGame game, CompetitionResult result, ushort groupID);
-        Task<(uint score, uint rank)> OnGameResult(IGame game, CompetitionResult result, uint myScore);
+        Task<(uint score, uint rank, uint level, uint xp, ulong gold)> OnGameResult(IGame game, CompetitionResult result, uint myScore, uint scoreGain);
 
         Task<(bool success, ulong totalGold, TimeSpan duration)> ActivateInfinitePlay();
 

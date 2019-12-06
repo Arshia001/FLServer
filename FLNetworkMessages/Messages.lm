@@ -57,7 +57,8 @@ enum Statistics
 	MoneySpentRevealAnswers,
 	RevealAnswersUsed,
 	MoneySpentInfinitePlay,
-	InfinitePlayUsed
+	InfinitePlayUsed,
+	MoneySpentCustomizations
 }
 
 enum LeaderBoardSubject
@@ -217,12 +218,6 @@ endpoint System sys
 		totalRoundsWon: u32;
 	}
 
-	notification XPUpdated xp
-	{
-		totalXP: u32;
-		totalLevel: u32;
-	}
-
 	notification StatisticUpdated st
 	{
 		stat: StatisticValue;
@@ -374,6 +369,9 @@ endpoint Game gm
 		theirScore: u32;
 		myPlayerScore: u32;
 		myPlayerRank: u32;
+		myLevel: u32;
+		myXP: u32;
+		myGold: u64;
 	}
 
 	request NewGame new

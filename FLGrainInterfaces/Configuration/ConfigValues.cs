@@ -28,11 +28,19 @@ namespace FLGrainInterfaces.Configuration
         public TimeSpan RoundWinRewardInterval { get; private set; }
         public uint NumGoldRewardForWinningRounds { get; private set; }
 
-        public int WinDeltaScore { get; private set; }
-        public int LossDeltaScore { get; private set; }
-        public int DrawDeltaScore { get; private set; }
-
         public uint MatchmakingScoreDifference { get; private set; }
         public uint MatchmakingLevelDifference { get; private set; }
+
+        public uint MaxScoreGain { get; private set; }
+        public uint MinScoreGain { get; private set; }
+        public float LoserScoreLossRatio { get; private set; }
+
+        public uint WinnerXPGain { get; private set; }
+        public uint LoserXPGain { get; private set; }
+        public uint DrawXPGain { get; private set; }
+
+        public uint WinnerGoldGain { get; private set; }
+        public uint LoserGoldGain { get; private set; }
+        public uint DrawGoldGain { get; private set; }
     }
 }

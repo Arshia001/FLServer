@@ -9,7 +9,6 @@ namespace FLGrains
     public abstract class SystemEndPointBase : LightMessage.OrleansUtils.Grains.EndPointGrain, ISystemEndPoint
     {
         public virtual System.Threading.Tasks.Task<bool> SendNumRoundsWonForRewardUpdated(System.Guid clientID, uint totalRoundsWon) => SendMessage(clientID, "rwu", LightMessage.Common.Messages.Param.UInt(totalRoundsWon));
-        public virtual System.Threading.Tasks.Task<bool> SendXPUpdated(System.Guid clientID, uint totalXP, uint totalLevel) => SendMessage(clientID, "xp", LightMessage.Common.Messages.Param.UInt(totalXP), LightMessage.Common.Messages.Param.UInt(totalLevel));
         public virtual System.Threading.Tasks.Task<bool> SendStatisticUpdated(System.Guid clientID, StatisticValue stat) => SendMessage(clientID, "st", stat?.ToParam() ?? LightMessage.Common.Messages.Param.Null());
         protected abstract System.Threading.Tasks.Task<(OwnPlayerInfo playerInfo, ConfigValuesDTO configData, System.Collections.Generic.IEnumerable<GoldPackConfigDTO> goldPacks)> GetStartupInfo(System.Guid clientID);
 
@@ -163,7 +162,7 @@ namespace FLGrains
     {
         public virtual System.Threading.Tasks.Task<bool> SendOpponentJoined(System.Guid clientID, System.Guid gameID, PlayerInfo opponentInfo) => SendMessage(clientID, "opj", LightMessage.Common.Messages.Param.Guid(gameID), opponentInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null());
         public virtual System.Threading.Tasks.Task<bool> SendOpponentTurnEnded(System.Guid clientID, System.Guid gameID, byte roundNumber, System.Collections.Generic.IEnumerable<WordScorePairDTO>? wordsPlayed) => SendMessage(clientID, "opr", LightMessage.Common.Messages.Param.Guid(gameID), LightMessage.Common.Messages.Param.UInt(roundNumber), LightMessage.Common.Messages.Param.Array(wordsPlayed?.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
-        public virtual System.Threading.Tasks.Task<bool> SendGameEnded(System.Guid clientID, System.Guid gameID, uint myScore, uint theirScore, uint myPlayerScore, uint myPlayerRank) => SendMessage(clientID, "gend", LightMessage.Common.Messages.Param.Guid(gameID), LightMessage.Common.Messages.Param.UInt(myScore), LightMessage.Common.Messages.Param.UInt(theirScore), LightMessage.Common.Messages.Param.UInt(myPlayerScore), LightMessage.Common.Messages.Param.UInt(myPlayerRank));
+        public virtual System.Threading.Tasks.Task<bool> SendGameEnded(System.Guid clientID, System.Guid gameID, uint myScore, uint theirScore, uint myPlayerScore, uint myPlayerRank, uint myLevel, uint myXP, ulong myGold) => SendMessage(clientID, "gend", LightMessage.Common.Messages.Param.Guid(gameID), LightMessage.Common.Messages.Param.UInt(myScore), LightMessage.Common.Messages.Param.UInt(theirScore), LightMessage.Common.Messages.Param.UInt(myPlayerScore), LightMessage.Common.Messages.Param.UInt(myPlayerRank), LightMessage.Common.Messages.Param.UInt(myLevel), LightMessage.Common.Messages.Param.UInt(myXP), LightMessage.Common.Messages.Param.UInt(myGold));
         protected abstract System.Threading.Tasks.Task<(System.Guid gameID, PlayerInfo? opponentInfo, byte numRounds, bool myTurnFirst)> NewGame(System.Guid clientID);
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("new")]
