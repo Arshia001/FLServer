@@ -57,8 +57,7 @@ enum Statistics
 	MoneySpentRevealAnswers,
 	RevealAnswersUsed,
 	MoneySpentInfinitePlay,
-	InfinitePlayUsed,
-	MoneySpentCustomizations
+	InfinitePlayUsed
 }
 
 enum LeaderBoardSubject
@@ -316,6 +315,8 @@ endpoint System sys
 	request SendPasswordRecoveryLink pwdrl { { email: string; } -> noresponse }
 
 	request RegisterFcmToken fcm via Player(clientid).SetFcmToken(token) { { token: string; } -> noresponse }
+
+	request ClearFinishedGames cfg via Player(clientid).ClearFinishedGames() { { } -> noresponse }
 
 	request GetClientVersion cvn { { } -> { latest: u32; minimumSupported: u32; } }
 }

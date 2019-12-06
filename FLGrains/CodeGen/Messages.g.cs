@@ -122,6 +122,14 @@ namespace FLGrains
             return NoResult();
         }
 
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("cfg")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_ClearFinishedGames(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            await GrainFactory.GetGrain<IPlayer>(input.ClientID).ClearFinishedGames();
+            return NoResult();
+        }
+
         protected abstract System.Threading.Tasks.Task<(uint latest, uint minimumSupported)> GetClientVersion(System.Guid clientID);
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("cvn")]

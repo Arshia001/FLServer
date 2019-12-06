@@ -67,6 +67,12 @@ namespace FLGrains
                 Task.FromResult(state.ActiveGames.Concat(state.PastGames).ToList().AsImmutable<IReadOnlyList<IGame>>())
             );
 
+        public Task ClearFinishedGames()
+        {
+            state.UseStateAndLazyPersist(s => s.PastGames.Clear());
+            return Task.CompletedTask;
+        }
+
         public Task<PlayerInfo> GetPlayerInfo() => Task.FromResult(GetPlayerInfoImpl());
 
         Task<string> IPlayer.GetName() => state.UseState(state => Task.FromResult(state.Name));
