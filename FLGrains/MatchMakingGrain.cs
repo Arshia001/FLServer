@@ -12,16 +12,17 @@ using System.Threading.Tasks;
 
 namespace FLGrains
 {
+    [Schema]
     class MatchMakingEntry
     {
         [Id(0)]
-        public IGame? Game { get; }
+        public IGame? Game { get; private set; }
         [Id(1)]
-        public uint Score { get; }
+        public uint Score { get; private set; }
         [Id(2)]
-        public uint Level { get; }
+        public uint Level { get; private set; }
         [Id(3)]
-        public Guid FirstPlayerID { get; }
+        public Guid FirstPlayerID { get; private set; }
 
         [Obsolete("For deserialization only")] public MatchMakingEntry() { }
 

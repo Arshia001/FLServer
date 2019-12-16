@@ -16,7 +16,7 @@ CLIENT Version check
 CLIENT Telegram channel link
 
 SERVER Game inactivity timeout -> 24 hours per turn
-SERVER Recovery emails!!! -.- -> Bolero? XD
+SERVER Recovery emails!!! -.- -> Bolero? SAFE? XD
 SERVER Safe service restart -> 
 	Notify status service (how?)
 	***stop timing games*** (?)

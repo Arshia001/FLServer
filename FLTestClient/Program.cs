@@ -152,6 +152,36 @@ namespace FLTestClient
         }
     }
 
+    [Schema]
+    class MatchMakingEntry
+    {
+        [Id(0)]
+        public IGame? Game { get; private set; }
+        [Id(1)]
+        public uint Score { get; private set; }
+        [Id(2)]
+        public uint Level { get; private set; }
+        [Id(3)]
+        public Guid FirstPlayerID { get; private set; }
+
+        [Obsolete("For deserialization only")] public MatchMakingEntry() { }
+
+        public MatchMakingEntry(IGame game, uint score, uint level, Guid firstPlayerID)
+        {
+            Game = game;
+            Score = score;
+            Level = level;
+            FirstPlayerID = firstPlayerID;
+        }
+    }
+
+    [Schema, BondSerializationTag("#mmmmmmmm")]
+    class MatchMakingGrainState
+    {
+        [Id(0)]
+        public List<MatchMakingEntry>? Entries { get; private set; }
+    }
+
     class Program
     {
         static Guid ID(int i) => new Guid(i, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -164,11 +194,11 @@ namespace FLTestClient
             var provider = svc.BuildServiceProvider();
 
             BondSerializationUtil.Initialize(provider);
-            var ss = new GameGrain_State();
-            ss.OnDeserialized();
-            ss.GameData = new GameLogicServer(1).Serialize();
-            var s = BondSerializer.Serialize(ss);
-            var d = (GameGrain_State)BondSerializer.Deserialize(typeof(GameGrain_State), new ArraySegmentReaderStream(s));
+            // var ss = new MatchMakingEntry();
+            // ss.OnDeserialized();
+            // ss.GameData = new GameLogicServer(1).Serialize();
+            // var s = BondSerializer.Serialize(ss);
+            // var d = (GameGrain_State)BondSerializer.Deserialize(typeof(GameGrain_State), new ArraySegmentReaderStream(s));
         }
     }
 }
