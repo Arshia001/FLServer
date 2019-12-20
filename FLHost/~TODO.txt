@@ -19,10 +19,23 @@ SERVER Game inactivity timeout -> 24 hours per turn
 SERVER Connect a mail server, figure out how to maintain one
 SERVER Decide grain collection times, lower collection time for player grains
 
+WEBSITE Fix the thing's looks!
+
 Only one time extension per round
 IAB
 
-Optional / for later:
+ART:
+Notification enabled/disabled
+Login / register
+Round win reward
+Splash
+Logo
+Credits screen
+
+*************************************************
+Optional / for later
+*************************************************
+
 SERVER Separate game history? There's a bit of performance and some complexity to gain from adding a separate "GameHistoryRecord" grain
 SERVER planned down-time -> notify players in some way (broadcast messages?) (Use push notifications for now?)
 SERVER Global notification: Notify those already in the game via broadcast message (implement that too!), notify those that log in on startup
@@ -32,15 +45,13 @@ SERVER Safe service restart ->
 	reject new connections
 	turn service off when no connections remain -> **might take a lot of time**! Force people out after a while?
 
+SERVER Embed the password recovery website into the silo host ->
+	Move website projects out of their folder structure and unify with rest of solution
+	Move entire solution into an src directory
+	Remove the website specific FAKE script and create a top-level FAKE script to handle everything (service status included)
+	Turn Saturn.Application.run into a hosted service
+
 Inventory?
 Additional Statistics
 Friendship
 Chat
-
-ART:
-Notification enabled/disabled
-Login / register
-Round win reward
-Splash
-Logo
-Credits screen
