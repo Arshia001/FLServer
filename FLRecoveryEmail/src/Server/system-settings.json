@@ -1,0 +1,4 @@
+{
+    "ConnectionString": "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy",
+    "Port": 8085
+}

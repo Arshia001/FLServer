@@ -60,10 +60,16 @@ module Program =
 
             do! host.StartAsync()
 
+            let mutable exitRequested = false
+
+            host.Services.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping.Register (fun () -> 
+                exitRequested <- true
+                ) |> ignore
+
             do! clusterClient.Connect(fun exn -> task {
                 printfn "Failed to connect to any silos, will retry. Exception: %A" exn
-                do! Task.Delay(TimeSpan.FromSeconds(4.))
-                return true
+                do! Task.Delay(TimeSpan.FromSeconds(2.))
+                return not exitRequested
             })
 
             do! host.WaitForShutdownAsync()

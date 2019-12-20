@@ -16,20 +16,21 @@ CLIENT Version check
 CLIENT Telegram channel link
 
 SERVER Game inactivity timeout -> 24 hours per turn
-SERVER Recovery emails!!! -.- -> Bolero? SAFE? XD
-SERVER Safe service restart -> 
-	Notify status service (how?)
-	***stop timing games*** (?)
-	reject new connections
-	turn service off when no connections remain -> **might take a lot of time**! Force people out after a while?
-SERVER planned down-time -> notify players in some way (broadcast messages?)
-SERVER Global notification: Notify those already in the game via broadcast message (implement that too!), notify those that log in on startup
+SERVER Recovery emails
 
 Only one time extension per round
 IAB
 
 Optional / for later:
 SERVER Separate game history? There's a bit of performance and some complexity to gain from adding a separate "GameHistoryRecord" grain
+SERVER planned down-time -> notify players in some way (broadcast messages?) (Use push notifications for now?)
+SERVER Global notification: Notify those already in the game via broadcast message (implement that too!), notify those that log in on startup
+SERVER Safe service restart -> 
+	Notify status service (how?)
+	***stop timing games*** (?)
+	reject new connections
+	turn service off when no connections remain -> **might take a lot of time**! Force people out after a while?
+
 Inventory?
 Additional Statistics
 Friendship
