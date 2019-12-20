@@ -8,36 +8,32 @@ namespace FLGrainInterfaces.Configuration
 {
     public class SystemSettings
     {
-        class JsonValues
+        public class JsonValues
         {
-            public JsonValues(string connectionString, uint latestVersion, uint minimumSupportedVersion)
+            public JsonValues(string connectionString, uint latestVersion, uint minimumSupportedVersion, TimeSpan passwordRecoveryTokenExpirationInterval)
             {
                 ConnectionString = connectionString;
                 LatestVersion = latestVersion;
                 MinimumSupportedVersion = minimumSupportedVersion;
+                PasswordRecoveryTokenExpirationInterval = passwordRecoveryTokenExpirationInterval;
             }
 
             public string ConnectionString { get; }
 
             public uint LatestVersion { get; }
             public uint MinimumSupportedVersion { get; }
+
+            public TimeSpan PasswordRecoveryTokenExpirationInterval { get; }
         }
 
         public SystemSettings(string jsonValues, string fcmServiceAccountKeys)
         {
             FcmServiceAccountKeys = fcmServiceAccountKeys;
-
-            var values = JsonConvert.DeserializeObject<JsonValues>(jsonValues);
-            ConnectionString = values.ConnectionString;
-            LatestVersion = values.LatestVersion;
-            MinimumSupportedVersion = values.MinimumSupportedVersion;
+            Values = JsonConvert.DeserializeObject<JsonValues>(jsonValues);
         }
 
         public string FcmServiceAccountKeys { get; }
-        
-        public string ConnectionString { get; }
-        
-        public uint LatestVersion { get; }
-        public uint MinimumSupportedVersion { get; }
+
+        public JsonValues Values { get; }
     }
 }

@@ -119,7 +119,7 @@ namespace FLGrains.Configuration
 
         async Task InternalUpdateConfigFromDatabase()
         {
-            var connectionString = systemSettingsProvider.Settings.ConnectionString;
+            var connectionString = systemSettingsProvider.Settings.Values.ConnectionString;
             var session = await CassandraSessionFactory.CreateSession(connectionString);
             var queries = await Queries.CreateInstance(session);
 
@@ -147,7 +147,7 @@ namespace FLGrains.Configuration
 
         public async Task UploadConfig(string jsonConfig)
         {
-            var connectionString = systemSettingsProvider.Settings.ConnectionString;
+            var connectionString = systemSettingsProvider.Settings.Values.ConnectionString;
             var session = await CassandraSessionFactory.CreateSession(connectionString);
 
             var data = GetData();

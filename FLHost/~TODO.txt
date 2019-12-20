@@ -16,7 +16,8 @@ CLIENT Version check
 CLIENT Telegram channel link
 
 SERVER Game inactivity timeout -> 24 hours per turn
-SERVER Recovery emails
+SERVER Connect a mail server, figure out how to maintain one
+SERVER Decide grain collection times, lower collection time for player grains
 
 Only one time extension per round
 IAB

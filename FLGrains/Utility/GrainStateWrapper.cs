@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FLGrains.Utilities
+namespace FLGrains.Utility
 {
     class PersistStateEventArgs<TState> : EventArgs
     {

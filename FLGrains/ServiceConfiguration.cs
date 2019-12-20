@@ -33,6 +33,8 @@ namespace FLGrains
 
             services.AddSingleton<IFcmNotificationService, FcmNotificationService>();
 
+            services.AddSingleton<IEmailService, EmailService>();
+
             return services;
         }
     }

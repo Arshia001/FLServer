@@ -11,6 +11,13 @@ using System.Threading.Tasks;
 
 namespace FLGrainInterfaces
 {
+    public enum UpdatePasswordViaRecoveryTokenResult
+    {
+        Success,
+        InvalidOrExpiredToken,
+        PasswordNotComplexEnough
+    }
+
     public class PlayerInfoHelper
     {
         public static Task<PlayerInfo> GetInfo(IGrainFactory grainFactory, Guid playerID) => grainFactory.GetGrain<IPlayer>(playerID).GetPlayerInfo();
@@ -108,6 +115,12 @@ namespace FLGrainInterfaces
 
         [Id(18)]
         public bool NotificationsEnabled { get; set; }
+
+        [Id(19)]
+        public string? PasswordRecoveryToken { get; set; }
+
+        [Id(20)]
+        public DateTime? PasswordRecoveryTokenExpirationTime { get; set;}
     }
 
     [BondSerializationTag("@p")]
@@ -130,6 +143,8 @@ namespace FLGrainInterfaces
         Task<bool> ValidatePassword(string password);
         Task SendPasswordRecoveryLink();
 
+        Task<bool> ValidatePasswordRecoveryToken(string token);
+        Task<UpdatePasswordViaRecoveryTokenResult> UpdatePasswordViaRecoveryToken(string token, string newPassword);
 
         Task AddStats(List<StatisticValue> values);
 
@@ -171,12 +186,28 @@ namespace FLGrainInterfaces
         static readonly GrainIndexManager_Unique<string, IPlayer> byEmail =
             new GrainIndexManager_Unique<string, IPlayer>("p_e", 16384, new StringHashGenerator());
 
+        static readonly GrainIndexManager_Unique<string, IPlayer> byPasswordRecoveryToken =
+            new GrainIndexManager_Unique<string, IPlayer>("p_prt", 16384, new StringHashGenerator());
+
         public static Task<bool> UpdateUsernameIfUnique(IGrainFactory grainFactory, IPlayer player, string name) =>
             byUsername.UpdateIndexIfUnique(grainFactory, name.ToLower(), player);
 
         public static Task<bool> UpdateEmailIfUnique(IGrainFactory grainFactory, IPlayer player, string email) =>
             byEmail.UpdateIndexIfUnique(grainFactory, email.ToLower(), player);
 
-        public static Task<IPlayer> GetByEmail(IGrainFactory grainFactory, string email) => byEmail.GetGrain(grainFactory, email.ToLower());
+        //?? update indexer grains with nullability annotations
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
+        public static Task<IPlayer?> GetByEmail(IGrainFactory grainFactory, string email) => byEmail.GetGrain(grainFactory, email.ToLower());
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
+
+        public static Task SetPasswordRecoveryToken(IGrainFactory grainFactory, IPlayer player, string token) =>
+            byPasswordRecoveryToken.UpdateIndex(grainFactory, token, player);
+
+        public static Task RemovePasswordRecoveryToken(IGrainFactory grainFactory, string token) =>
+            byPasswordRecoveryToken.RemoveIndex(grainFactory, token);
+
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
+        public static Task<IPlayer?> GetByRecoveryToken(IGrainFactory grainFactory, string token) => byPasswordRecoveryToken.GetGrain(grainFactory, token);
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
     }
 }

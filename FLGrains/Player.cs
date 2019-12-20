@@ -1,7 +1,7 @@
 ﻿using FLGrainInterfaces;
 using FLGrainInterfaces.Configuration;
 using FLGrains.ServiceInterfaces;
-using FLGrains.Utilities;
+using FLGrains.Utility;
 using LightMessage.OrleansUtils.Grains;
 using Orleans;
 using Orleans.Concurrency;
@@ -20,13 +20,22 @@ namespace FLGrains
     {
         readonly IConfigReader configReader;
         readonly IFcmNotificationService fcmNotificationService;
-        private readonly GrainStateWrapper<PlayerState> state;
+        readonly ISystemSettingsProvider systemSettings;
+        readonly IEmailService emailService;
+        readonly GrainStateWrapper<PlayerState> state;
         ISystemEndPoint? systemEndPoint;
 
-        public Player(IConfigReader configReader, IFcmNotificationService fcmNotificationService, [PersistentState("State")] IPersistentState<PlayerState> state)
+        public Player(
+            IConfigReader configReader,
+            IFcmNotificationService fcmNotificationService,
+            ISystemSettingsProvider systemSettings,
+            IEmailService emailService,
+            [PersistentState("State")] IPersistentState<PlayerState> state)
         {
             this.configReader = configReader;
             this.fcmNotificationService = fcmNotificationService;
+            this.systemSettings = systemSettings;
+            this.emailService = emailService;
             this.state = new GrainStateWrapper<PlayerState>(state);
         }
 
@@ -195,8 +204,17 @@ namespace FLGrains
                 return (true, RegistrationResult.Success);
             });
 
-        private Task UpdatePasswordImpl(string password)
-            => state.UseStateAndPersist(state => { state.PasswordHash = CryptographyHelper.HashPassword(state.PasswordSalt, password); });
+        private Task<bool> UpdatePasswordImpl(string password)
+        {
+            if (!RegistrationInfoSpecification.IsPasswordComplexEnough(password))
+                return FLTaskExtensions.False;
+
+            return state.UseStateAndPersist(state =>
+            {
+                state.PasswordHash = CryptographyHelper.HashPassword(state.PasswordSalt, password);
+                return true;
+            });
+        }
 
         public Task<SetEmailResult> SetEmail(string email) =>
             state.UseStateAndMaybePersist(async state =>
@@ -219,22 +237,68 @@ namespace FLGrains
             if (!IsRegistered())
                 return SetPasswordResult.NotRegistered;
 
-            if (!RegistrationInfoSpecification.IsPasswordComplexEnough(newPassword))
-                return SetPasswordResult.PasswordNotComplexEnough;
-
-            await UpdatePasswordImpl(newPassword);
-            return SetPasswordResult.Success;
+            return await UpdatePasswordImpl(newPassword) ? SetPasswordResult.Success : SetPasswordResult.PasswordNotComplexEnough;
         }
 
         bool ValidatePasswordImpl(string password) => state.UseState(state => CryptographyHelper.HashPassword(state.PasswordSalt, password).SequenceEqual(state.PasswordHash));
 
         public Task<bool> ValidatePassword(string password) => Task.FromResult(ValidatePasswordImpl(password));
 
-        public Task SendPasswordRecoveryLink()
+        public Task SendPasswordRecoveryLink() => state.UseStateAndPersist(async state =>
         {
-            //?? email service?!!
-            return Task.CompletedTask;
-        }
+            if (state.Email == null)
+                throw new VerbatimException("Cannot send password recovery link because email address is not set");
+
+            await ClearPasswordRecoveryToken();
+
+            var token = PasswordRecoveryHelper.GenerateNewToken();
+
+            await emailService.SendPasswordRecovery(state.Email, state.Name, token);
+
+            state.PasswordRecoveryToken = token;
+            state.PasswordRecoveryTokenExpirationTime = DateTime.Now + systemSettings.Settings.Values.PasswordRecoveryTokenExpirationInterval;
+
+            await PlayerIndex.SetPasswordRecoveryToken(GrainFactory, this.AsReference<IPlayer>(), token);
+        });
+
+        Task ClearPasswordRecoveryToken() => state.UseStateAndLazyPersist(async state =>
+        {
+            if (state.PasswordRecoveryToken != null)
+                await PlayerIndex.RemovePasswordRecoveryToken(GrainFactory, state.PasswordRecoveryToken);
+
+            state.PasswordRecoveryToken = null;
+            state.PasswordRecoveryTokenExpirationTime = null;
+        });
+
+        bool IsPasswordRecoveryTokenValid(string token, PlayerState state) =>
+            state.PasswordRecoveryToken == token && state.PasswordRecoveryTokenExpirationTime.HasValue && state.PasswordRecoveryTokenExpirationTime.Value >= DateTime.Now;
+
+        public Task<bool> ValidatePasswordRecoveryToken(string token) => state.UseState(async state =>
+        {
+            var result = IsPasswordRecoveryTokenValid(token, state);
+            if (!result)
+                await ClearPasswordRecoveryToken();
+            return result;
+        });
+
+        public Task<UpdatePasswordViaRecoveryTokenResult> UpdatePasswordViaRecoveryToken(string token, string newPassword) => state.UseState(async state =>
+        {
+            if (!IsPasswordRecoveryTokenValid(token, state))
+            {
+                await ClearPasswordRecoveryToken();
+                return UpdatePasswordViaRecoveryTokenResult.InvalidOrExpiredToken;
+            }
+
+            var result = await UpdatePasswordImpl(newPassword);
+
+            if (result)
+            {
+                await ClearPasswordRecoveryToken();
+                return UpdatePasswordViaRecoveryTokenResult.Success;
+            }
+            else
+                return UpdatePasswordViaRecoveryTokenResult.PasswordNotComplexEnough;
+        });
 
         ulong GetStat(PlayerState state, Statistics stat, int parameter = 0) =>
             state.StatisticsValues.TryGetValue(new StatisticWithParameter(stat, parameter), out var value) ? value : 0UL;
@@ -351,30 +415,30 @@ namespace FLGrains
                         rank = await GetRank();
                         (level, xp) = AddXP(config.DrawXPGain);
                         gold = GiveGold(config.DrawGoldGain);
-                        
+
                         AddStatImpl(1, Statistics.GamesEndedInDraw);
                         AddStatImpl(config.DrawGoldGain, Statistics.RewardMoneyEarned);
-                        
+
                         break;
 
                     case CompetitionResult.Win:
                         rank = await AddScore((int)scoreGain);
                         (level, xp) = AddXP(config.WinnerXPGain);
                         gold = GiveGold(config.WinnerGoldGain);
-                        
+
                         AddStatImpl(1, Statistics.GamesWon);
                         AddStatImpl(config.WinnerGoldGain, Statistics.RewardMoneyEarned);
-                        
+
                         break;
 
                     case CompetitionResult.Loss:
                         rank = await AddScore(-(int)(scoreGain * config.LoserScoreLossRatio));
                         (level, xp) = AddXP(config.LoserXPGain);
                         gold = GiveGold(config.LoserGoldGain);
-                        
+
                         AddStatImpl(1, Statistics.GamesLost);
                         AddStatImpl(config.LoserGoldGain, Statistics.RewardMoneyEarned);
-                        
+
                         break;
                 }
 

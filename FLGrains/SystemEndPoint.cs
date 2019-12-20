@@ -67,6 +67,6 @@ namespace FLGrains
         }
 
         protected override Task<(uint latest, uint minimumSupported)> GetClientVersion(Guid clientID) =>
-            Task.FromResult((systemSettings.Settings.LatestVersion, systemSettings.Settings.MinimumSupportedVersion));
+            Task.FromResult((systemSettings.Settings.Values.LatestVersion, systemSettings.Settings.Values.MinimumSupportedVersion));
     }
 }

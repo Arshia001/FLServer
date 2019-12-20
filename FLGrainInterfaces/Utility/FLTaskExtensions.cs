@@ -13,5 +13,7 @@ namespace FLGrainInterfaces
         public static Task<bool> True { get; } = Task.FromResult(true);
 
         public static Task<bool> False { get; } = Task.FromResult(false);
+
+        public static Task<bool> FromBoolean(bool b) => b ? True : False;
     }
 }
