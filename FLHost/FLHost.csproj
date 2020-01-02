@@ -11,10 +11,17 @@
 
   <ItemGroup>
     <None Remove="firebase-adminsdk-accountkeys.json" />
+    <None Remove="ForgotPasswordTemplate.cshtml" />
     <None Remove="InitializeFLDatabase.cql" />
     <None Remove="SampleConfig.json" />
     <None Remove="system-settings.json" />
     <None Remove="update-config" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="ForgotPasswordTemplate.cshtml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

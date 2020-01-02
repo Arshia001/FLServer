@@ -14,7 +14,6 @@ let button txt disabled onClick =
     Button.button [
         Button.IsFullWidth
         Button.Color <| if disabled then IsDanger else IsSuccess
-        Button.Modifiers [ Modifier.TextSize (Screen.All, TextSize.Is1) ]
         Button.OnClick onClick
         Button.Disabled disabled
     ] [ str txt ]
@@ -36,7 +35,7 @@ let allowSubmit model =
 
 let view (model : Model) (dispatch : Msg -> unit) =
     template <|
-    div [] [
+    div [ Style [ Direction DirectionOptions.Rtl ] ] [
         match model.Status with
         | ValidatingToken ->
             p [] [ str "یه لحظه..." ]

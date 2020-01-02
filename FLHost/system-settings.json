@@ -1,6 +1,14 @@
-{
+﻿{
   "ConnectionString": "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy",
   "MinimumSupportedVersion": 1,
   "LatestVersion": 1,
-  "PasswordRecoveryTokenExpirationInterval": "1.00:00:00"
+  "PasswordRecoveryTokenExpirationInterval": "1.00:00:00",
+  "MailServerAddress": "localhost",
+  "MailServerPort": 25,
+  "MailServerUseSsl": false,
+  "ForgotPasswordFromAddress": "no-reply@pw.onehand.ir",
+  "ForgotPasswordFromSenderName": "مداد جنگی",
+  "ForgotPasswordSubject": "بازیابی گذرواژه",
+  "ForgotPasswordTemplateFilePath": "./ForgotPasswordTemplate.cshtml",
+  "ForgotPasswordRecoveryUrlTemplate": "password-reset.pw.onehand.ir/#token/{0}"
 }

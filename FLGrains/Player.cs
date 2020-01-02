@@ -192,6 +192,9 @@ namespace FLGrains
                 if (!RegistrationInfoSpecification.IsEmailAddressValid(email))
                     return (false, RegistrationResult.InvalidEmailAddress);
 
+                if (!RegistrationInfoSpecification.IsPasswordComplexEnough(password))
+                    return (false, RegistrationResult.PasswordNotComplexEnough);
+
                 if (!await PlayerIndex.UpdateEmailIfUnique(GrainFactory, this.AsReference<IPlayer>(), email))
                     return (false, RegistrationResult.EmailAddressInUse);
 

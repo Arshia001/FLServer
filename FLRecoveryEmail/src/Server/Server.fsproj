@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -19,6 +19,9 @@
         <Compile Include="ClusterClientProvider.fs" />
         <Compile Include="RecoveryEmailApi.fs" />
         <Compile Include="Server.fs" />
+        <Content Include="system-settings.json">
+            <CopyToOutputDirectory>true</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
