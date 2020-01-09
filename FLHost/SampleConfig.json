@@ -53,8 +53,11 @@
 
     "RoundTimeExtension": "00:00:30",
     "RoundTimeExtensionPrice": 500,
+    "NumTimeExtensionsPerRound": 1,
 
     "RevealWordPrice": 300,
+
+    "GameInactivityTimeout": "24:00:00",
 
     "MaxActiveGames": 5,
     "InfinitePlayPrice": 200,

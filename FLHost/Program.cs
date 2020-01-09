@@ -71,20 +71,22 @@ namespace FLHost
                     .Configure<LoadSheddingOptions>(o => o.LoadSheddingEnabled = true)
                     .Configure<GrainCollectionOptions>(o =>
                     {
-                        o.ClassSpecificCollectionAge["FLGrains.Game"] = TimeSpan.FromMinutes(5);
-                        o.CollectionQuantum = TimeSpan.FromMinutes(2);
+                        o.ClassSpecificCollectionAge["FLGrains.Game"] = TimeSpan.FromMinutes(10);
+                        o.ClassSpecificCollectionAge["FLGrains.Player"] = TimeSpan.FromMinutes(5);
+                        o.ClassSpecificCollectionAge["FLGrains.LeaderBoard"] = TimeSpan.FromHours(24);
+                        o.CollectionQuantum = TimeSpan.FromMinutes(3);
                     })
                     .UseCassandraClustering((CassandraClusteringOptions o) =>
                     {
-                        o.ConnectionString = "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy";
+                        o.ConnectionString = systemSettings.Values.ConnectionString;
                     })
                     .UseCassandraReminderService((CassandraReminderTableOptions o) =>
                     {
-                        o.ConnectionString = "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy";
+                        o.ConnectionString = systemSettings.Values.ConnectionString;
                     })
                     .AddCassandraGrainStorageAsDefault((CassandraGrainStorageOptions o) =>
                     {
-                        o.ConnctionString = "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy";
+                        o.ConnctionString = systemSettings.Values.ConnectionString;
                         o.AddSerializationProvider(1, new BondCassandraStorageSerializationProvider());
                     })
                     .ConfigureApplicationParts(p =>

@@ -35,11 +35,14 @@ namespace FLGrains
 
         [Id(4)]
         public List<ushort>? GroupChoices { get; set; }
+
+        [Id(5)]
+        public int[] TimeExtensionsForThisRound { get; set; } = new[] { 0, 0 };
     }
 
     //?? Now, we only need a way to reactivate these if one of them goes down... Same old challenge.
     //?? cache player names along with games?
-    class Game : Grain, IGame
+    class Game : Grain, IGame, IRemindable
     {
         class EndRoundTimerData
         {
@@ -98,6 +101,8 @@ namespace FLGrains
             if (numPlayers >= 2)
                 await SetTimerOrProcessEndTurnIfNecessary(1);
         }
+
+        public override Task OnDeactivateAsync() => state.PerformLazyPersistIfPending();
 
         GameLogicServer GameLogic => gameLogic ?? throw new Exception("Internal error: game logic not initialized");
 
@@ -194,7 +199,11 @@ namespace FLGrains
                 });
             }
             else
+            {
+                await state.UseStateAndPersist(s => s.TimeExtensionsForThisRound[index] = 0);
+
                 return (category, await GrainFactory.GetGrain<IPlayer>(id).HaveAnswersForCategory(category), roundTime, false, Enumerable.Empty<GroupInfoDTO>());
+            }
         }
 
         public async Task<(string category, bool haveAnswers, TimeSpan roundTime)> ChooseGroup(Guid id, ushort groupID)
@@ -237,6 +246,7 @@ namespace FLGrains
 
             await state.UseStateAndPersist(state =>
             {
+                state.TimeExtensionsForThisRound[index] = 0;
                 state.GroupChooser = -1;
                 state.GroupChoices = null;
             });
@@ -257,6 +267,8 @@ namespace FLGrains
             {
                 if (state.LastProcessedEndTurns[playerIndex] >= roundIndex)
                     return false;
+
+                var config = configReader.Config;
 
                 if (playerIndex == 0 && roundIndex == 0)
                     await GrainFactory.GetGrain<IMatchMakingGrain>(0).AddGame(this.AsReference<IGame>(), GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]));
@@ -281,7 +293,7 @@ namespace FLGrains
                     var score1 = GameLogic.GetPlayerScores(1)[roundIndex];
 
                     var category = GameLogic.Categories[roundIndex].CategoryName;
-                    var groupID = configReader.Config.CategoriesByName[category].Group.ID;
+                    var groupID = config.CategoriesByName[category].Group.ID;
 
                     GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]).OnRoundResult(this.AsReference<IGame>(), CompetitionResultHelper.Get(score0, score1), groupID).Ignore();
                     GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[1]).OnRoundResult(this.AsReference<IGame>(), CompetitionResultHelper.Get(score1, score0), groupID).Ignore();
@@ -299,7 +311,7 @@ namespace FLGrains
                     var initScore0 = await player0.GetScore();
                     var initScore1 = await player1.GetScore();
 
-                    var scoreGain = ScoreGainCalculator.CalculateGain(initScore0, wins0, initScore1, wins1, configReader.Config);
+                    var scoreGain = ScoreGainCalculator.CalculateGain(initScore0, wins0, initScore1, wins1, config);
 
                     var (score0, rank0, level0, xp0, gold0) = await player0.OnGameResult(me, CompetitionResultHelper.Get(wins0, wins1), wins0, scoreGain);
                     var (score1, rank1, level1, xp1, gold1) = await player1.OnGameResult(me, CompetitionResultHelper.Get(wins1, wins0), wins1, scoreGain);
@@ -309,12 +321,32 @@ namespace FLGrains
                     if (!await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(state.PlayerIDs[1], myID, wins1, wins0, score1, rank1, level1, xp1, gold1))
                         await player1.SendGameEndedNotification(state.PlayerIDs[0]);
 
+                    var expiryReminder = await GetReminder("e");
+                    if (expiryReminder != null)
+                        await UnregisterReminder(expiryReminder);
+
                     // await ClearStateAsync(); // keep game history (separately)
                     DeactivateOnIdle();
+                }
+                else
+                {
+                    if (await GetState() != GameState.WaitingForSecondPlayer)
+                        await RegisterOrUpdateReminder("e", config.ConfigValues.GameInactivityTimeout, config.ConfigValues.GameInactivityTimeout);
                 }
 
                 return true;
             });
+
+        public async Task ReceiveReminder(string reminderName, TickStatus status)
+        {
+            switch (reminderName)
+            {
+                case "e":
+                    //?? Add "expired" state to game states, add explicit winner parameter, add to gameinfo and sendgameended
+                    await Task.Yield(); //??
+                    break;
+            }
+        }
 
         public async Task<(byte wordScore, string corrected)> PlayWord(Guid id, string word)
         {
@@ -373,13 +405,19 @@ namespace FLGrains
                 return default(IEnumerable<WordScorePair>).AsImmutable();
         }
 
-        public Task<TimeSpan?> IncreaseRoundTime(Guid playerID)
+        public Task<TimeSpan?> IncreaseRoundTime(Guid playerID) => state.UseStateAndMaybePersist(s =>
         {
-            var extension = configReader.Config.ConfigValues.RoundTimeExtension;
+            var config = configReader.Config;
+
             var index = Index(playerID);
+            if (s.TimeExtensionsForThisRound[index] >= config.ConfigValues.NumTimeExtensionsPerRound)
+                return (false, default(TimeSpan?));
+
+            var extension = config.ConfigValues.RoundTimeExtension;
             var endTime = GameLogic.ExtendRoundTime(index, extension);
-            return Task.FromResult(endTime == null ? default(TimeSpan?) : extension);
-        }
+            ++s.TimeExtensionsForThisRound[index];
+            return (true, endTime == null ? default(TimeSpan?) : extension);
+        });
 
         public async Task<(string word, byte wordScore)?> RevealWord(Guid playerID)
         {

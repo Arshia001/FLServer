@@ -12,10 +12,13 @@ namespace FLGrainInterfaces.Configuration
 
         public TimeSpan RoundTimeExtension { get; private set; }
         public uint RoundTimeExtensionPrice { get; private set; }
+        public uint NumTimeExtensionsPerRound { get; private set; }
 
         public uint RevealWordPrice { get; private set; }
 
         public uint GetAnswersPrice { get; private set; }
+
+        public TimeSpan GameInactivityTimeout { get; private set; }
 
         public uint MaxActiveGames { get; private set; }
         public uint InfinitePlayPrice { get; private set; }

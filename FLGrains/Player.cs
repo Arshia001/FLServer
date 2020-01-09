@@ -45,7 +45,7 @@ namespace FLGrains
             return base.OnActivateAsync();
         }
 
-        public override Task OnDeactivateAsync() => state?.PerformLazyPersistIfPending() ?? Task.CompletedTask;
+        public override Task OnDeactivateAsync() => state.PerformLazyPersistIfPending();
 
         public async Task<OwnPlayerInfo> PerformStartupTasksAndGetInfo()
         {

@@ -14,22 +14,18 @@ CLIENT Sounds
 CLIENT Ads
 CLIENT Version check
 CLIENT Telegram channel link
+CLIENT time extension limit per round
+CLIENT IAB
 
 SERVER Game inactivity timeout -> 24 hours per turn
-SERVER Decide grain collection times, lower collection time for player grains
+SERVER IAB
 
 WEBSITE Fix the thing's looks!
 
-Only one time extension per round
-IAB
-
-ART:
-Notification enabled/disabled
-Login / register
-Round win reward
-Splash
-Logo
-Credits screen
+ART Notification enabled/disabled
+ART Login / register
+ART Splash
+ART Logo
 
 *************************************************
 Optional / for later
@@ -54,3 +50,5 @@ Inventory?
 Additional Statistics
 Friendship
 Chat
+
+ART Credits screen
