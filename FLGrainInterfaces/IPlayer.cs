@@ -58,7 +58,7 @@ namespace FLGrainInterfaces
         public static bool operator !=(StatisticWithParameter left, StatisticWithParameter right) => !(left == right);
     }
 
-    //?? keep full history of past games somewhere else if needed, limit history here to a few items
+    //!! keep full history of past games somewhere else if needed, limit history here to a few items
     [Schema, BondSerializationTag("#p")]
     public class PlayerState
     {
@@ -195,7 +195,7 @@ namespace FLGrainInterfaces
         public static Task<bool> UpdateEmailIfUnique(IGrainFactory grainFactory, IPlayer player, string email) =>
             byEmail.UpdateIndexIfUnique(grainFactory, email.ToLower(), player);
 
-        //?? update indexer grains with nullability annotations
+        //!! update indexer grains with nullability annotations
 #pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
         public static Task<IPlayer?> GetByEmail(IGrainFactory grainFactory, string email) => byEmail.GetGrain(grainFactory, email.ToLower());
 #pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.

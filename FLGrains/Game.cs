@@ -41,7 +41,7 @@ namespace FLGrains
     }
 
     //?? Now, we only need a way to reactivate these if one of them goes down... Same old challenge.
-    //?? cache player names along with games?
+    //!! cache player names along with games?
     class Game : Grain, IGame, IRemindable
     {
         class EndRoundTimerData
@@ -342,8 +342,7 @@ namespace FLGrains
             switch (reminderName)
             {
                 case "e":
-                    //?? Add "expired" state to game states, add explicit winner parameter, add to gameinfo and sendgameended
-                    await Task.Yield(); //??
+                    await Task.Yield(); //?? Add "expired" state to game states, add explicit winner parameter, add to gameinfo and sendgameended
                     break;
             }
         }

@@ -13,7 +13,9 @@ namespace FLGrainInterfaces.Configuration
             public JsonValues(string connectionString, uint latestVersion, uint minimumSupportedVersion,
                 TimeSpan passwordRecoveryTokenExpirationInterval, string mailServerAddress, int mailServerPort,
                 bool mailServerUseSsl, string forgotPasswordFromAddress, string forgotPasswordFromSenderName,
-                string forgotPasswordSubject, string forgotPasswordTemplateFilePath, string forgotPasswordRecoveryUrlTemplate)
+                string forgotPasswordSubject, string forgotPasswordTemplateFilePath,
+                string forgotPasswordRecoveryUrlTemplate, string bazaarClientID, string bazaarClientSecret,
+                string bazaarRefreshToken, string bazaarPackageName)
             {
                 ConnectionString = connectionString;
                 LatestVersion = latestVersion;
@@ -27,6 +29,10 @@ namespace FLGrainInterfaces.Configuration
                 ForgotPasswordSubject = forgotPasswordSubject;
                 ForgotPasswordTemplateFilePath = forgotPasswordTemplateFilePath;
                 ForgotPasswordRecoveryUrlTemplate = forgotPasswordRecoveryUrlTemplate;
+                BazaarClientID = bazaarClientID;
+                BazaarClientSecret = bazaarClientSecret;
+                BazaarRefreshToken = bazaarRefreshToken;
+                BazaarPackageName = bazaarPackageName;
             }
 
             public string ConnectionString { get; }
@@ -45,6 +51,11 @@ namespace FLGrainInterfaces.Configuration
             public string ForgotPasswordSubject { get; }
             public string ForgotPasswordTemplateFilePath { get; }
             public string ForgotPasswordRecoveryUrlTemplate { get; }
+
+            public string BazaarClientID { get; }
+            public string BazaarClientSecret { get; }
+            public string BazaarRefreshToken { get; }
+            public string BazaarPackageName { get; }
         }
 
         public SystemSettings(string jsonValues, string fcmServiceAccountKeys)

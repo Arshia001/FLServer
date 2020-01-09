@@ -584,7 +584,7 @@ namespace FLGrains
             state.UseState(state => Task.FromResult(categories.Select(c => state.OwnedCategoryAnswers.Contains(c)).ToList() as IReadOnlyList<bool>));
 
         public Task<(IabPurchaseResult result, ulong totalGold)> ProcessGoldPackPurchase(string sku, string purchaseToken) =>
-            state.UseStateAndMaybePersist(state =>
+            state.UseStateAndMaybePersist(async state =>
             {
                 if (state.ProcessedIabTokens.Contains(purchaseToken))
                     return (false, (IabPurchaseResult.AlreadyProcessed, state.Gold));
@@ -593,8 +593,7 @@ namespace FLGrains
                 if (!config.GoldPacks.TryGetValue(sku, out var packConfig))
                     throw new VerbatimException("Unknown SKU");
 
-                //??
-                var verifyResult = IabPurchaseResult.FailedToContactValidationService;
+                var verifyResult = await GrainFactory.GetGrain<IBazaarIabVerifier>(0).VerifyBazaarPurchase(sku,purchaseToken);
 
                 switch (verifyResult)
                 {

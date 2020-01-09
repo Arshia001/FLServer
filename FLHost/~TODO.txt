@@ -18,7 +18,6 @@ CLIENT time extension limit per round
 CLIENT IAB
 
 SERVER Game inactivity timeout -> 24 hours per turn
-SERVER IAB
 
 WEBSITE Fix the thing's looks!
 
