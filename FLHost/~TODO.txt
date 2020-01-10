@@ -1,21 +1,22 @@
-﻿CLIENT Integrate FCM
-CLIENT Game finished text in game overview
-CLIENT XP/Score/Gold/Rank change notifications after game is complete?
-CLIENT Clear game history button
-CLIENT Keep keyboard open while in game screen
-CLIENT Interesting/Uninteresting data per player to disallow duplicated voting? -> store on client, too much work yielding too little value for server
-CLIENT disable buttons while waiting for server, show loading indicators, etc.
-CLIENT Unlimited play button text
+﻿CLIENT auto-refresh the game list when a change notification comes in for one of the games
 CLIENT(?) when it's opponent's turn, going back to main menu and entering the game again causes the play button to appear and the game to appear as waiting for me
-CLIENT auto-refresh the game list when a change notification comes in for one of the games
+CLIENT Unlimited play button text
+CLIENT Game finished text in game overview
 CLIENT native input fields are displayed on top of the dialog box in the edit account menu
+CLIENT time extension limit per round
+CLIENT Keep keyboard open while in game screen
+CLIENT Version check
+CLIENT disable buttons while waiting for server, show loading indicators, etc.
+
+CLIENT Integrate FCM
 CLIENT Credits screen
 CLIENT Sounds
 CLIENT Ads
-CLIENT Version check
 CLIENT Telegram channel link
-CLIENT time extension limit per round
 CLIENT IAB
+CLIENT Interesting/Uninteresting data per player to disallow duplicated voting? -> store on client, too much work yielding too little value for server
+CLIENT XP/Score/Gold/Rank change notifications after game is complete?
+CLIENT Clear game history button
 
 WEBSITE Fix the thing's looks!
 
