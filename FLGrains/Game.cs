@@ -6,6 +6,7 @@ using FLGrainInterfaces;
 using FLGrainInterfaces.Configuration;
 using FLGrains.Utility;
 using LightMessage.OrleansUtils.Grains;
+using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Concurrency;
 using Orleans.Runtime;
@@ -61,12 +62,14 @@ namespace FLGrains
         readonly IConfigReader configReader;
         readonly Random random = new Random();
         readonly GrainStateWrapper<GameGrainState> state;
+        readonly ILogger logger;
 
-        public Game(IConfigReader configReader, [PersistentState("State")] IPersistentState<GameGrainState> state)
+        public Game(IConfigReader configReader, [PersistentState("State")] IPersistentState<GameGrainState> state, ILogger<Game> logger)
         {
             this.configReader = configReader;
             this.state = new GrainStateWrapper<GameGrainState>(state);
             this.state.Persist += State_Persist;
+            this.logger = logger;
         }
 
         private void State_Persist(object sender, PersistStateEventArgs<GameGrainState> e) =>
@@ -130,7 +133,7 @@ namespace FLGrains
 
                 var config = configReader.Config;
 
-                gameLogic = new GameLogicServer(config.ConfigValues.NumRoundsPerGame);
+                gameLogic = new GameLogicServer(config.ConfigValues.NumRoundsPerGame, config.ConfigValues.GameInactivityTimeout);
 
                 state.PlayerIDs = new[] { playerOneID, Guid.Empty };
 
@@ -311,10 +314,10 @@ namespace FLGrains
                     var initScore0 = await player0.GetScore();
                     var initScore1 = await player1.GetScore();
 
-                    var scoreGain = ScoreGainCalculator.CalculateGain(initScore0, wins0, initScore1, wins1, config);
+                    var scoreGain = ScoreGainCalculator.CalculateGain(initScore0, initScore1, CompetitionResultHelper.Get(wins0, wins1), config);
 
-                    var (score0, rank0, level0, xp0, gold0) = await player0.OnGameResult(me, CompetitionResultHelper.Get(wins0, wins1), wins0, scoreGain);
-                    var (score1, rank1, level1, xp1, gold1) = await player1.OnGameResult(me, CompetitionResultHelper.Get(wins1, wins0), wins1, scoreGain);
+                    var (score0, rank0, level0, xp0, gold0) = await player0.OnGameResult(me, CompetitionResultHelper.Get(wins0, wins1), wins0, scoreGain, false);
+                    var (score1, rank1, level1, xp1, gold1) = await player1.OnGameResult(me, CompetitionResultHelper.Get(wins1, wins0), wins1, scoreGain, false);
 
                     if (!await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(state.PlayerIDs[0], myID, wins0, wins1, score0, rank0, level0, xp0, gold0))
                         await player0.SendGameEndedNotification(state.PlayerIDs[1]);
@@ -330,8 +333,8 @@ namespace FLGrains
                 }
                 else
                 {
-                    if (await GetState() != GameState.WaitingForSecondPlayer)
-                        await RegisterOrUpdateReminder("e", config.ConfigValues.GameInactivityTimeout, config.ConfigValues.GameInactivityTimeout);
+                    if (GameLogic.ExpiryTime.HasValue)
+                        await RegisterOrUpdateReminder("e", GameLogic.ExpiryTime.Value - DateTime.Now + TimeSpan.FromSeconds(10), TimeSpan.FromDays(1));
                 }
 
                 return true;
@@ -342,7 +345,38 @@ namespace FLGrains
             switch (reminderName)
             {
                 case "e":
-                    await Task.Yield(); //?? Add "expired" state to game states, add explicit winner parameter, add to gameinfo and sendgameended
+                    if (!GameLogic.Expired)
+                    {
+                        logger.LogError("Expiry reminder went off but game is not expired");
+                        return;
+                    }
+
+                    await state.UseState(async state =>
+                    {
+                        var myID = this.GetPrimaryKey();
+
+                        var config = configReader.Config;
+                        var me = this.AsReference<IGame>();
+
+                        IPlayer player0 = GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]);
+                        IPlayer player1 = GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[1]);
+
+                        var initScore0 = await player0.GetScore();
+                        var initScore1 = await player1.GetScore();
+
+                        var expiredFor = GameLogic.ExpiredFor;
+
+                        var scoreGain = ScoreGainCalculator.CalculateGain(initScore0, initScore1, expiredFor == 0 ? CompetitionResult.Loss : CompetitionResult.Win, config);
+
+                        var (score0, rank0, level0, xp0, gold0) = await player0.OnGameResult(me, expiredFor == 0 ? CompetitionResult.Loss : CompetitionResult.Win, GameLogic.GetNumRoundsWon(0), scoreGain, true);
+                        var (score1, rank1, level1, xp1, gold1) = await player1.OnGameResult(me, expiredFor == 0 ? CompetitionResult.Win : CompetitionResult.Loss, GameLogic.GetNumRoundsWon(1), scoreGain, true);
+
+                        // No push notifications here...
+                        await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameExpired(state.PlayerIDs[0], myID, expiredFor == 1, score0, rank0, level0, xp0, gold0);
+                        await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameExpired(state.PlayerIDs[1], myID, expiredFor == 0, score1, rank1, level1, xp1, gold1);
+
+                        DeactivateOnIdle();
+                    });
                     break;
             }
         }
@@ -469,6 +503,9 @@ namespace FLGrains
             if (GameLogic.Finished)
                 return GameState.Finished;
 
+            if (GameLogic.Expired)
+                return GameState.Expired;
+
             return GameState.InProgress;
         }
 
@@ -500,7 +537,9 @@ namespace FLGrains
                     myTurnEndTime: GameLogic.GetTurnEndTime(index),
                     myTurnFirst: GameLogic.FirstTurn == index,
                     numTurnsTakenByOpponent: (byte)GameLogic.NumTurnsTakenByIncludingCurrent(1 - index),
-                    haveCategoryAnswers: ownedCategories
+                    haveCategoryAnswers: ownedCategories,
+                    expired: GameLogic.Expired,
+                    expiredFor: (byte)GameLogic.ExpiredFor
                 );
             });
 
@@ -510,6 +549,8 @@ namespace FLGrains
                 int index = Index(playerID);
                 var turnsTaken = GameLogic.NumTurnsTakenBy(index);
 
+                var isWinner = index == 0 ? GameLogic.Winner == GameResult.Win0 : GameLogic.Winner == GameResult.Win1;
+
                 return new SimplifiedGameInfo
                 (
                     gameID: this.GetPrimaryKey(),
@@ -517,7 +558,8 @@ namespace FLGrains
                     otherPlayerName: state.PlayerIDs[1 - index] == Guid.Empty ? null : (await PlayerInfoHelper.GetInfo(GrainFactory, state.PlayerIDs[1 - index])).Name,
                     myTurn: GameLogic.Turn == index,
                     myScore: GameLogic.GetNumRoundsWon(index),
-                    theirScore: GameLogic.GetNumRoundsWon(1 - index)
+                    theirScore: GameLogic.GetNumRoundsWon(1 - index),
+                    winner: isWinner
                 );
             });
     }

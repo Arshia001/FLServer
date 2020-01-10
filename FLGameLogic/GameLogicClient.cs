@@ -10,21 +10,26 @@ namespace FLGameLogic
         static readonly List<WordScorePair> unknownRoundAnswers = new List<WordScorePair>();
 
 
-        public static GameLogicClient CreateFromState(int numRounds, IEnumerable<string> categories, IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes, int firstTurn)
+        public static GameLogicClient CreateFromState(int numRounds, IEnumerable<string> categories,
+            IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes, int firstTurn, bool expired,
+            int expiredFor)
         {
             var result = new GameLogicClient(firstTurn);
-            result.RestoreGameState(numRounds, categories, wordsPlayed, turnEndTimes);
+            result.RestoreGameState(numRounds, categories, wordsPlayed, turnEndTimes, expired, expiredFor);
             return result;
         }
 
-
         List<string> categories;
-
+        bool expired;
+        int expiredFor;
 
         public IReadOnlyList<string> Categories => categories;
 
         public override int NumRounds => Categories.Count;
 
+        public override bool Expired => expired;
+
+        public override int ExpiredFor => expiredFor;
 
         private GameLogicClient(int firstTurn) : base(firstTurn) { }
 
@@ -75,11 +80,16 @@ namespace FLGameLogic
             return true;
         }
 
-        public void RestoreGameState(int numRounds, IEnumerable<string> categories, IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes)
+        public void RestoreGameState(int numRounds, IEnumerable<string> categories,
+            IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes, bool expired,
+            int expiredFor)
         {
             this.categories = categories.ToList();
             if (this.categories.Count < numRounds)
                 this.categories.AddRange(Enumerable.Repeat(default(string), numRounds - this.categories.Count));
+
+            this.expired = expired;
+            this.expiredFor = expiredFor;
 
             base.RestoreGameState(wordsPlayed, turnEndTimes);
         }

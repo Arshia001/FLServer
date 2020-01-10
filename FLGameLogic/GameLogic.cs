@@ -11,7 +11,6 @@ namespace FLGameLogic
         protected DateTime[] turnEndTimes;
         protected int firstTurn;
 
-
         public abstract int NumRounds { get; }
 
         public int RoundNumber => playerScores == null ? 0 :
@@ -26,6 +25,26 @@ namespace FLGameLogic
 
         public bool Finished => NumRounds <= RoundNumber;
 
+        public abstract bool Expired { get; }
+
+        // The player on whose turn the game expired, in other words the loser
+        public abstract int ExpiredFor { get; }
+
+        public GameResult? Winner
+        {
+            get
+            {
+                if (Expired)
+                    return ExpiredFor == 0 ? GameResult.Win1 : GameResult.Win0;
+
+                if (!Finished)
+                    return null;
+
+                var score0 = GetNumRoundsWon(0);
+                var score1 = GetNumRoundsWon(1);
+                return score0 > score1 ? GameResult.Win0 : score1 > score0 ? GameResult.Win1 : GameResult.Draw;
+            }
+        }
 
         protected GameLogic(int firstTurn)
         {
@@ -101,7 +120,7 @@ namespace FLGameLogic
 
         protected StartRoundResult StartRound(int player, TimeSpan turnTime)
         {
-            if (Finished)
+            if (Finished || Expired)
                 return StartRoundResult.Error_GameFinished;
 
             if (PlayerStartedTurn(player, RoundNumber))

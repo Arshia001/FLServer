@@ -11,7 +11,6 @@ namespace FLGameLogicServer
     {
         public delegate Task<byte> GetWordScoreDelegate(WordCategory category, string word);
 
-
         public static GameLogicServer DeserializeFrom(SerializedGameData gameData, Func<string, WordCategory> getCategory) =>
             new GameLogicServer
             {
@@ -19,12 +18,16 @@ namespace FLGameLogicServer
                 playerAnswers = gameData.PlayerAnswers.Select(l => l.Select(ll => ll.Select(ws => new WordScorePair(ws.word, ws.score)).ToList()).ToList()).ToArray(),
                 playerScores = gameData.PlayerScores.Select(l => l.ToList()).ToArray(),
                 turnEndTimes = gameData.TurnEndTimes.ToArray(),
-                firstTurn = gameData.FirstTurn
+                firstTurn = gameData.FirstTurn,
+                expiryInterval = gameData.ExpiryInterval,
+                ExpiryTime = gameData.ExpiryTime
             };
-
 
         List<WordCategory> categories;
 
+        protected TimeSpan expiryInterval;
+        
+        public DateTime? ExpiryTime { get; private set; }
 
         public IReadOnlyList<WordCategory> Categories => categories;
 
@@ -32,18 +35,21 @@ namespace FLGameLogicServer
 
         public HashSet<string> CategoryNames => new HashSet<string>(Categories.Where(c => c != null).Select(c => c.CategoryName));
 
+        public override bool Expired => ExpiryTime.HasValue && DateTime.Now >= ExpiryTime.Value;
 
-        public GameLogicServer(int numRounds) : base(0)
+        public override int ExpiredFor => Turn;
+
+        public GameLogicServer(int numRounds, TimeSpan expiryInterval) : base(0)
         {
+            this.expiryInterval = expiryInterval;
             categories = Enumerable.Repeat(default(WordCategory), numRounds).ToList();
         }
 
         private GameLogicServer() : base() { }
 
-
         public StartRoundResult StartRound(int player, TimeSpan turnTime, out string category)
         {
-            if (Finished)
+            if (Finished || Expired)
             {
                 category = null;
                 return StartRoundResult.Error_GameFinished;
@@ -57,6 +63,9 @@ namespace FLGameLogicServer
 
             if (!result.IsSuccess())
                 category = "";
+
+            if (!(player == 0 && NumTurnsTakenBy(player) == 0)) // No expiry time on first round, that's on us to find a match
+                ExpiryTime = DateTime.Now + expiryInterval;
 
             return result;
         }
@@ -116,7 +125,9 @@ namespace FLGameLogicServer
                 PlayerAnswers = playerAnswers.Select(l => l.Select(ll => ll.Select(ws => new SerializedGameData.WordScorePair(ws.word, ws.score)).ToList()).ToList()).ToArray(),
                 PlayerScores = playerScores.Select(l => l.ToList()).ToArray(),
                 TurnEndTimes = turnEndTimes.ToArray(),
-                FirstTurn = firstTurn
+                FirstTurn = firstTurn,
+                ExpiryInterval = expiryInterval,
+                ExpiryTime = ExpiryTime
             };
 
         public DateTime? ExtendRoundTime(int player, TimeSpan amount)
@@ -127,12 +138,5 @@ namespace FLGameLogicServer
             turnEndTimes[player] += amount;
             return turnEndTimes[player];
         }
-
-        //public void RestoreGameState(IEnumerable<WordCategory> categories, IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes)
-        //{
-        //    this.categories = categories.ToList();
-
-        //    base.RestoreGameState(wordsPlayed, turnEndTimes);
-        //}
     }
 }

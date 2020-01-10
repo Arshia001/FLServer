@@ -25,7 +25,8 @@ enum GameState
     New,
     WaitingForSecondPlayer,
     InProgress,
-    Finished
+    Finished,
+	Expired
 }
 
 enum Statistics
@@ -57,7 +58,8 @@ enum Statistics
 	MoneySpentRevealAnswers,
 	RevealAnswersUsed,
 	MoneySpentInfinitePlay,
-	InfinitePlayUsed
+	InfinitePlayUsed,
+	GameLostDueToExpiry
 }
 
 enum LeaderBoardSubject
@@ -176,6 +178,8 @@ contract GameInfo
     MyTurnEndTime: datetime;
     MyTurnFirst: bool;
     NumTurnsTakenByOpponent: u8;
+	Expired: bool;
+	ExpiredFor: u8;
 }
 
 contract SimplifiedGameInfo
@@ -186,6 +190,7 @@ contract SimplifiedGameInfo
     MyTurn: bool;
     MyScore: u8;
     TheirScore: u8;
+	Winner: bool;
 }
 
 contract ConfigValuesDTO castfrom(FLGrainInterfaces.Configuration.ConfigValues server oneway)
@@ -368,6 +373,17 @@ endpoint Game gm
 		gameID: guid;
 		myScore: u32;
 		theirScore: u32;
+		myPlayerScore: u32;
+		myPlayerRank: u32;
+		myLevel: u32;
+		myXP: u32;
+		myGold: u64;
+	}
+
+	notification GameExpired gexp
+	{
+		gameID: guid;
+		myWin: bool;
 		myPlayerScore: u32;
 		myPlayerRank: u32;
 		myLevel: u32;

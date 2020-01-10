@@ -9,11 +9,11 @@ namespace FLGrains.Utility
 {
     static class ScoreGainCalculator
     {
-        public static uint CalculateGain(uint playerScore1, uint gameScore1, uint playerScore2, uint gameScore2, ReadOnlyConfigData config)
+        public static uint CalculateGain(uint playerScore1, uint playerScore2, CompetitionResult gameResult1To2, ReadOnlyConfigData config)
         {
             uint winnerScore, loserScore;
 
-            switch (CompetitionResultHelper.Get(gameScore1, gameScore2))
+            switch (gameResult1To2)
             {
                 case CompetitionResult.Win:
                     winnerScore = playerScore1;

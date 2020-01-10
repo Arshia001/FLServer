@@ -397,7 +397,7 @@ namespace FLGrains
 
         Task<ulong> GetRank() => LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).GetRank(this.GetPrimaryKey());
 
-        public Task<(uint score, uint rank, uint level, uint xp, ulong gold)> OnGameResult(IGame game, CompetitionResult result, uint myScore, uint scoreGain) =>
+        public Task<(uint score, uint rank, uint level, uint xp, ulong gold)> OnGameResult(IGame game, CompetitionResult result, uint myScore, uint scoreGain, bool gameExpired) =>
             state.UseStateAndPersist(async state =>
             {
                 SetMaxStat(myScore, Statistics.BestGameScore);
@@ -440,6 +440,8 @@ namespace FLGrains
                         gold = GiveGold(config.LoserGoldGain);
 
                         AddStatImpl(1, Statistics.GamesLost);
+                        if (gameExpired)
+                            AddStatImpl(1, Statistics.GameLostDueToExpiry);
                         AddStatImpl(config.LoserGoldGain, Statistics.RewardMoneyEarned);
 
                         break;
@@ -593,7 +595,7 @@ namespace FLGrains
                 if (!config.GoldPacks.TryGetValue(sku, out var packConfig))
                     throw new VerbatimException("Unknown SKU");
 
-                var verifyResult = await GrainFactory.GetGrain<IBazaarIabVerifier>(0).VerifyBazaarPurchase(sku,purchaseToken);
+                var verifyResult = await GrainFactory.GetGrain<IBazaarIabVerifier>(0).VerifyBazaarPurchase(sku, purchaseToken);
 
                 switch (verifyResult)
                 {

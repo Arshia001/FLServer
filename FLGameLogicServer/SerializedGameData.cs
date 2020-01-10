@@ -34,5 +34,9 @@ namespace FLGameLogicServer
         public DateTime[] TurnEndTimes { get; set; }
         [Id(4)]
         public int FirstTurn { get; set; }
+        [Id(5)]
+        public TimeSpan ExpiryInterval { get; set; }
+        [Id(6)]
+        public DateTime? ExpiryTime { get; set; }
     }
 }
