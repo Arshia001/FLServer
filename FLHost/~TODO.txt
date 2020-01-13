@@ -18,8 +18,6 @@ CLIENT Interesting/Uninteresting data per player to disallow duplicated voting? 
 CLIENT XP/Score/Gold/Rank change notifications after game is complete?
 CLIENT Clear game history button
 
-WEBSITE Fix the thing's looks!
-
 ART Notification enabled/disabled
 ART Login / register
 ART Splash

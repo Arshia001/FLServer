@@ -7,8 +7,12 @@ open Fulma
 
 open Model
 
-let template x =
-    x
+let template content =
+    div [ Class "master-container" ] [
+        div [ Class "dialog-container" ] [
+            div [ Style [ Width "100%" ] ] content
+        ]
+    ]
 
 let button txt disabled onClick =
     Button.button [
@@ -16,12 +20,18 @@ let button txt disabled onClick =
         Button.Color <| if disabled then IsDanger else IsSuccess
         Button.OnClick onClick
         Button.Disabled disabled
+        Button.Size Size.IsLarge
     ] [ str txt ]
 
-let password label error onUpdate =
+let label text =
+    Field.label [ Field.Label.Size Size.IsMedium; Field.Label.CustomClass "dialog-label" ] [
+        str text
+    ]
+
+let password labelText error onUpdate =
     let isError, errorText = match error with Some x -> (true, x) | _ -> (false, "")
     Field.div [] [
-        Label.label [] [ str label ]
+        label labelText
         Input.password [
             Input.OnChange onUpdate
             if isError then Input.Color IsDanger
@@ -29,16 +39,18 @@ let password label error onUpdate =
         if isError then Help.help [ Help.Color IsDanger ] [ str errorText ]
     ]
 
+let text t =
+    div [ Class "dialog-text" ] [ str t ]
+
 let allowSubmit model =
     model.Password1Error.IsNone && model.Password2Error.IsNone &&
         model.Password1.Length > 0 && model.Password2 = model.Password1
 
 let view (model : Model) (dispatch : Msg -> unit) =
-    template <|
-    div [ Style [ Direction DirectionOptions.Rtl ] ] [
+    template <| [
         match model.Status with
         | ValidatingToken ->
-            p [] [ str "یه لحظه..." ]
+            p [] [ text "یه لحظه..." ]
 
         | TokenValidated true ->
             password "گذرواژه جدید" model.Password1Error (fun e -> dispatch <| Password1Updated e.Value)
@@ -46,14 +58,14 @@ let view (model : Model) (dispatch : Msg -> unit) =
             button "تغییر گذرواژه" (allowSubmit model |> not) (fun _ -> dispatch <| UpdatePassword)
 
         | TokenValidated false ->
-            p [] [ str "لینکت اشتباهه یا قبلا منقضی شده. می‌تونی از داخل بازی دوباره درخواست گذرواژه‌ی جدید بدی تا یه لینک جدید برات ارسال شه." ]
+            p [] [ text "لینکت اشتباهه یا قبلا منقضی شده. می‌تونی از داخل بازی دوباره درخواست گذرواژه‌ی جدید بدی تا یه لینک جدید برات ارسال شه." ]
 
         | UpdatingPassword ->
-            p [] [ str "یه لحظه..." ]
+            p [] [ text "یه لحظه..." ]
 
         | PasswordUpdated (Error e) ->
-            Message.message [ Message.Color IsDanger ] [ str <| sprintf "خطایی پیش اومد: %s" e ]
+            Message.message [ Message.Color IsDanger ] [ text <| sprintf "خطایی پیش اومد: %s" e ]
 
         | PasswordUpdated (Ok ()) ->
-            Message.message [ Message.Color IsSuccess ] [ str "گذرواژه‌ت به‌روزرسانی شد، حالا می‌تونی با گذرواژه جدیدت وارد بازی بشی." ]
+            p [] [ text "گذرواژه‌ت به‌روزرسانی شد، حالا می‌تونی با گذرواژه جدیدت وارد بازی بشی." ]
     ]

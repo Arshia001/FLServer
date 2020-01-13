@@ -32,7 +32,6 @@ let checkPasswordValidity model =
     }
 
 let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
-    printfn "UPDATE: %A --- %A" msg model
     match model.Status, msg with
     | ValidatingToken, TokenValidationResult valid ->
         { model with Status = TokenValidated valid }, Cmd.none
