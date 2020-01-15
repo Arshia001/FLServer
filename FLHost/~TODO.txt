@@ -17,6 +17,7 @@ CLIENT IAB
 CLIENT Interesting/Uninteresting data per player to disallow duplicated voting? -> store on client, too much work yielding too little value for server
 CLIENT XP/Score/Gold/Rank change notifications after game is complete?
 CLIENT Clear game history button
+CLIENT Check service status on connection failures during startup, add suitable messages
 
 ART Notification enabled/disabled
 ART Login / register
