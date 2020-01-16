@@ -1,12 +1,12 @@
-﻿CLIENT auto-refresh the game list when a change notification comes in for one of the games
-CLIENT(?) when it's opponent's turn, going back to main menu and entering the game again causes the play button to appear and the game to appear as waiting for me
+﻿CLIENT(?) when it's opponent's turn, going back to main menu and entering the game again causes the play button to appear and the game to appear as waiting for me
 CLIENT Unlimited play button text
-CLIENT Game finished text in game overview
 CLIENT native input fields are displayed on top of the dialog box in the edit account menu
 CLIENT time extension limit per round
 CLIENT Keep keyboard open while in game screen
 CLIENT Version check
 CLIENT disable buttons while waiting for server, show loading indicators, etc.
+
+CLIENT New art
 
 CLIENT Integrate FCM
 CLIENT Credits screen
@@ -23,6 +23,14 @@ ART Notification enabled/disabled
 ART Login / register
 ART Splash
 ART Logo
+
+TEST
+	Number of time extensions
+	Inactivity timeout
+	IAB
+	auto-refresh the game list when a change notification comes in for one of the games
+	Game finished text in game overview
+	support game logic-provided winner and game time out
 
 *************************************************
 Optional / for later
@@ -42,6 +50,8 @@ SERVER Embed the password recovery website into the silo host ->
 	Move entire solution into an src directory
 	Remove the website specific FAKE script and create a top-level FAKE script to handle everything (service status included)
 	Turn Saturn.Application.run into a hosted service
+
+CLIENT notify game expiry with a popup
 
 Inventory?
 Additional Statistics

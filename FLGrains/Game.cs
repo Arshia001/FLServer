@@ -550,16 +550,17 @@ namespace FLGrains
                 var turnsTaken = GameLogic.NumTurnsTakenBy(index);
 
                 var isWinner = index == 0 ? GameLogic.Winner == GameResult.Win0 : GameLogic.Winner == GameResult.Win1;
+                var gameState = GetStateInternal(state);
 
                 return new SimplifiedGameInfo
                 (
                     gameID: this.GetPrimaryKey(),
-                    gameState: GetStateInternal(state),
+                    gameState: gameState,
                     otherPlayerName: state.PlayerIDs[1 - index] == Guid.Empty ? null : (await PlayerInfoHelper.GetInfo(GrainFactory, state.PlayerIDs[1 - index])).Name,
                     myTurn: GameLogic.Turn == index,
                     myScore: GameLogic.GetNumRoundsWon(index),
                     theirScore: GameLogic.GetNumRoundsWon(1 - index),
-                    winner: isWinner
+                    winnerOfExpiredGame: gameState == GameState.Expired && isWinner
                 );
             });
     }

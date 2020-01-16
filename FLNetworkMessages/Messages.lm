@@ -190,7 +190,7 @@ contract SimplifiedGameInfo
     MyTurn: bool;
     MyScore: u8;
     TheirScore: u8;
-	Winner: bool;
+	WinnerOfExpiredGame: bool;
 }
 
 contract ConfigValuesDTO castfrom(FLGrainInterfaces.Configuration.ConfigValues server oneway)

@@ -340,7 +340,7 @@ namespace FLGrainInterfaces
     [Orleans.Concurrency.Immutable]
     public class SimplifiedGameInfo
     {
-        public SimplifiedGameInfo(System.Guid gameID, GameState gameState, string? otherPlayerName, bool myTurn, byte myScore, byte theirScore, bool winner)
+        public SimplifiedGameInfo(System.Guid gameID, GameState gameState, string? otherPlayerName, bool myTurn, byte myScore, byte theirScore, bool winnerOfExpiredGame)
         {
             this.GameID = gameID;
             this.GameState = gameState;
@@ -348,7 +348,7 @@ namespace FLGrainInterfaces
             this.MyTurn = myTurn;
             this.MyScore = myScore;
             this.TheirScore = theirScore;
-            this.Winner = winner;
+            this.WinnerOfExpiredGame = winnerOfExpiredGame;
         }
 
         public System.Guid GameID { get; }
@@ -357,9 +357,9 @@ namespace FLGrainInterfaces
         public bool MyTurn { get; }
         public byte MyScore { get; }
         public byte TheirScore { get; }
-        public bool Winner { get; }
+        public bool WinnerOfExpiredGame { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.Guid(GameID), LightMessage.Common.Messages.Param.UEnum(GameState), LightMessage.Common.Messages.Param.String(OtherPlayerName), LightMessage.Common.Messages.Param.Boolean(MyTurn), LightMessage.Common.Messages.Param.UInt(MyScore), LightMessage.Common.Messages.Param.UInt(TheirScore), LightMessage.Common.Messages.Param.Boolean(Winner));
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.Guid(GameID), LightMessage.Common.Messages.Param.UEnum(GameState), LightMessage.Common.Messages.Param.String(OtherPlayerName), LightMessage.Common.Messages.Param.Boolean(MyTurn), LightMessage.Common.Messages.Param.UInt(MyScore), LightMessage.Common.Messages.Param.UInt(TheirScore), LightMessage.Common.Messages.Param.Boolean(WinnerOfExpiredGame));
 
         public static SimplifiedGameInfo FromParam(LightMessage.Common.Messages.Param param)
         {
