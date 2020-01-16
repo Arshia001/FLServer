@@ -133,6 +133,7 @@ namespace FLGrainInterfaces.Util
                 {
                     rank[i] += thisLevel.Span;
                     x = thisLevel.Forward;
+                    thisLevel = x.Level[i];
                     comp = thisLevel.Forward?.Score.CompareTo(Score) ?? 1;
                 }
                 update[i] = x;
@@ -283,6 +284,7 @@ namespace FLGrainInterfaces.Util
                     (comp > 0 || (comp == 0 && thisLevel.Forward.Value.CompareTo(obj) > 0)))
                 {
                     x = thisLevel.Forward;
+                    thisLevel = x.Level[i];
                     comp = thisLevel.Forward?.Score.CompareTo(score) ?? 1;
                 }
                 update[i] = x;
@@ -316,6 +318,7 @@ namespace FLGrainInterfaces.Util
                 {
                     rank += thisLevel.Span;
                     x = thisLevel.Forward;
+                    thisLevel = x.Level[i];
                     comp = thisLevel.Forward?.Score.CompareTo(score) ?? 1;
                 }
 
@@ -347,6 +350,7 @@ namespace FLGrainInterfaces.Util
                 {
                     traversed += thisLevel.Span;
                     x = thisLevel.Forward;
+                    thisLevel = x.Level[i];
                 }
                 if (traversed == rank)
                 {

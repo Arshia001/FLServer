@@ -1,12 +1,9 @@
 ﻿CLIENT(?) when it's opponent's turn, going back to main menu and entering the game again causes the play button to appear and the game to appear as waiting for me
-CLIENT Unlimited play button text
-CLIENT native input fields are displayed on top of the dialog box in the edit account menu
-CLIENT time extension limit per round
-CLIENT Keep keyboard open while in game screen
-CLIENT Version check
+CLIENT disable powerup buttons in game when they can't be used
 CLIENT disable buttons while waiting for server, show loading indicators, etc.
 
 CLIENT New art
+CLIENT Unlimited play button text
 
 CLIENT Integrate FCM
 CLIENT Credits screen
@@ -17,7 +14,6 @@ CLIENT IAB
 CLIENT Interesting/Uninteresting data per player to disallow duplicated voting? -> store on client, too much work yielding too little value for server
 CLIENT XP/Score/Gold/Rank change notifications after game is complete?
 CLIENT Clear game history button
-CLIENT Check service status on connection failures during startup, add suitable messages
 
 ART Notification enabled/disabled
 ART Login / register
@@ -31,6 +27,11 @@ TEST
 	auto-refresh the game list when a change notification comes in for one of the games
 	Game finished text in game overview
 	support game logic-provided winner and game time out
+	native input fields are displayed on top of the dialog box in the edit account menu
+	Keyboard should be shown when entering game
+	time extension limit per round
+	Version check
+	Check service status on connection failures during startup, add suitable messages
 
 *************************************************
 Optional / for later
@@ -52,6 +53,7 @@ SERVER Embed the password recovery website into the silo host ->
 	Turn Saturn.Application.run into a hosted service
 
 CLIENT notify game expiry with a popup
+CLIENT Keep keyboard open while in game screen
 
 Inventory?
 Additional Statistics

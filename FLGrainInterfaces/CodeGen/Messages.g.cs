@@ -373,7 +373,7 @@ namespace FLGrainInterfaces
     [Orleans.Concurrency.Immutable]
     public class ConfigValuesDTO
     {
-        public ConfigValuesDTO(byte numRoundsToWinToGetReward, System.TimeSpan roundWinRewardInterval, uint numGoldRewardForWinningRounds, uint priceToRefreshGroups, System.TimeSpan roundTimeExtension, uint roundTimeExtensionPrice, uint revealWordPrice, uint getAnswersPrice, uint maxActiveGames, uint infinitePlayPrice)
+        public ConfigValuesDTO(byte numRoundsToWinToGetReward, System.TimeSpan roundWinRewardInterval, uint numGoldRewardForWinningRounds, uint priceToRefreshGroups, System.TimeSpan roundTimeExtension, uint roundTimeExtensionPrice, uint revealWordPrice, uint getAnswersPrice, uint maxActiveGames, uint infinitePlayPrice, uint numTimeExtensionsPerRound)
         {
             this.NumRoundsToWinToGetReward = numRoundsToWinToGetReward;
             this.RoundWinRewardInterval = roundWinRewardInterval;
@@ -385,6 +385,7 @@ namespace FLGrainInterfaces
             this.GetAnswersPrice = getAnswersPrice;
             this.MaxActiveGames = maxActiveGames;
             this.InfinitePlayPrice = infinitePlayPrice;
+            this.NumTimeExtensionsPerRound = numTimeExtensionsPerRound;
         }
 
         public byte NumRoundsToWinToGetReward { get; }
@@ -397,17 +398,18 @@ namespace FLGrainInterfaces
         public uint GetAnswersPrice { get; }
         public uint MaxActiveGames { get; }
         public uint InfinitePlayPrice { get; }
+        public uint NumTimeExtensionsPerRound { get; }
 
-        public static implicit operator ConfigValuesDTO(FLGrainInterfaces.Configuration.ConfigValues obj) => new ConfigValuesDTO(obj.NumRoundsToWinToGetReward, obj.RoundWinRewardInterval, obj.NumGoldRewardForWinningRounds, obj.PriceToRefreshGroups, obj.RoundTimeExtension, obj.RoundTimeExtensionPrice, obj.RevealWordPrice, obj.GetAnswersPrice, obj.MaxActiveGames, obj.InfinitePlayPrice);
+        public static implicit operator ConfigValuesDTO(FLGrainInterfaces.Configuration.ConfigValues obj) => new ConfigValuesDTO(obj.NumRoundsToWinToGetReward, obj.RoundWinRewardInterval, obj.NumGoldRewardForWinningRounds, obj.PriceToRefreshGroups, obj.RoundTimeExtension, obj.RoundTimeExtensionPrice, obj.RevealWordPrice, obj.GetAnswersPrice, obj.MaxActiveGames, obj.InfinitePlayPrice, obj.NumTimeExtensionsPerRound);
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.UInt(NumRoundsToWinToGetReward), LightMessage.Common.Messages.Param.TimeSpan(RoundWinRewardInterval), LightMessage.Common.Messages.Param.UInt(NumGoldRewardForWinningRounds), LightMessage.Common.Messages.Param.UInt(PriceToRefreshGroups), LightMessage.Common.Messages.Param.TimeSpan(RoundTimeExtension), LightMessage.Common.Messages.Param.UInt(RoundTimeExtensionPrice), LightMessage.Common.Messages.Param.UInt(RevealWordPrice), LightMessage.Common.Messages.Param.UInt(GetAnswersPrice), LightMessage.Common.Messages.Param.UInt(MaxActiveGames), LightMessage.Common.Messages.Param.UInt(InfinitePlayPrice));
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.UInt(NumRoundsToWinToGetReward), LightMessage.Common.Messages.Param.TimeSpan(RoundWinRewardInterval), LightMessage.Common.Messages.Param.UInt(NumGoldRewardForWinningRounds), LightMessage.Common.Messages.Param.UInt(PriceToRefreshGroups), LightMessage.Common.Messages.Param.TimeSpan(RoundTimeExtension), LightMessage.Common.Messages.Param.UInt(RoundTimeExtensionPrice), LightMessage.Common.Messages.Param.UInt(RevealWordPrice), LightMessage.Common.Messages.Param.UInt(GetAnswersPrice), LightMessage.Common.Messages.Param.UInt(MaxActiveGames), LightMessage.Common.Messages.Param.UInt(InfinitePlayPrice), LightMessage.Common.Messages.Param.UInt(NumTimeExtensionsPerRound));
 
         public static ConfigValuesDTO FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new ConfigValuesDTO((byte)array[0].AsUInt.Value, array[1].AsTimeSpan.Value, (uint)array[2].AsUInt.Value, (uint)array[3].AsUInt.Value, array[4].AsTimeSpan.Value, (uint)array[5].AsUInt.Value, (uint)array[6].AsUInt.Value, (uint)array[7].AsUInt.Value, (uint)array[8].AsUInt.Value, (uint)array[9].AsUInt.Value);
+            return new ConfigValuesDTO((byte)array[0].AsUInt.Value, array[1].AsTimeSpan.Value, (uint)array[2].AsUInt.Value, (uint)array[3].AsUInt.Value, array[4].AsTimeSpan.Value, (uint)array[5].AsUInt.Value, (uint)array[6].AsUInt.Value, (uint)array[7].AsUInt.Value, (uint)array[8].AsUInt.Value, (uint)array[9].AsUInt.Value, (uint)array[10].AsUInt.Value);
         }
     }
 

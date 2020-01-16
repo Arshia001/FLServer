@@ -205,6 +205,7 @@ contract ConfigValuesDTO castfrom(FLGrainInterfaces.Configuration.ConfigValues s
 	GetAnswersPrice: u32;
 	MaxActiveGames: u32;
 	InfinitePlayPrice: u32;
+	NumTimeExtensionsPerRound: u32;
 }
 
 contract GoldPackConfigDTO castfrom(FLGrainInterfaces.Configuration.GoldPackConfig server oneway)
@@ -322,8 +323,6 @@ endpoint System sys
 	request RegisterFcmToken fcm via Player(clientid).SetFcmToken(token) { { token: string; } -> noresponse }
 
 	request ClearFinishedGames cfg via Player(clientid).ClearFinishedGames() { { } -> noresponse }
-
-	request GetClientVersion cvn { { } -> { latest: u32; minimumSupported: u32; } }
 }
 
 endpoint Suggestion sg

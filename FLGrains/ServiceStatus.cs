@@ -1,14 +1,17 @@
 ﻿using FLGrainInterfaces;
+using FLGrains.ServiceInterfaces;
 using Orleans;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FLGrains
 {
     class ServiceStatus : Grain, IServiceStatus
     {
-        public Task<bool> GetStatus() => FLTaskExtensions.True;
+        private readonly ISystemSettingsProvider systemSettings;
+
+        public ServiceStatus(ISystemSettingsProvider systemSettings) => this.systemSettings = systemSettings;
+
+        public Task<(uint latest, uint minimumSupported)> GetClientVersion() =>
+            Task.FromResult((systemSettings.Settings.Values.LatestVersion, systemSettings.Settings.Values.MinimumSupportedVersion));
     }
 }

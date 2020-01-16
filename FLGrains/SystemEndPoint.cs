@@ -65,8 +65,5 @@ namespace FLGrains
 
             await player.SendPasswordRecoveryLink();
         }
-
-        protected override Task<(uint latest, uint minimumSupported)> GetClientVersion(Guid clientID) =>
-            Task.FromResult((systemSettings.Settings.Values.LatestVersion, systemSettings.Settings.Values.MinimumSupportedVersion));
     }
 }

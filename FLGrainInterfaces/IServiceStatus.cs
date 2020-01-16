@@ -8,6 +8,6 @@ namespace FLGrainInterfaces
 {
     public interface IServiceStatus : IGrainWithIntegerKey
     {
-        Task<bool> GetStatus();
+        Task<(uint latest, uint minimumSupported)> GetClientVersion();
     }
 }
