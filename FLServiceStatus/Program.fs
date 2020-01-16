@@ -56,7 +56,7 @@ module Program =
     let main args = 
         (task {
             let clusterClient = buildClient()
-            let host = createHostBuilder(args, clusterClient).Build()
+            use host = createHostBuilder(args, clusterClient).Build()
 
             do! host.StartAsync()
 

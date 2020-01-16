@@ -32,8 +32,6 @@ TEST
 	native input fields are displayed on top of the dialog box in the edit account menu
 	Keyboard should be shown when entering game
 	time extension limit per round
-	Version check
-	Check service status on connection failures during startup, add suitable messages
 
 *************************************************
 Optional / for later
