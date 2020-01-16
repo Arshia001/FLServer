@@ -22,7 +22,7 @@ type IStatusMonitorService =
 
 type StatusMonitorService() =
     let mutable downForMaintenance = false
-    let mutable accessible = true
+    let mutable accessible = false
     let mutable clientVersion = { latest = 0u; minimumSupported = 0u }
 
     interface IStatusMonitorService with
