@@ -123,7 +123,8 @@ namespace FLGrains
                     infinitePlayTimeRemaining: IsInfinitePlayActive ? InfinitePlayTimeRemaining : default(TimeSpan?),
                     statisticsValues: state.StatisticsValues.Where(kv => ShouldReplicateStatToClient(kv.Key.Statistic))
                         .Select(kv => new StatisticValue(kv.Key.Statistic, kv.Key.Parameter, kv.Value)),
-                    isRegistered: IsRegistered()
+                    isRegistered: IsRegistered(),
+                    notificationsEnabled: state.NotificationsEnabled
                 );
             });
 

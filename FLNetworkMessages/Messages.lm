@@ -159,6 +159,7 @@ contract OwnPlayerInfo
 	InfinitePlayTimeRemaining: timespan?;
 	StatisticsValues: StatisticValue[];
 	IsRegistered: bool;
+	NotificationsEnabled: bool;
 }
 
 contract WordScorePairDTO castfrom(FLGameLogic.WordScorePair)
