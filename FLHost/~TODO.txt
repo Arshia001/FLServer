@@ -1,18 +1,18 @@
-﻿CLIENT Get notification enabled setting from server instead of storing locally
-CLIENT disable buttons while waiting for server, show loading indicators, etc.
-CLIENT(?) when it's opponent's turn, going back to main menu and entering the game again causes the play button to appear and the game to appear as waiting for me
+﻿CLIENT(?) when it's opponent's turn, going back to main menu and entering the game again causes the play button to appear and the game to appear as waiting for me
 
 CLIENT New art
 CLIENT Unlimited play button text
 
-CLIENT Sounds
 CLIENT Integrate FCM
 CLIENT Ads
 CLIENT IAB
+
+CLIENT Clear game history button
+CLIENT Sounds
 CLIENT Telegram channel link
 CLIENT Interesting/Uninteresting data per player to disallow duplicated voting? -> store on client, too much work yielding too little value for server
 CLIENT XP/Score/Gold/Rank change notifications after game is complete?
-CLIENT Clear game history button
+CLIENT Store log in file
 
 ART Notification enabled/disabled
 ART Login / register
@@ -30,6 +30,8 @@ TEST
 	Keyboard should be shown when entering game
 	time extension limit per round
 	disable powerup buttons in game when they can't be used + show toast with information on why it can't be used
+	Get notification enabled setting from server instead of storing locally
+	disable buttons while waiting for server, show loading indicators, etc.
 
 *************************************************
 Optional / for later
