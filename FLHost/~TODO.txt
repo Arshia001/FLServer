@@ -1,6 +1,4 @@
-﻿SERVER FIX THE LEADERBOARDS!!!
-
-CLIENT(?) when it's opponent's turn, going back to main menu and entering the game again causes the play button to appear and the game to appear as waiting for me
+﻿CLIENT(?) when it's opponent's turn, going back to main menu and entering the game again causes the play button to appear and the game to appear as waiting for me
 CLIENT disable powerup buttons in game when they can't be used
 CLIENT disable buttons while waiting for server, show loading indicators, etc.
 

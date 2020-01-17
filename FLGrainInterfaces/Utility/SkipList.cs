@@ -400,14 +400,11 @@ namespace FLGrainInterfaces.Util
                     ln = GetElementByRank_Int((ulong)(start + 1));
             }
 
-            if (ln != null)
-                while (rangelen-- > 0)
-                {
-                    Result.Add(new Node(ln));
-                    ln = (reverse ? ln.Backward : ln.Level[0].Forward) ?? throw new Exception("Failed to get next node in traversal");
-                }
-            else
-                throw new Exception("Failed to find range start node");
+            while (rangelen-- > 0 && ln != null)
+            {
+                Result.Add(new Node(ln));
+                ln = (reverse ? ln.Backward : ln.Level[0].Forward);
+            }
 
             return Result;
         }
