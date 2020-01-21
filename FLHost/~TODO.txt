@@ -1,5 +1,4 @@
 ﻿CLIENT New art
-CLIENT Unlimited play button text
 
 CLIENT Integrate FCM
 CLIENT Ads
@@ -30,6 +29,8 @@ TEST
 	disable powerup buttons in game when they can't be used + show toast with information on why it can't be used
 	Get notification enabled setting from server instead of storing locally
 	disable buttons while waiting for server, show loading indicators, etc.
+	Round win reward UI
+	Unlimited play button text
 
 BUGS
 	CLIENT(?) when it's opponent's turn, going back to main menu and entering the game again causes the play button to appear and the game to appear as waiting for me
