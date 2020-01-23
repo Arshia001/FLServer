@@ -2,6 +2,7 @@
 using FLGrainInterfaces;
 using FLGrainInterfaces.Configuration;
 using FLGrains.ServiceInterfaces;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Orleans;
@@ -9,6 +10,7 @@ using Orleans.Concurrency;
 using OrleansCassandraUtils.Utils;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -40,18 +42,20 @@ namespace FLGrains.Configuration
 
         ConfigData? data;
         readonly ISystemSettingsProvider systemSettingsProvider;
+        readonly ILogger logger;
 
-
-        public SystemConfig(ISystemSettingsProvider systemSettingsProvider)
+        public SystemConfig(ISystemSettingsProvider systemSettingsProvider, ILogger<SystemConfig> logger)
         {
             this.systemSettingsProvider = systemSettingsProvider;
+            this.logger = logger;
         }
 
         public override async Task OnActivateAsync()
         {
             DelayDeactivation(TimeSpan.MaxValue);
 
-            await InternalUpdateConfigFromDatabase();
+            if (!await InitializeConfigFromFile())
+                await InternalUpdateConfigFromDatabase();
 
             await base.OnActivateAsync();
         }
@@ -117,6 +121,31 @@ namespace FLGrains.Configuration
             return result;
         }
 
+        async Task<bool> InitializeConfigFromFile()
+        {
+            const string ConfigFileName = "initial-config.json";
+
+            if (!File.Exists(ConfigFileName))
+                return false;
+
+            var connectionString = systemSettingsProvider.Settings.Values.ConnectionString;
+            var session = await CassandraSessionFactory.CreateSession(connectionString);
+            var queries = await Queries.CreateInstance(session);
+
+            var jsonData = await File.ReadAllTextAsync(ConfigFileName);
+            var newData = ParseConfigData(jsonData);
+            newData.Groups = await ReadGroupsFromDatabase(session, queries);
+            newData.Categories = await ReadCategoriesFromDatabase(session, queries, newData.Groups);
+
+            SetNewData(newData);
+
+            await WriteConfigToDatabase(jsonData, session);
+
+            logger.LogWarning("Configuration data updated from initial-config.json, now you should delete the file");
+
+            return true;
+        }
+
         async Task InternalUpdateConfigFromDatabase()
         {
             var connectionString = systemSettingsProvider.Settings.Values.ConnectionString;
@@ -155,13 +184,18 @@ namespace FLGrains.Configuration
             newData.Categories = data.Categories;
             newData.Groups = data.Groups;
 
-            var statement = await session.PrepareAsync("update fl_config set data = :data where key = 0;");
-            statement.SetConsistencyLevel(ConsistencyLevel.EachQuorum);
-            await session.ExecuteAsync(statement.Bind(new { data = jsonConfig }));
+            await WriteConfigToDatabase(jsonConfig, session);
 
             SetNewData(newData);
 
             await PushUpdateToAllSilos();
+        }
+
+        static async Task WriteConfigToDatabase(string jsonConfig, ISession session)
+        {
+            var statement = await session.PrepareAsync("update fl_config set data = :data where key = 0;");
+            statement.SetConsistencyLevel(ConsistencyLevel.EachQuorum);
+            await session.ExecuteAsync(statement.Bind(new { data = jsonConfig }));
         }
     }
 }
