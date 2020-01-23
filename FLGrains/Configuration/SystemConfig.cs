@@ -102,7 +102,7 @@ namespace FLGrains.Configuration
          * incremental updates to other silos. All of this is unlikely to impact performance
          * unless we have hundreds of megabytes of data here though.
          */
-        static async Task<List<CategoryConfig>> ReadCategoriesFromDatabase(ISession session, Queries queries, IEnumerable<GroupConfig> groups)
+        async Task<List<CategoryConfig>> ReadCategoriesFromDatabase(ISession session, Queries queries, IEnumerable<GroupConfig> groups)
         {
             var groupsByID = groups.ToDictionary(g => g.ID);
 
@@ -111,12 +111,25 @@ namespace FLGrains.Configuration
             var result = new List<CategoryConfig>();
 
             foreach (var row in rows)
-                result.Add(new CategoryConfig(
-                    Convert.ToString(row["name"]),
-                    ((IDictionary<string, IEnumerable<string>>)row["words"])
-                        .Select(kv => new CategoryConfig.Entry(kv.Key, kv.Value)),
-                    groupsByID[Convert.ToUInt16(row["group_id"])]
-                    ));
+                try
+                {
+                    if (row["words"] == null)
+                    {
+                        logger.LogError($"Found category with no words: {row["name"]}");
+                        continue;
+                    }
+
+                    result.Add(new CategoryConfig(
+                        Convert.ToString(row["name"]),
+                        ((IDictionary<string, IEnumerable<string>>)row["words"])
+                            .Select(kv => new CategoryConfig.Entry(kv.Key, kv.Value)),
+                        groupsByID[Convert.ToUInt16(row["group_id"])]
+                        ));
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Failed to read row with key {row["name"]}", ex);
+                }
 
             return result;
         }

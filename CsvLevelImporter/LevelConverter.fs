@@ -90,20 +90,38 @@ let csvToFolder inputPath outputPath =
         )
     )
 
-let readCategoryWord (line: string) : Word =
+let readCategoryWord (line: string) : Word option =
     let parts = line.Split(':', 2)
     match parts with
-    | [| name |] -> (name, [])
-    | [| name; corrections |] -> (name, corrections.Split('|') |> List.ofArray)
+    | [| "" |] -> None
+    | [| name |] -> (name, []) |> Some
+    | [| _; corrections |] when corrections.IndexOf(':') >= 0 -> failwithf "Corrections include ':' character, but should be separated with '|' : %s" line
+    | [| name; corrections |] -> (name, corrections.Split('|') |> List.ofArray) |> Some
     | _ -> failwithf "Invalid word definition %s" line
 
 let readCategory (path: string) : Category =
-    let name = Path.GetFileNameWithoutExtension(path)
-    let words =
-        File.ReadAllLines(path)
-        |> Seq.map readCategoryWord
-        |> List.ofSeq
-    (name, words)
+    try
+        let name = Path.GetFileNameWithoutExtension(path)
+        let words =
+            File.ReadAllLines(path)
+            |> Seq.choose readCategoryWord
+            |> List.ofSeq
+        
+        let duplicateWords =
+            words
+            |> Seq.map fst
+            |> Seq.append (words |> Seq.map snd |> Seq.concat)
+            |> Seq.groupBy id
+            |> Seq.filter (fun (_, items) -> Seq.length items > 1)
+            |> Seq.toList
+        if List.isEmpty duplicateWords |> not then 
+            duplicateWords
+            |> Seq.map fst
+            |> String.concat ", "
+            |> failwithf "Non-unique words found in category: %s"
+
+        (name, words)
+    with ex -> Exception(sprintf "Failure while reading file %s" path, ex) |> raise
 
 let readGroup (directory: string) : Group =
     let dirName = Path.GetFileName(directory)

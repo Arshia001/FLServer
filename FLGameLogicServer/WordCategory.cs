@@ -32,7 +32,7 @@ namespace FLGameLogicServer
         {
             CategoryName = categoryName;
 
-            entries = new Dictionary<string, WordEntry>(StringComparer.InvariantCultureIgnoreCase);
+            entries = new Dictionary<string, WordEntry>(StringComparer.OrdinalIgnoreCase);
             var answersSet = new HashSet<string>();
 
             foreach (var w in wordsAndCorrections)
