@@ -13,20 +13,10 @@ ART Splash
 ART Logo
 
 TEST
-	Number of time extensions
 	Inactivity timeout
-	IAB
-	auto-refresh the game list when a change notification comes in for one of the games
-	Game finished text in game overview
 	support game logic-provided winner and game time out
-	native input fields are displayed on top of the dialog box in the edit account menu
+	IAB
 	Keyboard should be shown when entering game
-	time extension limit per round
-	disable powerup buttons in game when they can't be used + show toast with information on why it can't be used
-	Get notification enabled setting from server instead of storing locally
-	disable buttons while waiting for server, show loading indicators, etc.
-	Round win reward UI
-	Unlimited play button text
 
 BUGS
 	CLIENT(?) when it's opponent's turn, going back to main menu and entering the game again causes the play button to appear and the game to appear as waiting for me
