@@ -112,7 +112,7 @@ Target.create "Bundle" (fun _ ->
     let serverDir = Path.combine deployDir "Server"
     let clientDir = Path.combine deployDir "Client"
     let publicDir = Path.combine clientDir "public"
-    let publishArgs = sprintf "publish -c Release -o \"%s\"" serverDir
+    let publishArgs = sprintf "publish -c Release -o \"%s\" -r linux-x64 --no-self-contained -f netcoreapp3.1" serverDir
     runDotNet publishArgs serverPath
 
 
