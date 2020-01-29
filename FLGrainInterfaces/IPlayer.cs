@@ -114,7 +114,7 @@ namespace FLGrainInterfaces
         public string? FcmToken { get; set; }
 
         [Id(18)]
-        public bool NotificationsEnabled { get; set; }
+        public bool NotificationsEnabled { get; set; } = true;
 
         [Id(19)]
         public string? PasswordRecoveryToken { get; set; }
