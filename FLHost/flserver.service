@@ -2,7 +2,7 @@
 Description=FL Server
 
 [Service]
-ExecStart=/usr/bin/dotnet FLHost.dll
+ExecStart=/app/flserver/FLHost
 WorkingDirectory=/app/flserver/
 User=flserver
 Group=flserver

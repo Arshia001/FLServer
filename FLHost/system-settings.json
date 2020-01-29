@@ -10,7 +10,7 @@
   "ForgotPasswordFromSenderName": "مداد جنگی",
   "ForgotPasswordSubject": "بازیابی گذرواژه",
   "ForgotPasswordTemplateFilePath": "./ForgotPasswordTemplate.cshtml",
-  "ForgotPasswordRecoveryUrlTemplate": "passwordrecovery.pw.onehand.ir/#token/{0}",
+  "ForgotPasswordRecoveryUrlTemplate": "http://passwordrecovery.pw.onehand.ir/#token/{0}",
   "BazaarClientID": "",
   "BazaarClientSecret": "",
   "BazaarRefreshToken": "",
