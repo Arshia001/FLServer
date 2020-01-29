@@ -9,9 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="FSharp.Data" Version="3.3.2" />
         <PackageReference Include="Microsoft.Orleans.Client" Version="$(OrleansPackageVersion)" />
-        <PackageReference Include="TaskBuilder.fs" Version="2.1.0" />
     </ItemGroup>
 
     <ItemGroup>
