@@ -21,7 +21,7 @@
         <Compile Include="RecoveryEmailApi.fs" />
         <Compile Include="Server.fs" />
         <Content Include="system-settings.json">
-            <CopyToOutputDirectory>true</CopyToOutputDirectory>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
 
