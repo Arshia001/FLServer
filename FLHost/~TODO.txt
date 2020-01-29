@@ -22,6 +22,7 @@ BUGS
 	CLIENT(?) when it's opponent's turn, going back to main menu and entering the game again causes the play button to appear and the game to appear as waiting for me
 	SERVER new player not in leader board?
 	Win reward cooldown not working
+	Password recovery token base-64 url encoding
 
 *************************************************
 Optional / for later
