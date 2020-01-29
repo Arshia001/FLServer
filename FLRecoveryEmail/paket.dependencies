@@ -20,7 +20,6 @@ group Client
     nuget Fable.React ~> 5
     nuget Fable.Remoting.Client ~> 5
     nuget Fulma ~> 2
-    nuget Fable.FontAwesome.Free ~> 2
 
 group Build
     source https://api.nuget.org/v3/index.json
@@ -32,4 +31,3 @@ group Build
     nuget Fake.Core.Target
     nuget Fake.DotNet.Cli
     nuget Fake.IO.FileSystem
-
