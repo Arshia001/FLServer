@@ -41,6 +41,8 @@ SERVER Embed the password recovery website into the silo host ->
 	Remove the website specific FAKE script and create a top-level FAKE script to handle everything (service status included)
 	Turn Saturn.Application.run into a hosted service
 
+SERVER split needed grains into separate assembly to prevent builds of service status and password recovery depending on almost everything
+
 CLIENT notify game expiry with a popup
 CLIENT Keep keyboard open while in game screen
 CLIENT Make generation of build information file automatic
