@@ -119,12 +119,15 @@ namespace FLGrains.Configuration
                         continue;
                     }
 
-                    result.Add(new CategoryConfig(
-                        Convert.ToString(row["name"]),
-                        ((IDictionary<string, IEnumerable<string>>)row["words"])
-                            .Select(kv => new CategoryConfig.Entry(kv.Key, kv.Value)),
-                        groupsByID[Convert.ToUInt16(row["group_id"])]
-                        ));
+                    var name = Convert.ToString(row["name"]);
+                    
+                    var groupID = Convert.ToUInt16(row["group_id"]);
+                    if (!groupsByID.TryGetValue(groupID, out var group))
+                        throw new Exception($"Found category {name} with unknown group id {groupID}");
+                    
+                    var words = ((IDictionary<string, IEnumerable<string>>)row["words"]).Select(kv => new CategoryConfig.Entry(kv.Key, kv.Value));
+                    
+                    result.Add(new CategoryConfig(name, words, group));
                 }
                 catch (Exception ex)
                 {
@@ -174,6 +177,7 @@ namespace FLGrains.Configuration
 
         void SetNewData(ConfigData newData)
         {
+            ReadOnlyConfigData.Validate(newData);
             newData.Version = (data?.Version ?? 0) + 1;
             data = newData;
         }

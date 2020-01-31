@@ -1,6 +1,4 @@
-﻿SERVER validate config content on startup
-
-CLIENT Integrate FCM
+﻿CLIENT Integrate FCM
 CLIENT Ads
 CLIENT IAB
 

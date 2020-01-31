@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace FLGrainInterfaces.Configuration
@@ -50,6 +51,30 @@ namespace FLGrainInterfaces.Configuration
             MaxEditDistanceToCorrentByLetterCount = Enumerable.Range(0, 100)
                 .Select(i => data.EditDistanceConfig?.GetMaxDistanceToCorrectByLetterCount(i) ?? throw new Exception("MaxDistanceToCorrectByLetterCount not specified"))
                 .ToList();
+        }
+
+        [DoesNotReturn] static void FailWith(string error) => throw new ArgumentException(error);
+
+        public static void Validate(ConfigData data)
+        {
+            static void CheckList<T>(IReadOnlyList<T>? list, string name)
+            {
+                if (list == null || list.Count == 0)
+                    FailWith($"No {name}");
+            }
+
+            CheckList(data.Groups, "groups");
+            CheckList(data.Categories, "categories");
+            CheckList(data.PlayerLevels, "player levels");
+            CheckList(data.GoldPacks, "gold packs");
+
+            if (data.EditDistanceConfig == null || data.EditDistanceConfig.MaxDistanceToCorrectByLetterCount == null)
+                FailWith("No edit distance config");
+
+            if (data.ConfigValues == null)
+                FailWith("No config values");
+
+            ConfigValues.Validate(data.ConfigValues);
         }
     }
 }
