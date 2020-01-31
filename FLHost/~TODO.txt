@@ -1,4 +1,6 @@
-﻿CLIENT Integrate FCM
+﻿Think of something for maths!
+
+CLIENT Integrate FCM
 CLIENT Ads
 CLIENT IAB
 
@@ -25,6 +27,8 @@ BUGS
 *************************************************
 Optional / for later
 *************************************************
+
+SERVER Two clients connecting with same ID causes the server to keep disconnecting them in favor of each other, one of them should back down
 
 SERVER Separate game history? There's a bit of performance and some complexity to gain from adding a separate "GameHistoryRecord" grain
 SERVER planned down-time -> notify players in some way (broadcast messages?) (Use push notifications for now?)

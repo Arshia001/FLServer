@@ -1,6 +1,7 @@
 ﻿using Bond;
 using FLGrainInterfaces;
 using FLGrainInterfaces.Configuration;
+using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Runtime;
 using OrleansBondUtils;
@@ -46,13 +47,18 @@ namespace FLGrains
     {
         readonly IPersistentState<MatchMakingGrainState> state;
         readonly IConfigReader configReader;
+        readonly ILogger<MatchMakingGrain> logger;
+        readonly bool detailedLog;
 
         HashSet<MatchMakingEntry> entries = new HashSet<MatchMakingEntry>();
 
-        public MatchMakingGrain([PersistentState("State")] IPersistentState<MatchMakingGrainState> state, IConfigReader configReader)
+        public MatchMakingGrain([PersistentState("State")] IPersistentState<MatchMakingGrainState> state,
+            IConfigReader configReader, ILogger<MatchMakingGrain> logger)
         {
             this.state = state;
             this.configReader = configReader;
+            this.logger = logger;
+            detailedLog = Environment.GetEnvironmentVariable("FLSERVER_DETAILED_MATCHMAKING_LOG") == "yes";
         }
 
         public override Task OnActivateAsync()
@@ -76,18 +82,48 @@ namespace FLGrains
             entries.Add(entry);
         }
 
-        bool Within(uint a, uint b, uint delta) => Math.Abs(a - b) <= delta;
+        bool Within(uint a, uint b, uint delta) => Math.Abs((int)a - (int)b) <= delta;
 
         public async Task<(Guid gameID, PlayerInfo? opponentInfo, byte numRounds, bool myTurnFirst)> FindOrCreateGame(IPlayer player)
         {
             var config = configReader.Config;
             var (score, level) = await player.GetMatchMakingInfo();
             var playerID = player.GetPrimaryKey();
+
+            if (detailedLog)
+                logger.LogInformation($"Matching player ID {playerID} with level {level} and score {score}");
+
             var match = entries.FirstOrDefault(e =>
-                Within(e.Level, level, config.ConfigValues.MatchmakingLevelDifference) &&
-                Within(e.Score, score, config.ConfigValues.MatchmakingScoreDifference) &&
-                e.FirstPlayerID != playerID
-            );
+            {
+                if (detailedLog)
+                    logger.LogInformation($"Testing {e.FirstPlayerID} with level {e.Level} and score {e.Score}");
+
+                if (!Within(e.Level, level, config.ConfigValues.MatchmakingLevelDifference))
+                {
+                    if (detailedLog)
+                        logger.LogInformation($"Level difference exceeds expected range {config.ConfigValues.MatchmakingLevelDifference}, won't match");
+                    return false;
+                }
+
+                if (!Within(e.Score, score, config.ConfigValues.MatchmakingScoreDifference))
+                {
+                    if (detailedLog)
+                        logger.LogInformation($"Score difference exceeds expected range {config.ConfigValues.MatchmakingScoreDifference}, won't match");
+                    return false;
+                }
+
+                if (e.FirstPlayerID == playerID)
+                {
+                    if (detailedLog)
+                        logger.LogInformation("This is the same player, won't match");
+                    return false;
+                }
+
+                if (detailedLog)
+                    logger.LogInformation("Match found");
+
+                return true;
+            });
 
             if (match != null)
             {
@@ -99,6 +135,9 @@ namespace FLGrains
             }
             else
             {
+                if (detailedLog)
+                    logger.LogInformation("No match found, will start new game");
+
                 IGame gameToEnter;
                 do
                     gameToEnter = GrainFactory.GetGrain<IGame>(Guid.NewGuid());
