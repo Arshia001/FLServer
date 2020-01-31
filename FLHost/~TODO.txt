@@ -1,4 +1,6 @@
-﻿CLIENT Integrate FCM
+﻿SERVER validate config content on startup
+
+CLIENT Integrate FCM
 CLIENT Ads
 CLIENT IAB
 
@@ -13,20 +15,14 @@ ART Splash
 ART Logo
 
 TEST
-	Inactivity timeout
-	support game logic-provided winner and game time out
-	IAB
-	Keyboard should be shown when entering game
+	SERVER IAB
 
 BUGS
+	EndRound sent twice
+
 	CLIENT(?) when it's opponent's turn, going back to main menu and entering the game again causes the play button to appear and the game to appear as waiting for me
-	SERVER new player not in leader board?
 	CLIENT Win reward cooldown timer text not working
 	Password recovery token base-64 url encoding
-	Game timeout for starter after first round by opponent
-	Game timeout result flipped in simple game information
-	Client not receiving notification for game timeout (maybe it's not sent?) -> is game logic mistakenly timing games out on its own?
-	Timeout text not properly shaped in main menu
 
 *************************************************
 Optional / for later

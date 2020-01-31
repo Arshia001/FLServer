@@ -180,7 +180,7 @@ contract GameInfo
     MyTurnFirst: bool;
     NumTurnsTakenByOpponent: u8;
 	Expired: bool;
-	ExpiredFor: u8;
+	ExpiredForMe: bool;
 }
 
 contract SimplifiedGameInfo

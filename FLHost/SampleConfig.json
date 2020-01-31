@@ -57,7 +57,7 @@
 
     "RevealWordPrice": 300,
 
-    "GameInactivityTimeout": "24:00:00",
+    "GameInactivityTimeout": "00:01:05",
 
     "MaxActiveGames": 5,
     "InfinitePlayPrice": 200,

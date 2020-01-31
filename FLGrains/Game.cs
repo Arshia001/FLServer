@@ -116,7 +116,7 @@ namespace FLGrains
             if (GameLogic.IsTurnInProgress(playerIndex, now))
                 SetEndTurnTimerImpl(playerIndex, GameLogic.GetTurnEndTime(playerIndex) - now, roundIndex);
             else if (state.UseState(state => state.LastProcessedEndTurns[playerIndex]) < roundIndex)
-                await HandleEndTurn(playerIndex, roundIndex);
+                await HandleEndTurn(playerIndex, roundIndex); // In case the game grain went down while the game was in progress
         }
 
         int Index(Guid playerID) =>
@@ -271,12 +271,12 @@ namespace FLGrains
                 if (state.LastProcessedEndTurns[playerIndex] >= roundIndex)
                     return false;
 
+                state.LastProcessedEndTurns[playerIndex] = roundIndex;
+
                 var config = configReader.Config;
 
                 if (playerIndex == 0 && roundIndex == 0)
                     await GrainFactory.GetGrain<IMatchMakingGrain>(0).AddGame(this.AsReference<IGame>(), GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]));
-
-                state.LastProcessedEndTurns[playerIndex] = roundIndex;
 
                 var opponentFinishedThisRound = GameLogic.PlayerFinishedTurn(1 - playerIndex, roundIndex);
 
@@ -334,50 +334,80 @@ namespace FLGrains
                 else
                 {
                     if (GameLogic.ExpiryTime.HasValue)
-                        await RegisterOrUpdateReminder("e", GameLogic.ExpiryTime.Value - DateTime.Now + TimeSpan.FromSeconds(10), TimeSpan.FromDays(1));
+                    {
+                        // This one minute limit is imposed by Orleans on reminder intervals. In our current
+                        // scenario, a one minute difference is probably not noticeable for a 24-hour timeout.
+                        var timeUntilExpiry = GameLogic.ExpiryTime.Value - DateTime.Now + TimeSpan.FromSeconds(10);
+                        if (timeUntilExpiry > TimeSpan.FromMinutes(1))
+                            await RegisterOrUpdateReminder("e", timeUntilExpiry, TimeSpan.FromMinutes(1));
+                        else
+                        {
+                            logger.Info("Less than one minute remaining to expiry time, will terminate game immediately");
+                            await UnregisterExpiryReminder();
+                            await HandleGameExpiry();
+                        }
+                    }
                 }
 
                 return true;
             });
 
-        public async Task ReceiveReminder(string reminderName, TickStatus status)
-        {
-            switch (reminderName)
+        public Task ReceiveReminder(string reminderName, TickStatus status) =>
+            reminderName switch
             {
-                case "e":
-                    if (!GameLogic.Expired)
-                    {
-                        logger.LogError("Expiry reminder went off but game is not expired");
-                        return;
-                    }
+                "e" => HandleGameExpiry(),
+                _ => Task.CompletedTask,
+            };
 
-                    await state.UseState(async state =>
-                    {
-                        var myID = this.GetPrimaryKey();
+        async Task HandleGameExpiry()
+        {
+            await UnregisterExpiryReminder();
 
-                        var config = configReader.Config;
-                        var me = this.AsReference<IGame>();
+            if (!GameLogic.Expired)
+            {
+                var remaining = GameLogic.ExpiryTime.HasValue ? (GameLogic.ExpiryTime.Value - DateTime.Now).TotalSeconds.ToString() : "NO EXPIRY TIME";
+                logger.LogWarning($"Expiry reminder went off but game is not expired with {remaining} seconds left, going to terminate the game anyway");
+            }
 
-                        IPlayer player0 = GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]);
-                        IPlayer player1 = GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[1]);
+            await state.UseState(async state =>
+            {
+                var myID = this.GetPrimaryKey();
 
-                        var initScore0 = await player0.GetScore();
-                        var initScore1 = await player1.GetScore();
+                var config = configReader.Config;
+                var me = this.AsReference<IGame>();
 
-                        var expiredFor = GameLogic.ExpiredFor;
+                IPlayer player0 = GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]);
+                IPlayer player1 = GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[1]);
 
-                        var scoreGain = ScoreGainCalculator.CalculateGain(initScore0, initScore1, expiredFor == 0 ? CompetitionResult.Loss : CompetitionResult.Win, config);
+                var initScore0 = await player0.GetScore();
+                var initScore1 = await player1.GetScore();
 
-                        var (score0, rank0, level0, xp0, gold0) = await player0.OnGameResult(me, expiredFor == 0 ? CompetitionResult.Loss : CompetitionResult.Win, GameLogic.GetNumRoundsWon(0), scoreGain, true);
-                        var (score1, rank1, level1, xp1, gold1) = await player1.OnGameResult(me, expiredFor == 0 ? CompetitionResult.Win : CompetitionResult.Loss, GameLogic.GetNumRoundsWon(1), scoreGain, true);
+                var expiredFor = GameLogic.ExpiredFor;
 
-                        // No push notifications here...
-                        await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameExpired(state.PlayerIDs[0], myID, expiredFor == 1, score0, rank0, level0, xp0, gold0);
-                        await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameExpired(state.PlayerIDs[1], myID, expiredFor == 0, score1, rank1, level1, xp1, gold1);
+                var scoreGain = ScoreGainCalculator.CalculateGain(initScore0, initScore1, expiredFor == 0 ? CompetitionResult.Loss : CompetitionResult.Win, config);
 
-                        DeactivateOnIdle();
-                    });
-                    break;
+                var (score0, rank0, level0, xp0, gold0) = await player0.OnGameResult(me, expiredFor == 0 ? CompetitionResult.Loss : CompetitionResult.Win, GameLogic.GetNumRoundsWon(0), scoreGain, true);
+                var (score1, rank1, level1, xp1, gold1) = await player1.OnGameResult(me, expiredFor == 0 ? CompetitionResult.Win : CompetitionResult.Loss, GameLogic.GetNumRoundsWon(1), scoreGain, true);
+
+                // No push notifications here...
+                await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameExpired(state.PlayerIDs[0], myID, expiredFor == 1, score0, rank0, level0, xp0, gold0);
+                await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameExpired(state.PlayerIDs[1], myID, expiredFor == 0, score1, rank1, level1, xp1, gold1);
+
+                DeactivateOnIdle();
+            });
+        }
+
+        private async Task UnregisterExpiryReminder()
+        {
+            try
+            {
+                var expiryReminder = await GetReminder("e");
+                if (expiryReminder != null)
+                    await UnregisterReminder(expiryReminder);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to unregister end turn reminder");
             }
         }
 
@@ -494,17 +524,17 @@ namespace FLGrains
 
         GameState GetStateInternal(GameGrainState state)
         {
-            if (state.PlayerIDs.Length == 0 || state.PlayerIDs.Length == 0)
+            if (state.PlayerIDs.Length == 0)
                 return GameState.New;
 
             if (state.PlayerIDs[1] == Guid.Empty)
                 return GameState.WaitingForSecondPlayer;
 
-            if (GameLogic.Finished)
-                return GameState.Finished;
-
             if (GameLogic.Expired)
                 return GameState.Expired;
+
+            if (GameLogic.Finished)
+                return GameState.Finished;
 
             return GameState.InProgress;
         }
@@ -539,7 +569,7 @@ namespace FLGrains
                     numTurnsTakenByOpponent: (byte)GameLogic.NumTurnsTakenByIncludingCurrent(1 - index),
                     haveCategoryAnswers: ownedCategories,
                     expired: GameLogic.Expired,
-                    expiredFor: (byte)GameLogic.ExpiredFor
+                    expiredForMe: GameLogic.ExpiredFor == index
                 );
             });
 
