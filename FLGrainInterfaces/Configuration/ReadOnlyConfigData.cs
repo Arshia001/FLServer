@@ -74,7 +74,19 @@ namespace FLGrainInterfaces.Configuration
             if (data.ConfigValues == null)
                 FailWith("No config values");
 
+            try
+            {
+                var _unused = new ReadOnlyConfigData(data);
+            }
+            catch(Exception ex)
+            {
+                FailWith($"Failed to index config data due to:\n{ex}");
+            }
+
             ConfigValues.Validate(data.ConfigValues);
+
+            if (data.Groups!.Count < data.ConfigValues.NumGroupChoices)
+                FailWith($"Too few groups, need at least {data.ConfigValues.NumGroupChoices}");
         }
     }
 }
