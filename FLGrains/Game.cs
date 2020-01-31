@@ -328,8 +328,7 @@ namespace FLGrains
                     if (expiryReminder != null)
                         await UnregisterReminder(expiryReminder);
 
-                    // await ClearStateAsync(); // keep game history (separately)
-                    DeactivateOnIdle();
+                    //!! keep game history separately, deactivate this grain
                 }
                 else
                 {
@@ -393,7 +392,7 @@ namespace FLGrains
                 await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameExpired(state.PlayerIDs[0], myID, expiredFor == 1, score0, rank0, level0, xp0, gold0);
                 await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameExpired(state.PlayerIDs[1], myID, expiredFor == 0, score1, rank1, level1, xp1, gold1);
 
-                DeactivateOnIdle();
+                //!! keep game history separately, deactivate this grain
             });
         }
 
