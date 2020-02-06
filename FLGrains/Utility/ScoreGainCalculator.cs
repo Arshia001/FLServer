@@ -33,7 +33,8 @@ namespace FLGrains.Utility
             return (uint)Math.Round(
                 FLMath.Lerp(config.ConfigValues.MinScoreGain, config.ConfigValues.MaxScoreGain,
                     FLMath.Clamp01(
-                        FLMath.InverseLerp(-config.ConfigValues.MatchmakingScoreDifference, config.ConfigValues.MatchmakingScoreDifference, loserScore - winnerScore)
+                        FLMath.InverseLerp(-config.ConfigValues.MatchmakingScoreDifference,
+                            config.ConfigValues.MatchmakingScoreDifference, (int)loserScore - (int)winnerScore)
                     )
                 )
             );

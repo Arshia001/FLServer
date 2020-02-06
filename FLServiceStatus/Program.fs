@@ -20,9 +20,7 @@ open OrleansCassandraUtils
 type SystemSettings = JsonProvider<"system-settings.json">
 
 module Program =
-    let buildClient () =
-        let settings = SystemSettings.Parse(File.ReadAllText("system-settings.json"))
-
+    let buildClient (settings: SystemSettings.Root) =
         let client =
             ClientBuilder()
                 .UseCassandraClustering(fun (o: Clustering.CassandraClusteringOptions) -> 
@@ -39,10 +37,13 @@ module Program =
 
         client
 
-    let createHostBuilder (args, client: IClusterClient) =
+    let createHostBuilder (args, client: IClusterClient, settings: SystemSettings.Root) =
         Host.CreateDefaultBuilder(args)
             .ConfigureWebHostDefaults(fun webBuilder ->
-                webBuilder.UseStartup<Startup>() |> ignore
+                webBuilder
+                    .UseStartup<Startup>()
+                    .UseUrls(sprintf "http://127.0.0.1:%i" settings.Port)
+                    |> ignore
             )
             .ConfigureServices(fun s ->
                 s
@@ -55,8 +56,11 @@ module Program =
     [<EntryPoint>]
     let main args = 
         (task {
-            let clusterClient = buildClient()
-            use host = createHostBuilder(args, clusterClient).Build()
+            let settings = SystemSettings.Parse(File.ReadAllText("system-settings.json"))
+
+
+            let clusterClient = buildClient settings
+            use host = createHostBuilder(args, clusterClient, settings).Build()
 
             do! host.StartAsync()
 

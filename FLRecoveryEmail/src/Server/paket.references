@@ -1,4 +1,6 @@
 group Server
     FSharp.Core
+    FSharp.Data
+    TaskBuilder.fs
     Saturn
     Fable.Remoting.Giraffe

@@ -41,7 +41,7 @@
     "MaxDistanceToCorrectByLetterCount": "Math.floor(letterCount / 3)"
   },
   "ConfigValues": {
-    "NumRoundsPerGame": 1,
+    "NumRoundsPerGame": 6,
 
     "GetAnswersPrice": 150,
 

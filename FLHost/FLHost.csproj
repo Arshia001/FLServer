@@ -2,17 +2,20 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Nullable>enable</Nullable>
+    <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
+    <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="firebase-adminsdk-accountkeys.json" />
     <None Remove="ForgotPasswordTemplate.cshtml" />
     <None Remove="InitializeFLDatabase.cql" />
+    <None Remove="NginxConfig" />
     <None Remove="SampleConfig.json" />
     <None Remove="system-settings.json" />
     <None Remove="update-config" />
@@ -26,6 +29,9 @@
 
   <ItemGroup>
     <Content Include="InitializeFLDatabase.cql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="NginxConfig">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="SampleConfig.json">

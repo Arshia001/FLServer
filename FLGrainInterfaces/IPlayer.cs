@@ -63,7 +63,7 @@ namespace FLGrainInterfaces
     public class PlayerState
     {
         [Id(0)]
-        public List<IGame> ActiveGames { get; private set; } = new List<IGame>();
+        public List<Guid> ActiveGames { get; private set; } = new List<Guid>();
 
         [Id(1)]
         public string Name { get; set; } = "";
@@ -87,7 +87,7 @@ namespace FLGrainInterfaces
         public ulong Gold { get; set; }
 
         [Id(8)]
-        public List<IGame> PastGames { get; private set; } = new List<IGame>();
+        public List<Guid> PastGames { get; private set; } = new List<Guid>();
 
         [Id(9)]
         public DateTime InfinitePlayEndTime { get; set; }
@@ -114,7 +114,7 @@ namespace FLGrainInterfaces
         public string? FcmToken { get; set; }
 
         [Id(18)]
-        public bool NotificationsEnabled { get; set; }
+        public bool NotificationsEnabled { get; set; } = true;
 
         [Id(19)]
         public string? PasswordRecoveryToken { get; set; }

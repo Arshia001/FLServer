@@ -65,7 +65,7 @@ namespace FLGameLogicServer
                 category = "";
 
             if (!(player == 0 && NumTurnsTakenBy(player) == 0)) // No expiry time on first round, that's on us to find a match
-                ExpiryTime = DateTime.Now + expiryInterval;
+                ExpiryTime = DateTime.Now + turnTime + expiryInterval;
 
             return result;
         }

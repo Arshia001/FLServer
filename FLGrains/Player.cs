@@ -73,8 +73,12 @@ namespace FLGrains
 
         public Task<Immutable<IReadOnlyList<IGame>>> GetGames() =>
             state.UseState(state =>
-                Task.FromResult(state.ActiveGames.Concat(state.PastGames).ToList().AsImmutable<IReadOnlyList<IGame>>())
-            );
+                Task.FromResult(
+                    state.ActiveGames.Concat(state.PastGames)
+                    .Select(id => GrainFactory.GetGrain<IGame>(id))
+                    .ToList()
+                    .AsImmutable<IReadOnlyList<IGame>>()
+                ));
 
         public Task ClearFinishedGames()
         {
@@ -337,7 +341,7 @@ namespace FLGrains
             state.UseStateAndPersist(async state =>
             {
                 var result = await game.StartNew(this.GetPrimaryKey());
-                state.ActiveGames.Add(game);
+                state.ActiveGames.Add(game.GetPrimaryKey());
                 return result;
             });
 
@@ -345,7 +349,7 @@ namespace FLGrains
             state.UseStateAndPersist(async state =>
             {
                 var result = await game.AddSecondPlayer(GetPlayerInfoImpl());
-                state.ActiveGames.Add(game);
+                state.ActiveGames.Add(game.GetPrimaryKey());
                 return result;
             });
 
@@ -358,7 +362,7 @@ namespace FLGrains
         public Task OnRoundResult(IGame game, CompetitionResult result, ushort groupID) =>
             state.UseStateAndLazyPersist(state =>
             {
-                if (!state.ActiveGames.Contains(game))
+                if (!state.ActiveGames.Contains(game.GetPrimaryKey()))
                     return Task.CompletedTask;
 
                 switch (result)
@@ -403,8 +407,8 @@ namespace FLGrains
             {
                 SetMaxStat(myScore, Statistics.BestGameScore);
 
-                state.ActiveGames.Remove(game);
-                state.PastGames.Add(game);
+                state.ActiveGames.Remove(game.GetPrimaryKey());
+                state.PastGames.Add(game.GetPrimaryKey());
 
                 var rank = 0UL;
                 var gold = 0UL;

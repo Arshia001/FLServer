@@ -31,7 +31,7 @@ let webApp =
     |> Remoting.buildHttpHandler
 
 let app = application {
-    url ("http://0.0.0.0:" + settings.Port.ToString() + "/")
+    url ("http://127.0.0.1:" + settings.Port.ToString() + "/")
     use_router (choose [webApp])
     memory_cache
     use_static publicPath

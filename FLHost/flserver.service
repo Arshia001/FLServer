@@ -1,0 +1,17 @@
+[Unit]
+Description=FL Server
+
+[Service]
+ExecStart=/app/flserver/FLHost
+WorkingDirectory=/app/flserver/
+User=flserver
+Group=flserver
+Restart=on-failure
+SyslogIdentifier=flhost-service
+PrivateTemp=true
+TimeoutSec=300
+Requires=cassandra.service
+
+[Install]
+WantedBy=multi-user.target
+
