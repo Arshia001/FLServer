@@ -1,21 +1,21 @@
 ﻿Think of something for maths!
 
-CLIENT Integrate FCM
-CLIENT Ads
-CLIENT IAB
-
-CLIENT Clear game history button
+CLIENT Clear game history button / Auto clear after set limit reached?
 CLIENT Sounds
+CLIENT Exit confirmation ad
+CLIENT Rewarded video ad
+CLIENT Analytics?
 CLIENT Telegram channel link
-CLIENT Interesting/Uninteresting data per player to disallow duplicated voting? -> store on client, too much work yielding too little value for server
-CLIENT XP/Score/Gold/Rank change notifications after game is complete?
+CLIENT Interesting/Uninteresting data per player to disallow duplicated voting -> store on client, too much work yielding too little value for server
 CLIENT Store log in file
 
 ART Splash
 ART Logo
 
 TEST
-	SERVER IAB
+	IAB
+	Banner ads
+	FCM
 
 BUGS
 	EndRound sent twice
@@ -50,6 +50,7 @@ SERVER split needed grains into separate assembly to prevent builds of service s
 CLIENT notify game expiry with a popup
 CLIENT Keep keyboard open while in game screen
 CLIENT Make generation of build information file automatic
+CLIENT XP/Score/Gold/Rank change notifications after game is complete
 
 Inventory?
 Additional Statistics
