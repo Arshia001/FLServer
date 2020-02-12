@@ -1,10 +1,11 @@
 ﻿Think of something for maths!
 
-CLIENT Clear game history button / Auto clear after set limit reached?
 CLIENT Sounds
+CLIENT Analytics?
+CLIENT Tutorial
+CLIENT Clear game history button / Auto clear after set limit reached?
 CLIENT Exit confirmation ad
 CLIENT Rewarded video ad
-CLIENT Analytics?
 CLIENT Telegram channel link
 CLIENT Interesting/Uninteresting data per player to disallow duplicated voting -> store on client, too much work yielding too little value for server
 CLIENT Store log in file

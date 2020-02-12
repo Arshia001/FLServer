@@ -58,7 +58,6 @@ module Program =
         (task {
             let settings = SystemSettings.Parse(File.ReadAllText("system-settings.json"))
 
-
             let clusterClient = buildClient settings
             use host = createHostBuilder(args, clusterClient, settings).Build()
 
@@ -70,10 +69,17 @@ module Program =
                 exitRequested <- true
                 ) |> ignore
 
+            let mutable retries = 0
+
             do! clusterClient.Connect(fun exn -> task {
-                printfn "Failed to connect to any silos, will retry. Exception: %A" exn
-                do! Task.Delay(TimeSpan.FromSeconds(2.))
-                return not exitRequested
+                if retries < settings.MaxRetries then
+                    retries <- retries + 1
+                    printfn "Failed to connect to any silos, will retry. Retry count: %i; Exception: %A" retries exn
+                    do! Task.Delay(TimeSpan.FromSeconds(2.))
+                    return not exitRequested
+                else
+                    printfn "Failed to connect to any silos after %i retries, will give up. Exception: %A" retries exn
+                    return false
             })
 
             do! host.WaitForShutdownAsync()
