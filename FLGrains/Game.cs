@@ -115,7 +115,7 @@ namespace FLGrains
             var roundIndex = GameLogic.NumTurnsTakenByIncludingCurrent(playerIndex) - 1;
             if (GameLogic.IsTurnInProgress(playerIndex, now))
                 SetEndTurnTimerImpl(playerIndex, GameLogic.GetTurnEndTime(playerIndex) - now, roundIndex);
-            else if (state.UseState(state => state.LastProcessedEndTurns[playerIndex]) < roundIndex)
+            else if (!EndTurnProcessed(playerIndex, roundIndex))
                 await HandleEndTurn(playerIndex, roundIndex); // In case the game grain went down while the game was in progress
         }
 
@@ -265,10 +265,12 @@ namespace FLGrains
             return HandleEndTurn(data.playerIndex, data.roundIndex);
         }
 
+        bool EndTurnProcessed(int playerIndex, int roundIndex) => state.UseState(state => state.LastProcessedEndTurns[playerIndex] >= roundIndex);
+
         private Task HandleEndTurn(int playerIndex, int roundIndex) =>
             state.UseStateAndMaybePersist(async state =>
             {
-                if (state.LastProcessedEndTurns[playerIndex] >= roundIndex)
+                if (EndTurnProcessed(playerIndex, roundIndex))
                     return false;
 
                 state.LastProcessedEndTurns[playerIndex] = roundIndex;
@@ -458,6 +460,9 @@ namespace FLGrains
             GameLogic.ForceEndTurn(index);
 
             var turnIndex = GameLogic.NumTurnsTakenBy(index) - 1;
+
+            if (EndTurnProcessed(index, turnIndex))
+                return default(IEnumerable<WordScorePair>).AsImmutable();
 
             await HandleEndTurn(index, turnIndex);
 
