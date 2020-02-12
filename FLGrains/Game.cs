@@ -461,9 +461,6 @@ namespace FLGrains
 
             var turnIndex = GameLogic.NumTurnsTakenBy(index) - 1;
 
-            if (EndTurnProcessed(index, turnIndex))
-                return default(IEnumerable<WordScorePair>).AsImmutable();
-
             await HandleEndTurn(index, turnIndex);
 
             if (GameLogic.PlayerFinishedTurn(1 - index, turnIndex))
