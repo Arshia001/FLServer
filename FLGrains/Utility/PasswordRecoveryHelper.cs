@@ -10,11 +10,14 @@ namespace FLGrains.Utility
     {
         static readonly ThreadLocal<RandomNumberGenerator> random = new ThreadLocal<RandomNumberGenerator>(() => new RNGCryptoServiceProvider());
 
+        static string ToUrlSafeBase64String(byte[] bytes) =>
+            Convert.ToBase64String(bytes).Replace('+', '-').Replace('/', '_');
+
         public static string GenerateNewToken()
         {
             var bytes = new byte[24];
             random.Value.GetBytes(bytes);
-            return Convert.ToBase64String(bytes);
+            return ToUrlSafeBase64String(bytes);
         }
     }
 }

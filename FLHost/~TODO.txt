@@ -14,16 +14,11 @@ ART Splash
 ART Logo
 
 TEST
-	IAB
 	Banner ads
-	FCM
 
 BUGS
 	EndRound sent twice
-
 	CLIENT(?) when it's opponent's turn, going back to main menu and entering the game again causes the play button to appear and the game to appear as waiting for me
-	CLIENT Win reward cooldown timer text not working
-	Password recovery token base-64 url encoding
 
 *************************************************
 Optional / for later
