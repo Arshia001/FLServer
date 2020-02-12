@@ -1,10 +1,8 @@
 ﻿Think of something for maths!
 
-CLIENT Sounds
 CLIENT Analytics?
 CLIENT Tutorial
 CLIENT Clear game history button / Auto clear after set limit reached?
-CLIENT Exit confirmation ad
 CLIENT Rewarded video ad
 CLIENT Telegram channel link
 CLIENT Interesting/Uninteresting data per player to disallow duplicated voting -> store on client, too much work yielding too little value for server
@@ -14,11 +12,8 @@ ART Splash
 ART Logo
 
 TEST
-	Banner ads
 
 BUGS
-	EndRound sent twice
-	CLIENT(?) when it's opponent's turn, going back to main menu and entering the game again causes the play button to appear and the game to appear as waiting for me
 
 *************************************************
 Optional / for later
