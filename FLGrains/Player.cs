@@ -405,17 +405,20 @@ namespace FLGrains
         public Task<(uint score, uint rank, uint level, uint xp, ulong gold)> OnGameResult(IGame game, CompetitionResult result, uint myScore, uint scoreGain, bool gameExpired) =>
             state.UseStateAndPersist(async state =>
             {
+                var config = configReader.Config.ConfigValues;
+
                 SetMaxStat(myScore, Statistics.BestGameScore);
 
                 state.ActiveGames.Remove(game.GetPrimaryKey());
                 state.PastGames.Add(game.GetPrimaryKey());
 
+                while (state.PastGames.Count > config.MaxGameHistoryEntries)
+                    state.PastGames.RemoveAt(0);
+
                 var rank = 0UL;
                 var gold = 0UL;
                 var xp = 0U;
                 var level = 0U;
-
-                var config = configReader.Config.ConfigValues;
 
                 switch (result)
                 {

@@ -2,7 +2,6 @@
 
 CLIENT Analytics?
 CLIENT Tutorial
-CLIENT Clear game history button / Auto clear after set limit reached?
 CLIENT Rewarded video ad
 CLIENT Telegram channel link
 CLIENT Interesting/Uninteresting data per player to disallow duplicated voting -> store on client, too much work yielding too little value for server
@@ -12,6 +11,7 @@ ART Splash
 ART Logo
 
 TEST
+	Auto clear after set limit reached
 
 BUGS
 
@@ -42,6 +42,7 @@ CLIENT notify game expiry with a popup
 CLIENT Keep keyboard open while in game screen
 CLIENT Make generation of build information file automatic
 CLIENT XP/Score/Gold/Rank change notifications after game is complete
+CLIENT Clear game history button
 
 Inventory?
 Additional Statistics
