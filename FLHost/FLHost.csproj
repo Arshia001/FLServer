@@ -12,11 +12,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="config.json" />
     <None Remove="firebase-adminsdk-accountkeys.json" />
     <None Remove="ForgotPasswordTemplate.cshtml" />
     <None Remove="InitializeFLDatabase.cql" />
     <None Remove="NginxConfig" />
-    <None Remove="SampleConfig.json" />
     <None Remove="system-settings.json" />
     <None Remove="update-config" />
   </ItemGroup>
@@ -34,7 +34,7 @@
     <Content Include="NginxConfig">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="SampleConfig.json">
+    <Content Include="config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="system-settings.json">
