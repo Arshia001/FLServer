@@ -45,6 +45,8 @@ namespace FLGrainInterfaces.Configuration
         public uint WinnerGoldGain { get; private set; }
         public uint LoserGoldGain { get; private set; }
         public uint DrawGoldGain { get; private set; }
+        
+        public uint MaxGameHistoryEntries { get; private set; }
 
         static void FailWith(string error) => throw new ArgumentException(error);
 

@@ -57,7 +57,7 @@
 
     "RevealWordPrice": 300,
 
-    "GameInactivityTimeout": "24:00:00",
+    "GameInactivityTimeout": "1.00:00:00",
 
     "MaxActiveGames": 5,
     "InfinitePlayPrice": 200,
@@ -83,7 +83,9 @@
 
     "WinnerGoldGain": 35,
     "LoserGoldGain": 0,
-    "DrawGoldGain": 10
+    "DrawGoldGain": 10,
+
+    "MaxGameHistoryEntries": 10
   },
   "GoldPacks": [
     {

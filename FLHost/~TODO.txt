@@ -1,10 +1,8 @@
 ﻿Think of something for maths!
 
-CLIENT Clear game history button / Auto clear after set limit reached?
-CLIENT Sounds
-CLIENT Exit confirmation ad
-CLIENT Rewarded video ad
 CLIENT Analytics?
+CLIENT Tutorial
+CLIENT Rewarded video ad
 CLIENT Telegram channel link
 CLIENT Interesting/Uninteresting data per player to disallow duplicated voting -> store on client, too much work yielding too little value for server
 CLIENT Store log in file
@@ -13,16 +11,9 @@ ART Splash
 ART Logo
 
 TEST
-	IAB
-	Banner ads
-	FCM
+	Auto clear after set limit reached
 
 BUGS
-	EndRound sent twice
-
-	CLIENT(?) when it's opponent's turn, going back to main menu and entering the game again causes the play button to appear and the game to appear as waiting for me
-	CLIENT Win reward cooldown timer text not working
-	Password recovery token base-64 url encoding
 
 *************************************************
 Optional / for later
@@ -51,6 +42,7 @@ CLIENT notify game expiry with a popup
 CLIENT Keep keyboard open while in game screen
 CLIENT Make generation of build information file automatic
 CLIENT XP/Score/Gold/Rank change notifications after game is complete
+CLIENT Clear game history button
 
 Inventory?
 Additional Statistics
