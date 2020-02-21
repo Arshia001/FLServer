@@ -65,6 +65,15 @@ namespace FLGrains
                     return FLTaskExtensions.True;
                 }
 
+                var config = configReader.Config.ConfigValues;
+                if (state.PastGames.Count > config.MaxGameHistoryEntries)
+                {
+                    while (state.PastGames.Count > config.MaxGameHistoryEntries)
+                        state.PastGames.RemoveAt(0);
+
+                    return FLTaskExtensions.True;
+                }
+
                 return FLTaskExtensions.False;
             });
 
@@ -411,9 +420,6 @@ namespace FLGrains
 
                 state.ActiveGames.Remove(game.GetPrimaryKey());
                 state.PastGames.Add(game.GetPrimaryKey());
-
-                while (state.PastGames.Count > config.MaxGameHistoryEntries)
-                    state.PastGames.RemoveAt(0);
 
                 var rank = 0UL;
                 var gold = 0UL;

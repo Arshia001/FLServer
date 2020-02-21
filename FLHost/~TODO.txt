@@ -1,5 +1,7 @@
-﻿Think of something for maths!
+﻿Change subjects only once per round
 
+CLIENT Show pending answer
+CLIENT add game information (i button on top of game overview)
 CLIENT Analytics?
 CLIENT Tutorial
 CLIENT Rewarded video ad
@@ -11,7 +13,7 @@ ART Splash
 ART Logo
 
 TEST
-	Auto clear after set limit reached
+    Auto clear after set limit reached
 
 BUGS
 
@@ -25,16 +27,16 @@ SERVER Separate game history? There's a bit of performance and some complexity t
 SERVER planned down-time -> notify players in some way (broadcast messages?) (Use push notifications for now?)
 SERVER Global notification: Notify those already in the game via broadcast message (implement that too!), notify those that log in on startup
 SERVER Safe service restart -> 
-	Notify status service (how?)
-	***stop timing games*** (?)
-	reject new connections
-	turn service off when no connections remain -> **might take a lot of time**! Force people out after a while?
+    Notify status service (how?)
+    ***stop timing games*** (?)
+    reject new connections
+    turn service off when no connections remain -> **might take a lot of time**! Force people out after a while?
 
 SERVER Embed the password recovery website into the silo host ->
-	Move website projects out of their folder structure and unify with rest of solution
-	Move entire solution into an src directory
-	Remove the website specific FAKE script and create a top-level FAKE script to handle everything (service status included)
-	Turn Saturn.Application.run into a hosted service
+    Move website projects out of their folder structure and unify with rest of solution
+    Move entire solution into an src directory
+    Remove the website specific FAKE script and create a top-level FAKE script to handle everything (service status included)
+    Turn Saturn.Application.run into a hosted service
 
 SERVER split needed grains into separate assembly to prevent builds of service status and password recovery depending on almost everything
 
