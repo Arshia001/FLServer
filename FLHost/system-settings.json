@@ -11,8 +11,8 @@
   "ForgotPasswordSubject": "بازیابی گذرواژه",
   "ForgotPasswordTemplateFilePath": "./ForgotPasswordTemplate.cshtml",
   "ForgotPasswordRecoveryUrlTemplate": "http://passwordrecovery.pw.onehand.ir/#token/{0}",
-  "BazaarClientID": "",
-  "BazaarClientSecret": "",
-  "BazaarRefreshToken": "",
+  "BazaarClientID": "HF9X2uTeYUeerA7JOUI0SvLXEZnja2R7Tk28IOhP",
+  "BazaarClientSecret": "Yu1OMxMl5zUNkYBIhat35YL3rKkL3MFXymqRtSc2PZrXVlvcq1rn5mbcdYxU",
+  "BazaarRefreshToken": "Lod2jqwi8rKuPd3wGQlh8NAWOtZyPO",
   "BazaarPackageName": "ir.onehand.pwclient"
 }
