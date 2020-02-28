@@ -228,7 +228,7 @@ namespace FLGrainInterfaces
     [Orleans.Concurrency.Immutable]
     public class OwnPlayerInfo
     {
-        public OwnPlayerInfo(string name, string? email, uint xp, uint level, uint nextLevelXPThreshold, uint score, uint rank, ulong gold, uint currentNumRoundsWonForReward, System.TimeSpan nextRoundWinRewardTimeRemaining, System.TimeSpan? infinitePlayTimeRemaining, System.Collections.Generic.IEnumerable<StatisticValue> statisticsValues, bool isRegistered, bool notificationsEnabled)
+        public OwnPlayerInfo(string name, string? email, uint xp, uint level, uint nextLevelXPThreshold, uint score, uint rank, ulong gold, uint currentNumRoundsWonForReward, System.TimeSpan nextRoundWinRewardTimeRemaining, System.TimeSpan? infinitePlayTimeRemaining, System.Collections.Generic.IEnumerable<StatisticValue> statisticsValues, bool isRegistered, bool notificationsEnabled, ulong tutorialProgress)
         {
             this.Name = name;
             this.Email = email;
@@ -244,6 +244,7 @@ namespace FLGrainInterfaces
             this.StatisticsValues = statisticsValues.ToList();
             this.IsRegistered = isRegistered;
             this.NotificationsEnabled = notificationsEnabled;
+            this.TutorialProgress = tutorialProgress;
         }
 
         public string Name { get; }
@@ -260,15 +261,16 @@ namespace FLGrainInterfaces
         public System.Collections.Generic.IReadOnlyList<StatisticValue> StatisticsValues { get; }
         public bool IsRegistered { get; }
         public bool NotificationsEnabled { get; }
+        public ulong TutorialProgress { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.String(Email), LightMessage.Common.Messages.Param.UInt(XP), LightMessage.Common.Messages.Param.UInt(Level), LightMessage.Common.Messages.Param.UInt(NextLevelXPThreshold), LightMessage.Common.Messages.Param.UInt(Score), LightMessage.Common.Messages.Param.UInt(Rank), LightMessage.Common.Messages.Param.UInt(Gold), LightMessage.Common.Messages.Param.UInt(CurrentNumRoundsWonForReward), LightMessage.Common.Messages.Param.TimeSpan(NextRoundWinRewardTimeRemaining), LightMessage.Common.Messages.Param.TimeSpan(InfinitePlayTimeRemaining), LightMessage.Common.Messages.Param.Array(StatisticsValues.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())), LightMessage.Common.Messages.Param.Boolean(IsRegistered), LightMessage.Common.Messages.Param.Boolean(NotificationsEnabled));
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.String(Email), LightMessage.Common.Messages.Param.UInt(XP), LightMessage.Common.Messages.Param.UInt(Level), LightMessage.Common.Messages.Param.UInt(NextLevelXPThreshold), LightMessage.Common.Messages.Param.UInt(Score), LightMessage.Common.Messages.Param.UInt(Rank), LightMessage.Common.Messages.Param.UInt(Gold), LightMessage.Common.Messages.Param.UInt(CurrentNumRoundsWonForReward), LightMessage.Common.Messages.Param.TimeSpan(NextRoundWinRewardTimeRemaining), LightMessage.Common.Messages.Param.TimeSpan(InfinitePlayTimeRemaining), LightMessage.Common.Messages.Param.Array(StatisticsValues.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())), LightMessage.Common.Messages.Param.Boolean(IsRegistered), LightMessage.Common.Messages.Param.Boolean(NotificationsEnabled), LightMessage.Common.Messages.Param.UInt(TutorialProgress));
 
         public static OwnPlayerInfo FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new OwnPlayerInfo(array[0].AsString, array[1].AsString, (uint)array[2].AsUInt.Value, (uint)array[3].AsUInt.Value, (uint)array[4].AsUInt.Value, (uint)array[5].AsUInt.Value, (uint)array[6].AsUInt.Value, array[7].AsUInt.Value, (uint)array[8].AsUInt.Value, array[9].AsTimeSpan.Value, array[10].AsTimeSpan, array[11].AsArray.Select(a => StatisticValue.FromParam(a)).ToList(), array[12].AsBoolean.Value, array[13].AsBoolean.Value);
+            return new OwnPlayerInfo(array[0].AsString, array[1].AsString, (uint)array[2].AsUInt.Value, (uint)array[3].AsUInt.Value, (uint)array[4].AsUInt.Value, (uint)array[5].AsUInt.Value, (uint)array[6].AsUInt.Value, array[7].AsUInt.Value, (uint)array[8].AsUInt.Value, array[9].AsTimeSpan.Value, array[10].AsTimeSpan, array[11].AsArray.Select(a => StatisticValue.FromParam(a)).ToList(), array[12].AsBoolean.Value, array[13].AsBoolean.Value, array[14].AsUInt.Value);
         }
     }
 

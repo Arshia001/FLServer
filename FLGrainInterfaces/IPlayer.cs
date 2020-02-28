@@ -120,7 +120,10 @@ namespace FLGrainInterfaces
         public string? PasswordRecoveryToken { get; set; }
 
         [Id(20)]
-        public DateTime? PasswordRecoveryTokenExpirationTime { get; set;}
+        public DateTime? PasswordRecoveryTokenExpirationTime { get; set; }
+
+        [Id(21)]
+        public ulong TutorialProgress { get; set; }
     }
 
     [BondSerializationTag("@p")]
@@ -176,6 +179,8 @@ namespace FLGrainInterfaces
         Task SetNotificationsEnabled(bool enable);
         Task SendMyTurnStartedNotification(Guid opponentID);
         Task SendGameEndedNotification(Guid opponentID);
+
+        Task SetTutorialProgress(ulong progress);
     }
 
     public static class PlayerIndex

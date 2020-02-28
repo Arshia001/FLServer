@@ -160,6 +160,7 @@ contract OwnPlayerInfo
 	StatisticsValues: StatisticValue[];
 	IsRegistered: bool;
 	NotificationsEnabled: bool;
+	TutorialProgress: u64;
 }
 
 contract WordScorePairDTO castfrom(FLGameLogic.WordScorePair)
@@ -324,6 +325,8 @@ endpoint System sys
 	request RegisterFcmToken fcm via Player(clientid).SetFcmToken(token) { { token: string; } -> noresponse }
 
 	request ClearFinishedGames cfg via Player(clientid).ClearFinishedGames() { { } -> noresponse }
+
+	request SetTutorialProgress tutp via Player(clientid).SetTutorialProgress(progress) { { progress: u64; } -> {} }
 }
 
 endpoint Suggestion sg

@@ -137,7 +137,8 @@ namespace FLGrains
                     statisticsValues: state.StatisticsValues.Where(kv => ShouldReplicateStatToClient(kv.Key.Statistic))
                         .Select(kv => new StatisticValue(kv.Key.Statistic, kv.Key.Parameter, kv.Value)),
                     isRegistered: IsRegistered(),
-                    notificationsEnabled: state.NotificationsEnabled
+                    notificationsEnabled: state.NotificationsEnabled,
+                    tutorialProgress: state.TutorialProgress
                 );
             });
 
@@ -656,5 +657,7 @@ namespace FLGrains
                 }
             });
         }
+
+        public Task SetTutorialProgress(ulong progress) => state.UseStateAndPersist(s => s.TutorialProgress = progress);
     }
 }
