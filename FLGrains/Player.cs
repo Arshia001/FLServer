@@ -111,6 +111,7 @@ namespace FLGrains
                 Statistics.GamesEndedInDraw => true,
                 Statistics.GamesLost => true,
                 Statistics.GamesWon => true,
+                Statistics.RoundsCompleted => true,
 
                 _ => false
             };
@@ -365,6 +366,7 @@ namespace FLGrains
 
         public Task OnRoundCompleted(IGame game, uint myScore)
         {
+            AddStatImpl(1, Statistics.RoundsCompleted);
             SetMaxStat(myScore, Statistics.BestRoundScore);
             return Task.CompletedTask;
         }

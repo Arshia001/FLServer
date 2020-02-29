@@ -72,7 +72,8 @@ namespace FLGrainInterfaces
         RevealAnswersUsed,
         MoneySpentInfinitePlay,
         InfinitePlayUsed,
-        GameLostDueToExpiry
+        GameLostDueToExpiry,
+        RoundsCompleted
     }
 
     public enum LeaderBoardSubject

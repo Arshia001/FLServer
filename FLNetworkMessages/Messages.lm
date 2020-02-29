@@ -59,7 +59,8 @@ enum Statistics
 	RevealAnswersUsed,
 	MoneySpentInfinitePlay,
 	InfinitePlayUsed,
-	GameLostDueToExpiry
+	GameLostDueToExpiry,
+	RoundsCompleted
 }
 
 enum LeaderBoardSubject
