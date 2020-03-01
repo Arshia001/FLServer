@@ -39,6 +39,9 @@ namespace FLGrains
 
         [Id(5)]
         public int[] TimeExtensionsForThisRound { get; set; } = new[] { 0, 0 };
+
+        [Id(6)]
+        public int NumGroupRefreshesRemainingForThisRound { get; set; }
     }
 
     //?? Now, we only need a way to reactivate these if one of them goes down... Same old challenge.
@@ -197,6 +200,7 @@ namespace FLGrains
                         state.GroupChoices =
                             new Random().GetUnique(0, config.Groups.Count, config.ConfigValues.NumGroupChoices)
                             .Select(i => config.Groups[i].ID).ToList();
+                        state.NumGroupRefreshesRemainingForThisRound = (int)config.ConfigValues.RefreshGroupsAllowedPerRound;
                     }
                     return (default(string), default(bool?), default(TimeSpan?), true, state.GroupChoices.Select(i => (GroupInfoDTO)config.GroupsByID[i]).ToList().AsEnumerable());
                 });
@@ -511,8 +515,10 @@ namespace FLGrains
             {
                 var index = Index(guid);
 
-                if (state.GroupChooser != index || state.GroupChoices == null)
+                if (state.GroupChooser != index || state.GroupChoices == null || state.NumGroupRefreshesRemainingForThisRound <= 0)
                     return (false, default(List<GroupConfig>));
+
+                --state.NumGroupRefreshesRemainingForThisRound;
 
                 var config = configReader.Config;
                 state.GroupChoices =

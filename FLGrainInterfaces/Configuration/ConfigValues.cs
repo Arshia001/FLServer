@@ -48,6 +48,8 @@ namespace FLGrainInterfaces.Configuration
         
         public uint MaxGameHistoryEntries { get; private set; }
 
+        public byte RefreshGroupsAllowedPerRound { get; private set; }
+
         static void FailWith(string error) => throw new ArgumentException(error);
 
         public static void Validate(ConfigValues data)

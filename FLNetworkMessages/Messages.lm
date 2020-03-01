@@ -209,6 +209,7 @@ contract ConfigValuesDTO castfrom(FLGrainInterfaces.Configuration.ConfigValues s
 	MaxActiveGames: u32;
 	InfinitePlayPrice: u32;
 	NumTimeExtensionsPerRound: u32;
+	RefreshGroupsAllowedPerRound: u8;
 }
 
 contract GoldPackConfigDTO castfrom(FLGrainInterfaces.Configuration.GoldPackConfig server oneway)
