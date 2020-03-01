@@ -63,9 +63,9 @@
     "InfinitePlayPrice": 200,
     "InfinitePlayTime": "12:00:00",
 
-    "NumRoundsToWinToGetReward": 10,
+    "NumRoundsToWinToGetReward": 15,
     "RoundWinRewardInterval": "12:00:00",
-    "NumGoldRewardForWinningRounds": 50,
+    "NumGoldRewardForWinningRounds": 90,
 
     "WordScoreThreshold2": 1.3,
     "WordScoreThreshold3": 0.7,

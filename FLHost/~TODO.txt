@@ -1,10 +1,7 @@
 ﻿Change subjects only once per round
 
 CLIENT Show pending answer
-CLIENT add game information (i button on top of game overview)
-CLIENT Analytics?
 CLIENT Rewarded video ad
-CLIENT Telegram channel link
 CLIENT Interesting/Uninteresting data per player to disallow duplicated voting -> store on client, too much work yielding too little value for server
 CLIENT Store log in file
 
