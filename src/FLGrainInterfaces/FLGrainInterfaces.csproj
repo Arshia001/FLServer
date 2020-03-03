@@ -1,27 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Remove="ServiceInterfaces\**" />
     <EmbeddedResource Remove="ServiceInterfaces\**" />
     <None Remove="ServiceInterfaces\**" />
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Orleans.Core" Version="3.1.1" />
-    <PackageReference Include="Microsoft.Orleans.Runtime.Abstractions" Version="3.1.1" />
-    <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator.Build" Version="3.1.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\jint-2.11.10\Jint\Jint.csproj" />
     <ProjectReference Include="..\..\..\LightMessage-Core\LightMessage.OrleansUtils.GrainInterfaces\LightMessage.OrleansUtils.GrainInterfaces.csproj" />
@@ -29,5 +17,5 @@
     <ProjectReference Include="..\..\..\OrleansLibraries-Core\OrleansIndexingGrainInterfaces\OrleansIndexingGrainInterfaces.csproj" />
     <ProjectReference Include="..\FLGameLogicServer\FLGameLogicServer.csproj" />
   </ItemGroup>
-
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

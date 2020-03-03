@@ -1,20 +1,14 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Orleans.Client" Version="3.1.1" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\LightMessage-Core\LightMessage.Client\LightMessage.Client.csproj" />
     <ProjectReference Include="..\..\..\OrleansLibraries-Core\OrleansCassandraUtils\OrleansCassandraUtils.csproj" />
     <ProjectReference Include="..\FLGrainInterfaces\FLGrainInterfaces.csproj" />
     <ProjectReference Include="..\FLGrains\FLGrains.csproj" />
   </ItemGroup>
-
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

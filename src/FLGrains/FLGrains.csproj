@@ -1,29 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="FirebaseAdmin" Version="1.9.1" />
-    <PackageReference Include="MailKit" Version="2.4.1" />
-    <PackageReference Include="Microsoft.Orleans.Core" Version="3.1.1" />
-    <PackageReference Include="Microsoft.Orleans.Runtime.Abstractions" Version="3.1.1" />
-    <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator.Build" Version="3.1.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="RazorEngine.NetCore-LinuxDockerFix" Version="2.2.5" />
-    <PackageReference Include="System.Runtime.Caching" Version="4.5.0" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\LightMessage-Core\LightMessage.OrleansUtils.Grains\LightMessage.OrleansUtils.Grains.csproj" />
     <ProjectReference Include="..\..\..\LightMessage-Core\LightMessage.OrleansUtils.Host\LightMessage.OrleansUtils.Host.csproj" />
     <ProjectReference Include="..\FLGameLogic\FLGameLogic.csproj" />
     <ProjectReference Include="..\FLGrainInterfaces\FLGrainInterfaces.csproj" />
   </ItemGroup>
-
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

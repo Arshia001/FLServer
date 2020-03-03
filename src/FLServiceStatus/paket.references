@@ -1,0 +1,4 @@
+FSharp.Data
+Microsoft.Orleans.Client
+TaskBuilder.fs
+FSharp.Core

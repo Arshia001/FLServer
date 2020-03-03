@@ -1,0 +1,4 @@
+Microsoft.Orleans.Core
+Microsoft.Orleans.Runtime.Abstractions
+Microsoft.Orleans.OrleansCodeGenerator.Build
+Newtonsoft.Json

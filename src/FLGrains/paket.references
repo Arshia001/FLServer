@@ -1,0 +1,7 @@
+FirebaseAdmin
+MailKit
+Microsoft.Orleans.Core
+Microsoft.Orleans.Runtime.Abstractions
+Microsoft.Orleans.OrleansCodeGenerator.Build
+RazorEngine.NetCore-LinuxDockerFix
+System.Runtime.Caching

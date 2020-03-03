@@ -1,0 +1,6 @@
+Microsoft.Extensions.Logging.Console
+Microsoft.Extensions.Hosting
+Microsoft.Orleans.OrleansProviders
+Microsoft.Orleans.Server
+Microsoft.Orleans.OrleansTelemetryConsumers.Counters
+Microsoft.Orleans.OrleansTelemetryConsumers.Linux
