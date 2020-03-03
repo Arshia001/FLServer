@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FLGameLogic\FLGameLogic.csproj" />
-    <ProjectReference Include="..\..\OrleansLibraries-Core\OrleansBondUtils\OrleansBondUtils.csproj" />
+    <ProjectReference Include="..\..\..\OrleansLibraries-Core\OrleansBondUtils\OrleansBondUtils.csproj" />
   </ItemGroup>
 
 </Project>

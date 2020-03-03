@@ -37,7 +37,6 @@ namespace FLHost
                 {
                     e
                     .ConfigureGameServer(systemSettings)
-                    .Configure<ProcessExitHandlingOptions>(o => o.FastKillOnProcessExit = false)
                     .Configure<LightMessageOptions>(o =>
                     {
                         o.ListenIPAddress = IPAddress.Any;

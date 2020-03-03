@@ -88,13 +88,13 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Server", "src\FLRecoveryEma
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FE310F94-F5F9-4EB7-BC4E-E0C3BB5A4BB1}"
 	ProjectSection(SolutionItems) = preProject
-		FLRecoveryEmail\build.fsx = FLRecoveryEmail\build.fsx
-		FLRecoveryEmail\package.json = FLRecoveryEmail\package.json
-		FLRecoveryEmail\paket.dependencies = FLRecoveryEmail\paket.dependencies
-		FLRecoveryEmail\paket.lock = FLRecoveryEmail\paket.lock
-		FLRecoveryEmail\README.md = FLRecoveryEmail\README.md
-		FLRecoveryEmail\webpack.config.js = FLRecoveryEmail\webpack.config.js
-		FLRecoveryEmail\yarn.lock = FLRecoveryEmail\yarn.lock
+		src\FLRecoveryEmail\build.fsx = src\FLRecoveryEmail\build.fsx
+		src\FLRecoveryEmail\package.json = src\FLRecoveryEmail\package.json
+		src\FLRecoveryEmail\paket.dependencies = src\FLRecoveryEmail\paket.dependencies
+		src\FLRecoveryEmail\paket.lock = src\FLRecoveryEmail\paket.lock
+		src\FLRecoveryEmail\README.md = src\FLRecoveryEmail\README.md
+		src\FLRecoveryEmail\webpack.config.js = src\FLRecoveryEmail\webpack.config.js
+		src\FLRecoveryEmail\yarn.lock = src\FLRecoveryEmail\yarn.lock
 	EndProjectSection
 EndProject
 Global
