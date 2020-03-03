@@ -47,7 +47,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightMessage.OrleansUtils.G
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightMessage.OrleansUtils.Host", "..\LightMessage-Core\LightMessage.OrleansUtils.Host\LightMessage.OrleansUtils.Host.csproj", "{22A5A75D-8515-4EBD-998D-8611304CF41F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FLGrainInterfaces", "FLGrainInterfaces\FLGrainInterfaces.csproj", "{744E913B-D451-476D-B989-7AD82CAB42ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FLGrainInterfaces", "src\FLGrainInterfaces\FLGrainInterfaces.csproj", "{744E913B-D451-476D-B989-7AD82CAB42ED}"
 	ProjectSection(ProjectDependencies) = postProject
 		{CF3770C7-14E0-4F53-A61F-E1841EBB6BD0} = {CF3770C7-14E0-4F53-A61F-E1841EBB6BD0}
 	EndProjectSection
