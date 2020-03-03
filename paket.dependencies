@@ -1,20 +1,56 @@
-source https://api.nuget.org/v3/index.json
+group Server
+    source https://api.nuget.org/v3/index.json
+    framework: netcoreapp3.1
+    storage: none
 
-nuget FSharp.Core
-nuget FirebaseAdmin 1.9.1
-nuget FSharp.Data 3.3.2
-nuget MailKit 2.4.1
-nuget Microsoft.Extensions.Hosting 3.0.0
-nuget Microsoft.Extensions.Logging.Console 3.0.0
-nuget Microsoft.Orleans.Client 3.1.1
-nuget Microsoft.Orleans.Core 3.1.1
-nuget Microsoft.Orleans.OrleansCodeGenerator.Build 3.1.1
-nuget Microsoft.Orleans.OrleansProviders 3.1.1
-nuget Microsoft.Orleans.OrleansTelemetryConsumers.Counters 3.1.1
-nuget Microsoft.Orleans.OrleansTelemetryConsumers.Linux 3.1.1
-nuget Microsoft.Orleans.Runtime.Abstractions 3.1.1
-nuget Microsoft.Orleans.Server 3.1.1
-nuget Newtonsoft.Json 12.0.2
-nuget RazorEngine.NetCore-LinuxDockerFix 2.2.5
-nuget System.Runtime.Caching 4.5.0
-nuget TaskBuilder.fs 2.1.0
+    nuget FSharp.Core
+    nuget FSharp.Data
+    nuget Saturn
+    nuget Fable.Remoting.Giraffe ~> 3
+
+group Client
+    source https://api.nuget.org/v3/index.json
+    framework: netstandard2.0
+    storage: none
+
+    nuget Fable.Core ~> 3
+    nuget Fable.Elmish ~> 3
+    nuget Fable.Elmish.Debugger ~> 3
+    nuget Fable.Elmish.HMR ~> 4
+    nuget Fable.Elmish.React ~> 3
+    nuget Fable.React ~> 5
+    nuget Fable.Remoting.Client ~> 5
+    nuget Fulma ~> 2
+
+group Build
+    source https://api.nuget.org/v3/index.json
+    framework: netstandard2.0
+    storage: none
+
+    nuget FSharp.Core
+    nuget Fake.Core.ReleaseNotes
+    nuget Fake.Core.Target
+    nuget Fake.DotNet.Cli
+    nuget Fake.IO.FileSystem
+
+group Main
+    source https://api.nuget.org/v3/index.json
+
+    nuget FSharp.Core
+    nuget FirebaseAdmin 1.9.1
+    nuget FSharp.Data 3.3.2
+    nuget MailKit 2.4.1
+    nuget Microsoft.Extensions.Hosting 3.0.0
+    nuget Microsoft.Extensions.Logging.Console 3.0.0
+    nuget Microsoft.Orleans.Client 3.1.1
+    nuget Microsoft.Orleans.Core 3.1.1
+    nuget Microsoft.Orleans.OrleansCodeGenerator.Build 3.1.1
+    nuget Microsoft.Orleans.OrleansProviders 3.1.1
+    nuget Microsoft.Orleans.OrleansTelemetryConsumers.Counters 3.1.1
+    nuget Microsoft.Orleans.OrleansTelemetryConsumers.Linux 3.1.1
+    nuget Microsoft.Orleans.Runtime.Abstractions 3.1.1
+    nuget Microsoft.Orleans.Server 3.1.1
+    nuget Newtonsoft.Json 12.0.2
+    nuget RazorEngine.NetCore-LinuxDockerFix 2.2.5
+    nuget System.Runtime.Caching 4.5.0
+    nuget TaskBuilder.fs 2.1.0
