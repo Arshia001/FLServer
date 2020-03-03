@@ -52,19 +52,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FLGrainInterfaces", "FLGrai
 		{CF3770C7-14E0-4F53-A61F-E1841EBB6BD0} = {CF3770C7-14E0-4F53-A61F-E1841EBB6BD0}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FLGrains", "FLGrains\FLGrains.csproj", "{0B77907A-6618-4C44-8B6D-CE89CEEC6C6B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FLGrains", "src\FLGrains\FLGrains.csproj", "{0B77907A-6618-4C44-8B6D-CE89CEEC6C6B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FLHost", "FLHost\FLHost.csproj", "{CF992464-5B45-4D74-8BAB-33D510251CC2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FLHost", "src\FLHost\FLHost.csproj", "{CF992464-5B45-4D74-8BAB-33D510251CC2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FLTestClient", "FLTestClient\FLTestClient.csproj", "{BF572309-7387-451A-A79C-65BEB0CCE9FB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FLTestClient", "src\FLTestClient\FLTestClient.csproj", "{BF572309-7387-451A-A79C-65BEB0CCE9FB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FLGameLogic", "FLGameLogic\FLGameLogic.csproj", "{2F95DC1B-1934-4208-808D-58A377C0FC4A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FLGameLogic", "src\FLGameLogic\FLGameLogic.csproj", "{2F95DC1B-1934-4208-808D-58A377C0FC4A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FLGameLogicServer", "FLGameLogicServer\FLGameLogicServer.csproj", "{5284ABE1-8E8C-4F88-ABB9-CAB9100DB1DF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FLGameLogicServer", "src\FLGameLogicServer\FLGameLogicServer.csproj", "{5284ABE1-8E8C-4F88-ABB9-CAB9100DB1DF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utilities", "Utilities", "{0E1F8169-CCB2-4B9B-A125-9D6D594ECD87}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "LevelConverter", "CsvLevelImporter\LevelConverter.fsproj", "{2A2F71B2-5D31-4CED-962F-FEC4BC2A90F9}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "LevelConverter", "src\LevelConverter\LevelConverter.fsproj", "{2A2F71B2-5D31-4CED-962F-FEC4BC2A90F9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Jint", "Jint", "{E65BB1CB-824D-4C3C-BE4E-ACF16F10ED4F}"
 EndProject
@@ -74,17 +74,17 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "LightMessage.Compiler", "..
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightMessage.Unity", "..\LightMessage-Core\LightMessage.Unity\LightMessage.Unity.csproj", "{6E016B8D-6E0B-496C-9EA1-E1AA584C5C15}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FLNetworkMessages", "FLNetworkMessages\FLNetworkMessages.csproj", "{CF3770C7-14E0-4F53-A61F-E1841EBB6BD0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FLNetworkMessages", "src\FLNetworkMessages\FLNetworkMessages.csproj", "{CF3770C7-14E0-4F53-A61F-E1841EBB6BD0}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FLServiceStatus", "FLServiceStatus\FLServiceStatus.fsproj", "{3D1EC675-CB54-46CB-9F0B-1188E4912F19}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FLServiceStatus", "src\FLServiceStatus\FLServiceStatus.fsproj", "{3D1EC675-CB54-46CB-9F0B-1188E4912F19}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ServiceStatus", "ServiceStatus", "{AEA1CE4F-F6C0-46BC-953A-E4605BE85453}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RecoveryEmail", "RecoveryEmail", "{21A3A2F3-BEBD-4790-AE92-8406DD76172E}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Client", "FLRecoveryEmail\src\Client\Client.fsproj", "{86D88E4D-2352-4829-A4A2-F4E7910A372C}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Client", "src\FLRecoveryEmail\src\Client\Client.fsproj", "{86D88E4D-2352-4829-A4A2-F4E7910A372C}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Server", "FLRecoveryEmail\src\Server\Server.fsproj", "{2F3C3943-1EC4-4A8B-98C6-ECDD90E23D3E}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Server", "src\FLRecoveryEmail\src\Server\Server.fsproj", "{2F3C3943-1EC4-4A8B-98C6-ECDD90E23D3E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FE310F94-F5F9-4EB7-BC4E-E0C3BB5A4BB1}"
 	ProjectSection(SolutionItems) = preProject
