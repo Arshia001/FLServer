@@ -108,11 +108,24 @@ Target.create "Run" (fun _ ->
     |> ignore
 )
 
-Target.create "Bundle" (fun _ ->
-    let serverDir = Path.combine deployDir "Server"
-    let clientDir = Path.combine deployDir "Client"
+let rec fixLength n l =
+    match n, l with
+    | 0, _ -> []
+    | _, x :: xs -> Some x :: fixLength (n - 1) xs
+    | _, [] -> None :: fixLength (n - 1) []
+
+Target.create "Bundle" (fun p ->
+    let args = p.Context.Arguments |> fixLength 4
+    let config = args.[0] |> Option.defaultValue "Release"
+    let runtime = args.[1] |> Option.defaultValue "linux-x64"
+    let framework = args.[2] |> Option.defaultValue "netcoreapp3.1"
+    let outPath = args.[3] |> Option.defaultValue deployDir
+
+    let serverDir = Path.combine outPath "Server"
+    let clientDir = Path.combine outPath "Client"
     let publicDir = Path.combine clientDir "public"
-    let publishArgs = sprintf "publish -c Release -o \"%s\" -r linux-x64 --no-self-contained -f netcoreapp3.1" serverDir
+
+    let publishArgs = sprintf "publish -o \"%s\" -c %s -r %s --no-self-contained -f %s" serverDir config runtime framework
     runDotNet publishArgs serverPath
 
 

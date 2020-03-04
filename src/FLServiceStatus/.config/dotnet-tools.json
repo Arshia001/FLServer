@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "isRoot": true,
+  "isRoot": false,
   "tools": {
     "dotnet-ef": {
       "version": "3.1.1",
