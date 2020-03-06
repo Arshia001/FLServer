@@ -50,6 +50,8 @@ namespace FLGrainInterfaces.Configuration
 
         public byte RefreshGroupsAllowedPerRound { get; private set; }
 
+        public uint InitialGold { get; private set; }
+
         static void FailWith(string error) => throw new ArgumentException(error);
 
         public static void Validate(ConfigValues data)

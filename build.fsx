@@ -98,7 +98,7 @@ Target.create "Publish" <|
                 "linux-x64"
             )
 
-        let hostOutPath = Path.combine publishDir "flhost"
+        let hostOutPath = Path.combine publishDir "flserver"
         let serviceStatusOutPath = Path.combine publishDir "flservicestatus"
         let passwordRecoveryOutPath = Path.combine publishDir "flpasswordrecovery"
          

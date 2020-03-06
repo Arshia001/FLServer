@@ -22,11 +22,11 @@
     },
     {
       "Level": 6,
-      "RequiredXP": 600
+      "RequiredXP": 560
     },
     {
       "Level": 7,
-      "RequiredXP": 800
+      "RequiredXP": 730
     },
     {
       "Level": 8,
@@ -52,10 +52,10 @@
     "ExtraTimePerRound": "00:00:10",
 
     "RoundTimeExtension": "00:00:30",
-    "RoundTimeExtensionPrice": 500,
+    "RoundTimeExtensionPrice": 70,
     "NumTimeExtensionsPerRound": 1,
 
-    "RevealWordPrice": 300,
+    "RevealWordPrice": 120,
 
     "GameInactivityTimeout": "1.00:00:00",
 
@@ -87,7 +87,9 @@
 
     "MaxGameHistoryEntries": 10,
 
-    "RefreshGroupsAllowedPerRound": 1
+    "RefreshGroupsAllowedPerRound": 1,
+
+    "InitialGold": 300
   },
   "GoldPacks": [
     {

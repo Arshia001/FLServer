@@ -51,9 +51,11 @@ namespace FLGrains
         {
             await state.UseStateAndMaybePersist(state =>
             {
+                var config = configReader.Config.ConfigValues;
+
                 if (state.Level == 0)
                 {
-                    state.Gold = 1_000_000;
+                    state.Gold = config.InitialGold;
                     state.Level = 1;
 
                     var id = this.GetPrimaryKey();
@@ -65,7 +67,6 @@ namespace FLGrains
                     return FLTaskExtensions.True;
                 }
 
-                var config = configReader.Config.ConfigValues;
                 if (state.PastGames.Count > config.MaxGameHistoryEntries)
                 {
                     while (state.PastGames.Count > config.MaxGameHistoryEntries)
