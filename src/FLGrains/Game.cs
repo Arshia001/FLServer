@@ -421,6 +421,8 @@ namespace FLGrains
             var index = Index(id);
             var maxEditDistances = configReader.Config.MaxEditDistanceToCorrentByLetterCount;
 
+            word = word.Trim().Replace('ي', 'ی').Replace('ك', 'ک');
+
             var result = await GameLogic.PlayWord(index, word, (c, w) => GetWordScore(GameLogic.RoundNumber, index, c, w), i => maxEditDistances[i]);
 
             if (result.result == PlayWordResult.Error_TurnOver)
