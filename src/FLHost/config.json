@@ -52,10 +52,10 @@
     "ExtraTimePerRound": "00:00:10",
 
     "RoundTimeExtension": "00:00:30",
-    "RoundTimeExtensionPrice": 70,
+    "RoundTimeExtensionPrice": 50,
     "NumTimeExtensionsPerRound": 1,
 
-    "RevealWordPrice": 120,
+    "RevealWordPrice": 80,
 
     "GameInactivityTimeout": "1.00:00:00",
 
