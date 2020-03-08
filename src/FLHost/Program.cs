@@ -43,7 +43,7 @@ namespace FLHost
                         o.ListenPort = 7510;
                         o.ClientAuthCallback = OnAuth;
                     })
-                    .AddSingleton<ILogProvider>(new ConsoleLogProvider(LightMessage.Common.Util.LogLevel.Verbose))
+                    .AddSingleton<ILogProvider>(new ConsoleLogProvider(LightMessage.Common.Util.LogLevel.Info))
                     .AddHostedService<LightMessageHostedService>();
                     ;
                 })
