@@ -66,6 +66,8 @@ Otherwise, we might perform an offline installation:
 
 * sudo dpkg -i cassandra_3.11.6_all.deb
 
+**FOR THE LOVE OF GOD, do not run cassandra manually from the terminal**
+
 ### Configure Cassandra
 
 ```bash

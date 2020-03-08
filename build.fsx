@@ -101,15 +101,11 @@ Target.create "Publish" <|
         let hostOutPath = Path.combine publishDir "flserver"
         let serviceStatusOutPath = Path.combine publishDir "flservicestatus"
         let passwordRecoveryOutPath = Path.combine publishDir "flpasswordrecovery"
-         
-        [
-            async { runDotNetPublish platform hostPath hostOutPath }
-            async { runDotNetPublish platform serviceStatusPath serviceStatusOutPath }
-            async {
-                let args = sprintf "bundle %s %s %s \"%s\"" buildConfig platform publishFramework passwordRecoveryOutPath
-                runFakeTarget args passwordRecoveryPath
-            }
-        ] |> Async.Parallel |> Async.Ignore |> Async.RunSynchronously
+
+        runDotNetPublish platform hostPath hostOutPath
+        runDotNetPublish platform serviceStatusPath serviceStatusOutPath
+        let args = sprintf "bundle %s %s %s \"%s\"" buildConfig platform publishFramework passwordRecoveryOutPath
+        runFakeTarget args passwordRecoveryPath
         
 
 open Fake.Core.TargetOperators
@@ -130,7 +126,8 @@ open Fake.Core.TargetOperators
 "Build"
     ==> "Run"
 
-"Build"
+"Clean"
+    ==> "BuildMessages"
     ==> "Publish"
 
 Target.runOrDefaultWithArguments "Build"

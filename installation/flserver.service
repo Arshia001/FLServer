@@ -1,5 +1,6 @@
 [Unit]
 Description=FL Server
+After=cassandra.service
 
 [Service]
 ExecStart=/app/flserver/FLHost
@@ -10,7 +11,6 @@ Restart=always
 SyslogIdentifier=flhost-service
 PrivateTemp=true
 TimeoutSec=300
-After=cassandra.service
 # Environment=FLSERVER_DETAILED_MATCHMAKING_LOG=yes
 
 [Install]

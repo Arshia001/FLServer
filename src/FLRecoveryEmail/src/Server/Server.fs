@@ -69,19 +69,24 @@ let buildClient (settings: SystemSettings.Root) =
 
     client
 
-let clusterClient = buildClient(settings)
+try
+    let clusterClient = buildClient(settings)
 
-let app = application {
-    url ("http://127.0.0.1:" + settings.Port.ToString() + "/")
-    use_router (choose [webApp])
-    memory_cache
-    use_static publicPath
-    use_gzip
-    service_config (fun s ->
-        s
-            .AddSingleton<ISettingsProvider>(SettingsProvider(settings))
-            .AddSingleton<IClusterClientProvider>(ClusterClientProvider(clusterClient))
-        )
-}
+    let app = application {
+        url ("http://127.0.0.1:" + settings.Port.ToString() + "/")
+        use_router (choose [webApp])
+        memory_cache
+        use_static publicPath
+        use_gzip
+        service_config (fun s ->
+            s
+                .AddSingleton<ISettingsProvider>(SettingsProvider(settings))
+                .AddSingleton<IClusterClientProvider>(ClusterClientProvider(clusterClient))
+            )
+    }
 
-run app
+    run app
+with exn ->
+    printfn "Failed to start, will shut down in 5 seconds: %A" exn
+    System.Threading.Thread.Sleep 5000
+    Environment.Exit -1

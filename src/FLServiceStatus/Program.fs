@@ -56,33 +56,38 @@ module Program =
     [<EntryPoint>]
     let main args = 
         (task {
-            let settings = SystemSettings.Parse(File.ReadAllText("system-settings.json"))
+            try
+                let settings = SystemSettings.Parse(File.ReadAllText("system-settings.json"))
 
-            let clusterClient = buildClient settings
-            use host = createHostBuilder(args, clusterClient, settings).Build()
+                let clusterClient = buildClient settings
+                use host = createHostBuilder(args, clusterClient, settings).Build()
 
-            do! host.StartAsync()
+                do! host.StartAsync()
 
-            let mutable exitRequested = false
+                let mutable exitRequested = false
 
-            host.Services.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping.Register (fun () -> 
-                exitRequested <- true
-                ) |> ignore
+                host.Services.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping.Register (fun () -> 
+                    exitRequested <- true
+                    ) |> ignore
 
-            let mutable retries = 0
+                let mutable retries = 0
 
-            do! clusterClient.Connect(fun exn -> task {
-                if retries < settings.MaxRetries then
-                    retries <- retries + 1
-                    printfn "Failed to connect to any silos, will retry. Retry count: %i; Exception: %A" retries exn
-                    do! Task.Delay(TimeSpan.FromSeconds(2.))
-                    return not exitRequested
-                else
-                    printfn "Failed to connect to any silos after %i retries, will give up. Exception: %A" retries exn
-                    return false
-            })
+                do! clusterClient.Connect(fun exn -> task {
+                    if retries < settings.MaxRetries then
+                        retries <- retries + 1
+                        printfn "Failed to connect to any silos, will retry. Retry count: %i; Exception: %A" retries exn
+                        do! Task.Delay(TimeSpan.FromSeconds(2.))
+                        return not exitRequested
+                    else
+                        printfn "Failed to connect to any silos after %i retries, will give up. Exception: %A" retries exn
+                        return false
+                })
 
-            do! host.WaitForShutdownAsync()
+                do! host.WaitForShutdownAsync()
 
-            return 0
+                return 0
+            with exn ->
+                printfn "Failed to start, will shut down in 5 seconds: %A" exn
+                System.Threading.Thread.Sleep 5000
+                return -1
         }) |> Async.AwaitTask |> Async.RunSynchronously

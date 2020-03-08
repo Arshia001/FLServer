@@ -30,87 +30,96 @@ namespace FLHost
 
         static async Task Main(string[] args)
         {
-            var systemSettings = new SystemSettings(File.ReadAllText("system-settings.json"), File.ReadAllText("firebase-adminsdk-accountkeys.json"));
-
-            var host = new HostBuilder()
-                .ConfigureServices(e =>
-                {
-                    e
-                    .ConfigureGameServer(systemSettings)
-                    .Configure<LightMessageOptions>(o =>
-                    {
-                        o.ListenIPAddress = IPAddress.Any;
-                        o.ListenPort = 7510;
-                        o.ClientAuthCallback = OnAuth;
-                    })
-                    .AddSingleton<ILogProvider>(new ConsoleLogProvider(LightMessage.Common.Util.LogLevel.Info))
-                    .AddHostedService<LightMessageHostedService>();
-                    ;
-                })
-                .ConfigureLogging(l => l.AddFilter("Orleans", Microsoft.Extensions.Logging.LogLevel.Information).AddConsole())
-                .UseOrleans(s =>
-                {
-                    s
-                    .Configure<ClusterOptions>(o =>
-                    {
-                        o.ClusterId = "FLCluster";
-                        o.ServiceId = "FLService";
-                    })
-                    .Configure<EndpointOptions>(o =>
-                    {
-                        o.AdvertisedIPAddress = IPAddress.Parse("127.0.0.1");
-                        o.GatewayPort = 40000;
-                        o.SiloPort = 11111;
-                    })
-                    .Configure<SchedulingOptions>(o => o.AllowCallChainReentrancy = true)
-                    .Configure<SerializationProviderOptions>(o =>
-                    {
-                        o.SerializationProviders.Add(typeof(LightMessage.OrleansUtils.GrainInterfaces.LightMessageSerializer).GetTypeInfo());
-                    })
-                    .Configure<LoadSheddingOptions>(o => o.LoadSheddingEnabled = true)
-                    .Configure<GrainCollectionOptions>(o =>
-                    {
-                        o.ClassSpecificCollectionAge["FLGrains.Game"] = TimeSpan.FromMinutes(10);
-                        o.ClassSpecificCollectionAge["FLGrains.Player"] = TimeSpan.FromMinutes(5);
-                        o.ClassSpecificCollectionAge["FLGrains.LeaderBoard"] = TimeSpan.FromHours(24);
-                        o.CollectionQuantum = TimeSpan.FromMinutes(3);
-                    })
-                    .UseCassandraClustering((CassandraClusteringOptions o) =>
-                    {
-                        o.ConnectionString = systemSettings.Values.ConnectionString;
-                    })
-                    .UseCassandraReminderService((CassandraReminderTableOptions o) =>
-                    {
-                        o.ConnectionString = systemSettings.Values.ConnectionString;
-                    })
-                    .AddCassandraGrainStorageAsDefault((CassandraGrainStorageOptions o) =>
-                    {
-                        o.ConnctionString = systemSettings.Values.ConnectionString;
-                        o.AddSerializationProvider(1, new BondCassandraStorageSerializationProvider());
-                    })
-                    .ConfigureApplicationParts(p =>
-                    {
-                        p.AddApplicationPart(typeof(TestGrain).Assembly).WithReferences();
-                        p.AddApplicationPart(typeof(LightMessage.OrleansUtils.Grains.EndPointGrain).Assembly).WithReferences();
-                        p.AddApplicationPart(typeof(OrleansIndexingGrains.IndexerGrainUnique<,>).Assembly).WithReferences();
-                    })
-                    .AddStartupTask<ConfigStartupTask>()
-                    ;
-
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                        s.UsePerfCounterEnvironmentStatistics();
-                    else
-                        s.UseLinuxEnvironmentStatistics();
-                })
-                .Build();
-
-            using (host)
+            try
             {
-                await host.StartAsync();
+                var systemSettings = new SystemSettings(File.ReadAllText("system-settings.json"), File.ReadAllText("firebase-adminsdk-accountkeys.json"));
 
-                client = host.Services.GetRequiredService<IClusterClient>();
+                var host = new HostBuilder()
+                    .ConfigureServices(e =>
+                    {
+                        e
+                        .ConfigureGameServer(systemSettings)
+                        .Configure<LightMessageOptions>(o =>
+                        {
+                            o.ListenIPAddress = IPAddress.Any;
+                            o.ListenPort = 7510;
+                            o.ClientAuthCallback = OnAuth;
+                        })
+                        .AddSingleton<ILogProvider>(new ConsoleLogProvider(LightMessage.Common.Util.LogLevel.Info))
+                        .AddHostedService<LightMessageHostedService>();
+                        ;
+                    })
+                    .ConfigureLogging(l => l.AddFilter("Orleans", Microsoft.Extensions.Logging.LogLevel.Information).AddConsole())
+                    .UseOrleans(s =>
+                    {
+                        s
+                        .Configure<ClusterOptions>(o =>
+                        {
+                            o.ClusterId = "FLCluster";
+                            o.ServiceId = "FLService";
+                        })
+                        .Configure<EndpointOptions>(o =>
+                        {
+                            o.AdvertisedIPAddress = IPAddress.Parse("127.0.0.1");
+                            o.GatewayPort = 40000;
+                            o.SiloPort = 11111;
+                        })
+                        .Configure<SchedulingOptions>(o => o.AllowCallChainReentrancy = true)
+                        .Configure<SerializationProviderOptions>(o =>
+                        {
+                            o.SerializationProviders.Add(typeof(LightMessage.OrleansUtils.GrainInterfaces.LightMessageSerializer).GetTypeInfo());
+                        })
+                        .Configure<LoadSheddingOptions>(o => o.LoadSheddingEnabled = true)
+                        .Configure<GrainCollectionOptions>(o =>
+                        {
+                            o.ClassSpecificCollectionAge["FLGrains.Game"] = TimeSpan.FromMinutes(10);
+                            o.ClassSpecificCollectionAge["FLGrains.Player"] = TimeSpan.FromMinutes(5);
+                            o.ClassSpecificCollectionAge["FLGrains.LeaderBoard"] = TimeSpan.FromHours(24);
+                            o.CollectionQuantum = TimeSpan.FromMinutes(3);
+                        })
+                        .UseCassandraClustering((CassandraClusteringOptions o) =>
+                        {
+                            o.ConnectionString = systemSettings.Values.ConnectionString;
+                        })
+                        .UseCassandraReminderService((CassandraReminderTableOptions o) =>
+                        {
+                            o.ConnectionString = systemSettings.Values.ConnectionString;
+                        })
+                        .AddCassandraGrainStorageAsDefault((CassandraGrainStorageOptions o) =>
+                        {
+                            o.ConnctionString = systemSettings.Values.ConnectionString;
+                            o.AddSerializationProvider(1, new BondCassandraStorageSerializationProvider());
+                        })
+                        .ConfigureApplicationParts(p =>
+                        {
+                            p.AddApplicationPart(typeof(TestGrain).Assembly).WithReferences();
+                            p.AddApplicationPart(typeof(LightMessage.OrleansUtils.Grains.EndPointGrain).Assembly).WithReferences();
+                            p.AddApplicationPart(typeof(OrleansIndexingGrains.IndexerGrainUnique<,>).Assembly).WithReferences();
+                        })
+                        .AddStartupTask<ConfigStartupTask>()
+                        ;
 
-                await host.WaitForShutdownAsync();
+                        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                            s.UsePerfCounterEnvironmentStatistics();
+                        else
+                            s.UseLinuxEnvironmentStatistics();
+                    })
+                    .Build();
+
+                using (host)
+                {
+                    await host.StartAsync();
+
+                    client = host.Services.GetRequiredService<IClusterClient>();
+
+                    await host.WaitForShutdownAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to start server due to {ex}, will exit in 5 seconds");
+                await Task.Delay(5000);
+                Environment.Exit(-1);
             }
         }
 
