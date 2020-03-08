@@ -106,6 +106,8 @@ let readCategory (path: string) : Category =
             File.ReadAllLines(path)
             |> Seq.choose readCategoryWord
             |> List.ofSeq
+
+        if List.isEmpty words then failwithf "Empty category: %s" name
         
         let duplicateWords =
             words

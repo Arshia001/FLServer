@@ -103,6 +103,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NetworkMessages", "NetworkM
 		src\FLNetworkMessages\RunLMCodeGen.bat = src\FLNetworkMessages\RunLMCodeGen.bat
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "!Installation", "!Installation", "{8E1CF3E0-E282-4334-9060-07DD555FA528}"
+	ProjectSection(SolutionItems) = preProject
+		installation\flpasswordrecovery.service = installation\flpasswordrecovery.service
+		installation\flserver.service = installation\flserver.service
+		installation\flservicestatus.service = installation\flservicestatus.service
+		installation\NginxConfig = installation\NginxConfig
+		installation\SETUP.md = installation\SETUP.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -487,6 +496,7 @@ Global
 		{2F3C3943-1EC4-4A8B-98C6-ECDD90E23D3E} = {21A3A2F3-BEBD-4790-AE92-8406DD76172E}
 		{FE310F94-F5F9-4EB7-BC4E-E0C3BB5A4BB1} = {21A3A2F3-BEBD-4790-AE92-8406DD76172E}
 		{7CC1CCD3-C243-4F3B-AC65-13D837A8D2C3} = {9089A3C4-FF19-40E6-B521-4A09B4485986}
+		{8E1CF3E0-E282-4334-9060-07DD555FA528} = {9089A3C4-FF19-40E6-B521-4A09B4485986}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {26BD207F-E100-41E9-AAD3-14868BE541AD}

@@ -2,7 +2,7 @@
   "profiles": {
     "CsvLevelImporter": {
       "commandName": "Project",
-      "commandLineArgs": "folderToCassandra \"..\\..\\..\\..\\Words\\Files\" \"..\\..\\..\\..\\Words\\Output\""
+      "commandLineArgs": "folderToCassandra \"..\\..\\..\\..\\..\\Words\\Files\" \"..\\..\\..\\..\\..\\Words\\Output\""
     }
   }
 }

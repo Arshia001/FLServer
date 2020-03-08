@@ -1,0 +1,17 @@
+[Unit]
+Description=FL Service Status Monitor
+
+[Service]
+ExecStart=/app/flservicestatus/FLServiceStatus
+WorkingDirectory=/app/flservicestatus/
+User=flserver
+Group=flserver
+Restart=always
+SyslogIdentifier=flservicestatus-service
+PrivateTemp=true
+TimeoutSec=300
+After=flserver.service
+
+[Install]
+WantedBy=multi-user.target
+
