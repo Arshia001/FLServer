@@ -1,4 +1,4 @@
-﻿Change subjects only once per round
+﻿ADD NUMERIC IDS FOR CATEGORIES ASAP
 
 CLIENT Show pending answer
 CLIENT Rewarded video ad
@@ -6,7 +6,6 @@ CLIENT Interesting/Uninteresting data per player to disallow duplicated voting -
 CLIENT Store log in file
 
 ART Splash
-ART Logo
 
 TEST
     Auto clear after set limit reached
