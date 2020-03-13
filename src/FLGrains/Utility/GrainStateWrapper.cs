@@ -18,13 +18,15 @@ namespace FLGrains.Utility
     class GrainStateWrapper<TState>
         where TState : new()
     {
-        public event EventHandler<PersistStateEventArgs<TState>> Persist = delegate { };
+        public event EventHandler<PersistStateEventArgs<TState>> Persist;
 
         readonly IPersistentState<TState> state;
 
         bool lazyPersistPending;
 
         public GrainStateWrapper(IPersistentState<TState> state) => this.state = state;
+
+        public bool LazyPersistPending => lazyPersistPending;
 
         Task PerformPersist()
         {

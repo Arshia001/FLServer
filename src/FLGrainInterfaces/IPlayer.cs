@@ -153,7 +153,7 @@ namespace FLGrainInterfaces
 
         Task<Immutable<IReadOnlyList<IGame>>> GetGames();
         Task ClearFinishedGames();
-        Task<bool> CanEnterGame();
+        Task<(bool canEnter, Guid? lastOpponentID)> CheckCanEnterGameAndGetLastOpponentID();
         Task<byte> JoinGameAsFirstPlayer(IGame game);
         Task<(Guid opponentID, byte numRounds)> JoinGameAsSecondPlayer(IGame game);
         Task OnRoundCompleted(IGame game, uint myScore);

@@ -550,6 +550,8 @@ namespace FLGrains
 
         public Task<GameState> GetState() => state.UseState(state => Task.FromResult(GetStateInternal(state)));
 
+        public Task<Guid[]> GetPlayerIDs() => state.UseState(state => Task.FromResult(state.PlayerIDs));
+
         public Task<GameInfo> GetGameInfo(Guid playerID) =>
             state.UseState(async state =>
             {

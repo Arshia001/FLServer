@@ -29,6 +29,7 @@ namespace FLGrainInterfaces
 
         Task<List<GroupConfig>?> RefreshGroups(Guid guid);
 
+        Task<Guid[]> GetPlayerIDs();
         Task<GameInfo> GetGameInfo(Guid playerID);
         Task<SimplifiedGameInfo> GetSimplifiedGameInfo(Guid playerID);
     }

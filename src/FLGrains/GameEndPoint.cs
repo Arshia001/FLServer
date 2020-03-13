@@ -19,11 +19,12 @@ namespace FLGrains
         protected override async Task<(Guid gameID, PlayerInfo? opponentInfo, byte numRounds, bool myTurnFirst)> NewGame(Guid clientID)
         {
             var player = GrainFactory.GetGrain<IPlayer>(clientID);
+            var (canEnter, lastOpponentID) = await player.CheckCanEnterGameAndGetLastOpponentID();
 
-            if (!await player.CanEnterGame())
+            if (!canEnter)
                 throw new VerbatimException("Cannot enter game at this time");
 
-            return await GrainFactory.GetGrain<IMatchMakingGrain>(0).FindOrCreateGame(player);
+            return await GrainFactory.GetGrain<IMatchMakingGrain>(0).FindOrCreateGame(player, lastOpponentID);
         }
 
         protected override async Task<IEnumerable<WordScorePairDTO>?> EndRound(Guid clientID, Guid gameID)

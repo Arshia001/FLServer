@@ -347,7 +347,29 @@ namespace FLGrains
             return Task.CompletedTask;
         }
 
-        public Task<bool> CanEnterGame() => state.UseState(state => Task.FromResult(IsInfinitePlayActive || state.ActiveGames.Count < configReader.Config.ConfigValues.MaxActiveGames));
+        public Task<(bool canEnter, Guid? lastOpponentID)> CheckCanEnterGameAndGetLastOpponentID() =>
+            state.UseState(async state =>
+            {
+                var canEnter = IsInfinitePlayActive || state.ActiveGames.Count < configReader.Config.ConfigValues.MaxActiveGames;
+
+                Guid? lastOpponentID;
+                if (state.ActiveGames.Count == 0)
+                    lastOpponentID = null;
+                else
+                {
+                    var myID = this.GetPrimaryKey();
+
+                    // this could be Guid.Empty if the next game is waiting for the second player
+                    lastOpponentID =
+                        (await GrainFactory.GetGrain<IGame>(state.ActiveGames.Last()).GetPlayerIDs())
+                        .Where(id => id != myID)
+                        .Cast<Guid?>()
+                        .DefaultIfEmpty(null)
+                        .First();
+                }
+
+                return (canEnter, lastOpponentID);
+            });
 
         public Task<byte> JoinGameAsFirstPlayer(IGame game) =>
             state.UseStateAndPersist(async state =>

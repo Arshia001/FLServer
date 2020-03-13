@@ -1,6 +1,7 @@
 ﻿using Bond;
 using FLGrainInterfaces;
 using FLGrainInterfaces.Configuration;
+using FLGrains.Utility;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Runtime;
@@ -45,7 +46,7 @@ namespace FLGrains
 
     class MatchMakingGrain : Grain, IMatchMakingGrain
     {
-        readonly IPersistentState<MatchMakingGrainState> state;
+        readonly GrainStateWrapper<MatchMakingGrainState> state;
         readonly IConfigReader configReader;
         readonly ILogger<MatchMakingGrain> logger;
         readonly bool detailedLog;
@@ -55,36 +56,46 @@ namespace FLGrains
         public MatchMakingGrain([PersistentState("State")] IPersistentState<MatchMakingGrainState> state,
             IConfigReader configReader, ILogger<MatchMakingGrain> logger)
         {
-            this.state = state;
+            this.state = new GrainStateWrapper<MatchMakingGrainState>(state);
+            this.state.Persist += State_Persist;
+
             this.configReader = configReader;
             this.logger = logger;
             detailedLog = Environment.GetEnvironmentVariable("FLSERVER_DETAILED_MATCHMAKING_LOG") == "yes";
         }
 
-        public override Task OnActivateAsync()
+        private void State_Persist(object sender, PersistStateEventArgs<MatchMakingGrainState> e) =>
+            e.State.Entries = new List<MatchMakingEntry>(entries);
+
+        public override Task OnActivateAsync() => state.UseState(state =>
         {
-            var savedEntries = state.State.Entries;
+            var savedEntries = state.Entries;
             if (savedEntries != null && savedEntries.Any())
                 entries = new HashSet<MatchMakingEntry>(savedEntries);
+
+            RegisterTimer(WriteStateTimer, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+
             return Task.CompletedTask;
-        }
+        });
 
-        public override Task OnDeactivateAsync()
-        {
-            state.State.Entries = new List<MatchMakingEntry>(entries);
-            return state.WriteStateAsync();
-        }
+        Task WriteStateTimer(object _unused) => state.PerformLazyPersistIfPending();
 
-        public async Task AddGame(IGame game, IPlayer firstPlayer)
-        {
-            var (score, level) = await firstPlayer.GetMatchMakingInfo();
-            var entry = new MatchMakingEntry(game, score, level, firstPlayer.GetPrimaryKey());
-            entries.Add(entry);
-        }
+        public override Task OnDeactivateAsync() => state.PerformLazyPersistIfPending();
+
+        public Task AddGame(IGame game, IPlayer firstPlayer) =>
+            // We don't actually update the state as that incurs a performance penalty.
+            // Instead, we simply mark the state wrapper with a pending write. The actual
+            // updating of state happens in the State_Persist event handler above.
+            state.UseStateAndLazyPersist(async _state =>
+            {
+                var (score, level) = await firstPlayer.GetMatchMakingInfo();
+                var entry = new MatchMakingEntry(game, score, level, firstPlayer.GetPrimaryKey());
+                entries.Add(entry);
+            });
 
         bool Within(uint a, uint b, uint delta) => Math.Abs((int)a - (int)b) <= delta;
 
-        public async Task<(Guid gameID, PlayerInfo? opponentInfo, byte numRounds, bool myTurnFirst)> FindOrCreateGame(IPlayer player)
+        public async Task<(Guid gameID, PlayerInfo? opponentInfo, byte numRounds, bool myTurnFirst)> FindOrCreateGame(IPlayer player, Guid? lastOpponentID)
         {
             var config = configReader.Config;
             var (score, level) = await player.GetMatchMakingInfo();
@@ -93,10 +104,47 @@ namespace FLGrains
             if (detailedLog)
                 logger.LogInformation($"Matching player ID {playerID} with level {level} and score {score}");
 
-            var match = entries.FirstOrDefault(e =>
+            var match = entries.FirstOrDefault(IsMatch(score, level, playerID, config, lastOpponentID));
+
+            if (match == null && lastOpponentID.HasValue)
+                match = entries.FirstOrDefault(IsMatch(score, level, playerID, config, null));
+
+            if (match != null)
+            {
+                var game = match.Game ?? throw new Exception("Entry without game reference");
+                var (opponentID, numRounds) = await player.JoinGameAsSecondPlayer(game);
+                var opponentInfo = await PlayerInfoHelper.GetInfo(GrainFactory, opponentID);
+                entries.Remove(match);
+                return (game.GetPrimaryKey(), await PlayerInfoHelper.GetInfo(GrainFactory, opponentID), numRounds, false);
+            }
+            else
+            {
+                if (detailedLog)
+                    logger.LogInformation("No match found, will start new game");
+
+                IGame gameToEnter;
+                do
+                    gameToEnter = GrainFactory.GetGrain<IGame>(Guid.NewGuid());
+                while (await gameToEnter.GetState() != GameState.New);
+
+                var numRounds = await player.JoinGameAsFirstPlayer(gameToEnter);
+
+                return (gameToEnter.GetPrimaryKey(), null, numRounds, true);
+            }
+        }
+
+        Func<MatchMakingEntry, bool> IsMatch(uint score, uint level, Guid playerID, ReadOnlyConfigData config, Guid? lastOpponentID) =>
+            e =>
             {
                 if (detailedLog)
                     logger.LogInformation($"Testing {e.FirstPlayerID} with level {e.Level} and score {e.Score}");
+
+                if (lastOpponentID.HasValue && e.FirstPlayerID == lastOpponentID.Value)
+                {
+                    if (detailedLog)
+                        logger.LogInformation($"Same opponent as last for this player, won't match for now: {lastOpponentID}");
+                    return false;
+                }
 
                 if (!Within(e.Level, level, config.ConfigValues.MatchmakingLevelDifference))
                 {
@@ -123,30 +171,6 @@ namespace FLGrains
                     logger.LogInformation("Match found");
 
                 return true;
-            });
-
-            if (match != null)
-            {
-                var game = match.Game ?? throw new Exception("Entry without game reference");
-                var (opponentID, numRounds) = await player.JoinGameAsSecondPlayer(game);
-                var opponentInfo = await PlayerInfoHelper.GetInfo(GrainFactory, opponentID);
-                entries.Remove(match);
-                return (game.GetPrimaryKey(), await PlayerInfoHelper.GetInfo(GrainFactory, opponentID), numRounds, false);
-            }
-            else
-            {
-                if (detailedLog)
-                    logger.LogInformation("No match found, will start new game");
-
-                IGame gameToEnter;
-                do
-                    gameToEnter = GrainFactory.GetGrain<IGame>(Guid.NewGuid());
-                while (await gameToEnter.GetState() != GameState.New);
-
-                var numRounds = await player.JoinGameAsFirstPlayer(gameToEnter);
-
-                return (gameToEnter.GetPrimaryKey(), null, numRounds, true);
-            }
-        }
+            };
     }
 }
