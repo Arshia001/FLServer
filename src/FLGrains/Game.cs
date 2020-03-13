@@ -63,7 +63,6 @@ namespace FLGrains
 
         GameLogicServer? gameLogic;
         readonly IConfigReader configReader;
-        readonly Random random = new Random();
         readonly GrainStateWrapper<GameGrainState> state;
         readonly ILogger logger;
 
@@ -96,7 +95,7 @@ namespace FLGrains
                             return category;
 
                         // In case a category was deleted...
-                        return config.CategoriesAsGameLogicFormat[random.Next(config.CategoriesAsGameLogicFormat.Count)];
+                        return config.CategoriesAsGameLogicFormat[RandomHelper.GetInt32(config.CategoriesAsGameLogicFormat.Count)];
                     });
                 }
             });
@@ -198,7 +197,7 @@ namespace FLGrains
                     {
                         state.GroupChooser = index;
                         state.GroupChoices =
-                            new Random().GetUnique(0, config.Groups.Count, config.ConfigValues.NumGroupChoices)
+                            RandomHelper.GetUnique(0, config.Groups.Count, config.ConfigValues.NumGroupChoices)
                             .Select(i => config.Groups[i].ID).ToList();
                         state.NumGroupRefreshesRemainingForThisRound = (int)config.ConfigValues.RefreshGroupsAllowedPerRound;
                     }
@@ -235,11 +234,10 @@ namespace FLGrains
             var config = configReader.Config;
 
             var categories = config.CategoryNamesByGroupID[groupID];
-            var random = new Random();
             var currentCategories = GameLogic.CategoryNames;
             string categoryName;
             do
-                categoryName = categories[random.Next(categories.Count)];
+                categoryName = categories[RandomHelper.GetInt32(categories.Count)];
             while (currentCategories.Contains(categoryName));
 
             var result = GameLogic.SetCategory(roundIndex, config.CategoriesAsGameLogicFormatByName[categoryName]);
@@ -502,10 +500,9 @@ namespace FLGrains
             if (answers.Count == category.Answers.Count)
                 return null;
 
-            var random = new Random();
             string word;
             do
-                word = category.Answers[random.Next(category.Answers.Count)];
+                word = category.Answers[RandomHelper.GetInt32(category.Answers.Count)];
             while (answers.Any(a => a.word == word));
 
             var (score, _) = await PlayWord(playerID, word);
@@ -524,7 +521,7 @@ namespace FLGrains
 
                 var config = configReader.Config;
                 state.GroupChoices =
-                    new Random().GetUniqueExcept(0, config.Groups.Count, config.ConfigValues.NumGroupChoices,
+                    RandomHelper.GetUniqueExcept(0, config.Groups.Count, config.ConfigValues.NumGroupChoices,
                         i => state.GroupChoices.Contains(config.Groups[i].ID), state.GroupChoices.Count)
                     .Select(i => config.Groups[i].ID).ToList();
 

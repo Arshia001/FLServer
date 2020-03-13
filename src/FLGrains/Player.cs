@@ -62,7 +62,7 @@ namespace FLGrains
                     LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).Set(id, 0).Ignore();
                     LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.XP).Set(id, 0).Ignore();
 
-                    state.Name = "Guest " + (new Random().Next(100_000, 1_000_000).ToString());
+                    state.Name = "Guest " + RandomHelper.GetInt32(100_000, 1_000_000).ToString();
 
                     return FLTaskExtensions.True;
                 }

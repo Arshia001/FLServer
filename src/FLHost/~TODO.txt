@@ -1,4 +1,12 @@
 ﻿ADD NUMERIC IDS FOR CATEGORIES ASAP
+ADD A WAY TO MARK SERVICE AS DOWN FOR MAINTENANCE ASAP
+
+Fix lost matchmaking state:
+    * Games should try to add themselves when they're activated
+    * adding second player to games should fail gracefully for games with two existing players
+
+Disconnect idle clients
+The bloody keyboard!
 
 CLIENT Show pending answer
 CLIENT Rewarded video ad
