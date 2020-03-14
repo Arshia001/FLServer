@@ -5,8 +5,8 @@ ADD WAY TO RENAME CATEGORIES ASAP
     * option 1: add enabled/disabled setting to all categories, disable old name, enable new name
     * option 2: add name map (map old name to new name separately, drop old, create new)
     * option 3: both of above?
-ADD A WAY TO MARK SERVICE AS DOWN FOR MAINTENANCE ASAP
 Add a way to change *latest* version without restarting the service
+Add a way to get number of currently connected clients
 
 Fix lost matchmaking state:
     * Games should try to add themselves when they're activated
