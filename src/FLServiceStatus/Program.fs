@@ -1,23 +1,16 @@
 namespace FLServiceStatus
 
 open FSharp.Control.Tasks.V2
-open FSharp.Data
 open System
-open System.Collections.Generic
 open System.IO
-open System.Linq
 open System.Threading.Tasks
-open Microsoft.AspNetCore
 open Microsoft.AspNetCore.Hosting
-open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 open Orleans
 open Orleans.Configuration
 open OrleansCassandraUtils
-
-type SystemSettings = JsonProvider<"system-settings.json">
 
 module Program =
     let buildClient (settings: SystemSettings.Root) =
@@ -47,6 +40,7 @@ module Program =
             )
             .ConfigureServices(fun s ->
                 s
+                    .AddSingleton<ISystemSettingsAccessor>(SystemSettingsAccessor(settings))
                     .AddSingleton<IClusterClient>(client)
                     .AddSingleton<IStatusMonitorService, StatusMonitorService>()
                     .AddHostedService<StatusMonitorHostedService>()

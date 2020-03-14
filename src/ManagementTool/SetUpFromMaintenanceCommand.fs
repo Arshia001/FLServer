@@ -9,4 +9,7 @@ type UpFromMaintenance = {
 }
 
 let runUpFromMaintenance (cmd: UpFromMaintenance) =
-    ()
+    let (session, queries) = buildCassandraSession cmd.keyspace
+    let statement = queries.["fl_updateConfig"].Bind({| key = "maintenance-status"; data = "none" |})
+    session.Execute(statement) |> ignore
+    printfn "Done"

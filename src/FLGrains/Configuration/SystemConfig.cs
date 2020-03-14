@@ -71,7 +71,7 @@ namespace FLGrains.Configuration
 
         static async Task<ConfigData> ReadConfigDataFromDatabase(ISession session, Queries queries)
         {
-            var rows = await session.ExecuteAsync(queries["fl_readConfig"].Bind());
+            var rows = await session.ExecuteAsync(queries["fl_readConfig"].Bind(new { key = "config" }));
             var data = Convert.ToString(rows.FirstOrDefault()?["data"]);
 
             if (!string.IsNullOrEmpty(data))
@@ -155,7 +155,7 @@ namespace FLGrains.Configuration
 
             SetNewData(newData);
 
-            await WriteConfigToDatabase(jsonData, session);
+            await WriteConfigToDatabase(jsonData, session, queries);
 
             logger.LogWarning("Configuration data updated from initial-config.json, now you should delete the file");
 
@@ -204,18 +204,16 @@ namespace FLGrains.Configuration
 
             ReadOnlyConfigData.Validate(newData);
 
-            await WriteConfigToDatabase(jsonConfig, session);
+            await WriteConfigToDatabase(jsonConfig, session, await Queries.CreateInstance(session));
 
             SetNewData(newData, false);
 
             await PushUpdateToAllSilos();
         }
 
-        static async Task WriteConfigToDatabase(string jsonConfig, ISession session)
+        static async Task WriteConfigToDatabase(string jsonConfig, ISession session, Queries queries)
         {
-            var statement = await session.PrepareAsync("update fl_config set data = :data where key = 0;");
-            statement.SetConsistencyLevel(ConsistencyLevel.EachQuorum);
-            await session.ExecuteAsync(statement.Bind(new { data = jsonConfig }));
+            await session.ExecuteAsync(queries["fl_updateConfig"].Bind(new { data = jsonConfig, key = "config" }));
         }
     }
 }

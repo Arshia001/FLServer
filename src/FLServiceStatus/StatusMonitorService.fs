@@ -7,6 +7,7 @@ open Microsoft.Extensions.Hosting
 open Orleans
 open System.Threading
 open Microsoft.Extensions.Logging
+open OrleansCassandraUtils.Utils
 
 type ServiceStatus = Active | Inaccessible | DownForMaintenance
 
@@ -33,20 +34,39 @@ type StatusMonitorService() =
         member _.SetVersions v = clientVersion <- v
         member _.Versions = clientVersion
 
-type StatusMonitorHostedService(clusterClient: IClusterClient, statusMonitor: IStatusMonitorService, logger: ILogger<StatusMonitorService>) =
+type StatusMonitorHostedService(clusterClient: IClusterClient, statusMonitor: IStatusMonitorService, logger: ILogger<StatusMonitorService>, systemSettingsAccessor: ISystemSettingsAccessor) =
     let cts = new CancellationTokenSource()
+    let session = CassandraSessionFactory.CreateSession(systemSettingsAccessor.SystemSettings.ConnectionString).Result
+    let maintenanceStatusQueryStatement = Queries.CreateInstance(session).Result.["fl_readConfig"].Bind({| key = "maintenance-status" |})
 
-    member _.monitor () = async {
+    member me.monitor () = async {
         while true do
-            try
-                let! (latest, minimumSupported) = clusterClient.GetGrain<IServiceStatus>(0L).GetClientVersion() |> Async.AwaitTask
-                statusMonitor.SetServiceAccessible true
-                statusMonitor.SetVersions { latest = latest; minimumSupported = minimumSupported }
-                do! Async.Sleep 5000
-            with ex ->
-                logger.LogError(ex, "Failed to contact service")
-                statusMonitor.SetServiceAccessible(false)
+            let! maintenanceInProgress = me.getMaintenanceInProgress ()
+            if maintenanceInProgress then
+                statusMonitor.SetServiceDownForMaintenance ()
                 do! Async.Sleep 1000
+            else
+                statusMonitor.ClearServiceDownForMaintenance ()
+                try
+                    let! (latest, minimumSupported) = clusterClient.GetGrain<IServiceStatus>(0L).GetClientVersion() |> Async.AwaitTask
+                    statusMonitor.SetServiceAccessible true
+                    statusMonitor.SetVersions { latest = latest; minimumSupported = minimumSupported }
+                    do! Async.Sleep 5000
+                with ex ->
+                    logger.LogError(ex, "Failed to contact service")
+                    statusMonitor.SetServiceAccessible(false)
+                    do! Async.Sleep 1000
+
+    }
+
+    member _.getMaintenanceInProgress () = async {
+        try
+            let! rows = session.ExecuteAsync maintenanceStatusQueryStatement |> Async.AwaitTask
+            let row = Seq.head rows
+            return row.["data"] :?> string = "in-progress"
+        with ex ->
+            logger.LogError(ex, "Failed to read maintenance status")
+            return false
     }
         
     interface IHostedService with

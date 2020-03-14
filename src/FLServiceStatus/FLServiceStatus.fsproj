@@ -6,6 +6,7 @@
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="SystemSettingsAccessor.fs" />
     <Compile Include="StatusMonitorService.fs" />
     <Compile Include="Controllers\StatusController.fs" />
     <Compile Include="Startup.fs" />

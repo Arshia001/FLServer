@@ -1,5 +1,5 @@
 ﻿CREATE TABLE IF NOT EXISTS fl_config (
-	key int,
+	key ascii,
 	data text,
 
 	PRIMARY KEY (key)
@@ -7,12 +7,22 @@
 
 insert into queries(key, consistency_level, text) values 
 (
-	'fl_readConfig','all','
+	'fl_readConfig','eachquorum','
 	SELECT
-		*
+		data
 	FROM fl_config
 	WHERE
-		key = 0;
+		key = :key;
+');
+
+insert into queries(key, consistency_level, text) values 
+(
+	'fl_updateConfig','eachquorum','
+	UPDATE fl_config
+	SET
+		data = :data
+	WHERE
+		key = :key;
 ');
 
 CREATE TABLE IF NOT EXISTS fl_groups (
