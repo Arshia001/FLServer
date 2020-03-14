@@ -1,4 +1,7 @@
-﻿ADD WAY TO RENAME CATEGORIES ASAP
+﻿OK button and arrows in tutorial
+UPDATE WORDS (this is simple enough)
+
+ADD WAY TO RENAME CATEGORIES ASAP
     * option 1: add enabled/disabled setting to all categories, disable old name, enable new name
     * option 2: add name map (map old name to new name separately, drop old, create new)
     * option 3: both of above?
@@ -8,6 +11,9 @@ Add a way to change *latest* version without restarting the service
 Fix lost matchmaking state:
     * Games should try to add themselves when they're activated
     * adding second player to games should fail gracefully for games with two existing players
+
+Video ads
+back button twice -> two open menus bug
 
 Disconnect idle clients
 The bloody keyboard!

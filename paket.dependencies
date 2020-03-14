@@ -38,6 +38,7 @@ group Build
 group Main
     source https://api.nuget.org/v3/index.json
 
+    nuget CommandLineParser.FSharp
     nuget FSharp.Core
     nuget FirebaseAdmin 1.9.1
     nuget FSharp.Data 3.3.2

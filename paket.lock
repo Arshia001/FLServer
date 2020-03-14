@@ -1,6 +1,9 @@
 NUGET
   remote: https://api.nuget.org/v3/index.json
     BouncyCastle (1.8.5) - restriction: || (&& (>= net45) (< netstandard1.3)) (&& (>= net46) (< netstandard1.3)) (&& (>= net46) (< netstandard1.6)) (>= net47)
+    CommandLineParser.FSharp (2.7.82)
+      FSharp.Core (>= 4.0.0.1) - restriction: && (>= net40) (< net45) (< netstandard2.0)
+      FSharp.Core (>= 4.5.1) - restriction: || (&& (< net40) (>= netstandard2.0)) (&& (>= net45) (< netstandard2.0)) (>= net461)
     FirebaseAdmin (1.9.1)
       Google.Api.Gax (>= 2.7) - restriction: || (>= net45) (>= netstandard1.5)
       Google.Api.Gax.Rest (>= 2.7) - restriction: || (>= net45) (>= netstandard1.5)

@@ -1,0 +1,6 @@
+CommandLineParser.FSharp
+FSharp.Core
+Microsoft.Extensions.Logging
+Microsoft.Extensions.Logging.Console
+Microsoft.Orleans.Client
+TaskBuilder.fs

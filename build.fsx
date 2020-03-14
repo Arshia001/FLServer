@@ -25,6 +25,7 @@ let hostPath = Path.getFullName "./src/FLHost"
 let serviceStatusPath = Path.getFullName "./src/FLServiceStatus"
 let passwordRecoveryPath = Path.getFullName "./src/FLRecoveryEmail"
 let networkMessagesPath = Path.getFullName "./src/FLNetworkMessages"
+let managementToolPath = Path.getFullName "./src/ManagementTool"
 
 let publishDir = Path.getFullName "./publish"
 
@@ -99,13 +100,34 @@ Target.create "Publish" <|
             )
 
         let hostOutPath = Path.combine publishDir "flserver"
-        let serviceStatusOutPath = Path.combine publishDir "flservicestatus"
-        let passwordRecoveryOutPath = Path.combine publishDir "flpasswordrecovery"
-
         runDotNetPublish platform hostPath hostOutPath
+        
+        let serviceStatusOutPath = Path.combine publishDir "flservicestatus"
         runDotNetPublish platform serviceStatusPath serviceStatusOutPath
+        
+        let passwordRecoveryOutPath = Path.combine publishDir "flpasswordrecovery"
         let args = sprintf "bundle %s %s %s \"%s\"" buildConfig platform publishFramework passwordRecoveryOutPath
         runFakeTarget args passwordRecoveryPath
+
+        let managementToolOutPath = Path.combine publishDir ".temp/ManagementTool"
+        runDotNetPublish platform managementToolPath managementToolOutPath
+        Shell.copy hostOutPath
+            <| (
+                [
+                    "mgmtool"
+                    "mgmtool.exe"
+                    "mgmtool.pdb"
+                    "mgmtool.deps.json"
+                    "mgmtool.dll"
+                    "mgmtool.runtimeconfig.json"
+                    "CommandLine.dll"
+                    "FSharp.Core.dll"
+                    "TaskBuilder.fs.dll"
+                ]
+                |> Seq.map (Path.combine managementToolOutPath)
+                |> Seq.filter Shell.testFile
+            )
+        Shell.deleteDir <| Path.combine publishDir ".temp"
         
 
 open Fake.Core.TargetOperators
