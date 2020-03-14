@@ -1,6 +1,7 @@
 ﻿using Bond;
 using FLGrainInterfaces;
 using FLGrainInterfaces.Configuration;
+using FLGrainInterfaces.Utility;
 using FLGrains.Utility;
 using Microsoft.Extensions.Logging;
 using Orleans;
@@ -49,7 +50,7 @@ namespace FLGrains
         readonly GrainStateWrapper<MatchMakingGrainState> state;
         readonly IConfigReader configReader;
         readonly ILogger<MatchMakingGrain> logger;
-        readonly bool detailedLog;
+        readonly CachedValue<bool> detailedLog;
 
         HashSet<MatchMakingEntry> entries = new HashSet<MatchMakingEntry>();
 
@@ -61,7 +62,7 @@ namespace FLGrains
 
             this.configReader = configReader;
             this.logger = logger;
-            detailedLog = Environment.GetEnvironmentVariable("FLSERVER_DETAILED_MATCHMAKING_LOG") == "yes";
+            detailedLog = new CachedValue<bool>(() => Environment.GetEnvironmentVariable("FLSERVER_DETAILED_MATCHMAKING_LOG") == "yes", TimeSpan.FromMinutes(1));
         }
 
         private void State_Persist(object sender, PersistStateEventArgs<MatchMakingGrainState> e) =>
@@ -101,13 +102,12 @@ namespace FLGrains
             var (score, level) = await player.GetMatchMakingInfo();
             var playerID = player.GetPrimaryKey();
 
+            var detailedLog = this.detailedLog.Value;
+
             if (detailedLog)
                 logger.LogInformation($"Matching player ID {playerID} with level {level} and score {score}");
 
-            var match = entries.FirstOrDefault(IsMatch(score, level, playerID, config, lastOpponentID));
-
-            if (match == null && lastOpponentID.HasValue)
-                match = entries.FirstOrDefault(IsMatch(score, level, playerID, config, null));
+            var match = entries.FirstOrDefault(IsMatch(score, level, playerID, config, lastOpponentID, detailedLog));
 
             if (match != null)
             {
@@ -133,7 +133,7 @@ namespace FLGrains
             }
         }
 
-        Func<MatchMakingEntry, bool> IsMatch(uint score, uint level, Guid playerID, ReadOnlyConfigData config, Guid? lastOpponentID) =>
+        Func<MatchMakingEntry, bool> IsMatch(uint score, uint level, Guid playerID, ReadOnlyConfigData config, Guid? lastOpponentID, bool detailedLog) =>
             e =>
             {
                 if (detailedLog)
@@ -142,7 +142,7 @@ namespace FLGrains
                 if (lastOpponentID.HasValue && e.FirstPlayerID == lastOpponentID.Value)
                 {
                     if (detailedLog)
-                        logger.LogInformation($"Same opponent as last for this player, won't match for now: {lastOpponentID}");
+                        logger.LogInformation($"Same opponent as last for this player, won't match: {lastOpponentID}");
                     return false;
                 }
 
