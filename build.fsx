@@ -101,13 +101,18 @@ Target.create "Publish" <|
 
         let hostOutPath = Path.combine publishDir "flserver"
         runDotNetPublish platform hostPath hostOutPath
+        File.delete <| Path.combine hostOutPath "system-settings.json"
+        File.delete <| Path.combine hostOutPath "config.json"
+        File.delete <| Path.combine hostOutPath "firebase-adminsdk-accountkeys.json"
         
         let serviceStatusOutPath = Path.combine publishDir "flservicestatus"
         runDotNetPublish platform serviceStatusPath serviceStatusOutPath
+        File.delete <| Path.combine serviceStatusOutPath "system-settings.json"
         
         let passwordRecoveryOutPath = Path.combine publishDir "flpasswordrecovery"
         let args = sprintf "bundle %s %s %s \"%s\"" buildConfig platform publishFramework passwordRecoveryOutPath
         runFakeTarget args passwordRecoveryPath
+        File.delete <| Path.combine passwordRecoveryOutPath "system-settings.json"
 
         let managementToolOutPath = Path.combine publishDir ".temp/ManagementTool"
         runDotNetPublish platform managementToolPath managementToolOutPath
@@ -127,6 +132,7 @@ Target.create "Publish" <|
                 |> Seq.map (Path.combine managementToolOutPath)
                 |> Seq.filter Shell.testFile
             )
+        
         Shell.deleteDir <| Path.combine publishDir ".temp"
         
 

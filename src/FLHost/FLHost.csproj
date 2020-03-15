@@ -17,7 +17,6 @@
     <None Remove="InitializeFLDatabase.cql" />
     <None Remove="NginxConfig" />
     <None Remove="system-settings.json" />
-    <None Remove="update-config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="ForgotPasswordTemplate.cshtml">
@@ -33,9 +32,6 @@
     </Content>
     <Content Include="system-settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="update-config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
