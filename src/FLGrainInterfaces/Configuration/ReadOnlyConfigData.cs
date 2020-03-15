@@ -49,6 +49,8 @@ namespace FLGrainInterfaces.Configuration
 
         public ConfigValues ConfigValues => data.ConfigValues ?? throw new Exception("ConfigValues not specified");
 
+        public uint LatestClientVersion => data.LatestClientVersion;
+
         public int Version => data.Version;
 
         readonly ConfigData data;

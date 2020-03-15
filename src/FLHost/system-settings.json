@@ -1,7 +1,6 @@
 ﻿{
   "ConnectionString": "Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy",
   "MinimumSupportedVersion": 1,
-  "LatestVersion": 2,
   "PasswordRecoveryTokenExpirationInterval": "1.00:00:00",
   "MailServerAddress": "localhost",
   "MailServerPort": 25,

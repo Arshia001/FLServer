@@ -172,7 +172,7 @@ namespace FLGrains.Configuration
 
             var jsonData = await File.ReadAllTextAsync(ConfigFileName);
             var newData = ParseConfigData(jsonData);
-            (newData.Groups, newData.Categories, newData.RenamedCategories) = await ReadGroupsAndCategoriesFromDatabase(session, queries);
+            (newData.Groups, newData.Categories, newData.RenamedCategories, newData.LatestClientVersion) = await ReadNonJsonConfigDataFromDatabase(session, queries);
 
             SetNewData(newData);
 
@@ -183,14 +183,31 @@ namespace FLGrains.Configuration
             return true;
         }
 
-        private async Task<(List<GroupConfig>, List<CategoryConfig>, List<RenamedCategoryConfig>)> ReadGroupsAndCategoriesFromDatabase(ISession session, Queries queries)
+        private async Task<(List<GroupConfig>, List<CategoryConfig>, List<RenamedCategoryConfig>, uint latestClientVersion)> 
+            ReadNonJsonConfigDataFromDatabase(ISession session, Queries queries)
         {
             var groups = await ReadGroupsFromDatabase(session, queries);
             return (
                 groups,
                 await ReadCategoriesFromDatabase(session, queries, groups),
-                await ReadRenamedCategoriesFromDatabase(session, queries)
+                await ReadRenamedCategoriesFromDatabase(session, queries),
+                await ReadLatestClientVersionFromDatabase(session, queries)
             );
+        }
+
+        async Task<uint> ReadLatestClientVersionFromDatabase(ISession session, Queries queries)
+        {
+            var row =
+                (await session.ExecuteAsync(
+                    queries["fl_readConfig"].Bind(new { key = "latest-version" })
+                ))
+                .SingleOrDefault()
+                ?? throw new Exception("Latest client version not specified in database configuration table");
+
+            if (!uint.TryParse((string)row["data"], out var result))
+                throw new Exception($"Value '{row["data"]}' specified for latest client version is not a properly formed unsigned integer");
+
+            return result;
         }
 
         async Task InternalUpdateConfigFromDatabase()
@@ -200,7 +217,7 @@ namespace FLGrains.Configuration
             var queries = await Queries.CreateInstance(session);
 
             var newData = await ReadConfigDataFromDatabase(session, queries);
-            (newData.Groups, newData.Categories, newData.RenamedCategories) = await ReadGroupsAndCategoriesFromDatabase(session, queries);
+            (newData.Groups, newData.Categories, newData.RenamedCategories, newData.LatestClientVersion) = await ReadNonJsonConfigDataFromDatabase(session, queries);
 
             SetNewData(newData);
         }

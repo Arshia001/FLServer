@@ -10,7 +10,7 @@ namespace FLGrainInterfaces.Configuration
     {
         public class JsonValues
         {
-            public JsonValues(string connectionString, uint latestVersion, uint minimumSupportedVersion,
+            public JsonValues(string connectionString, uint minimumSupportedVersion,
                 TimeSpan passwordRecoveryTokenExpirationInterval, string mailServerAddress, int mailServerPort,
                 bool mailServerUseSsl, string forgotPasswordFromAddress, string forgotPasswordFromSenderName,
                 string forgotPasswordSubject, string forgotPasswordTemplateFilePath,
@@ -18,7 +18,6 @@ namespace FLGrainInterfaces.Configuration
                 string bazaarRefreshToken, string bazaarPackageName)
             {
                 ConnectionString = connectionString;
-                LatestVersion = latestVersion;
                 MinimumSupportedVersion = minimumSupportedVersion;
                 PasswordRecoveryTokenExpirationInterval = passwordRecoveryTokenExpirationInterval;
                 MailServerAddress = mailServerAddress;
@@ -37,7 +36,6 @@ namespace FLGrainInterfaces.Configuration
 
             public string ConnectionString { get; }
 
-            public uint LatestVersion { get; }
             public uint MinimumSupportedVersion { get; }
 
             public TimeSpan PasswordRecoveryTokenExpirationInterval { get; }
