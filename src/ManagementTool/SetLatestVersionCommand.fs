@@ -3,7 +3,7 @@ module SetLatestVersionCommand
 
 open CommandLine
 
-[<Verb("set-latest-version", HelpText = "Rename an existing category")>]
+[<Verb("set-latest-version", HelpText = "Update the latest client version configuration")>]
 type SetLatestVersion = {
     [<Option('k', "keyspace", HelpText = "Keyspace name; if left out, will use keyspace specified in mgmtool.keyspace")>] keyspace: string option
     [<Value(0, MetaName = "Version", HelpText = "Version to set")>] version: int
@@ -34,7 +34,7 @@ let runSetLatestVersion (cmd: SetLatestVersion) =
         |> promptYesNo
         |> not
     then
-        raise <| ToolFailureException "Cancelled"
+        raise <| ToolFinished "Cancelled"
 
     match version with
     | Some v ->
@@ -44,7 +44,7 @@ let runSetLatestVersion (cmd: SetLatestVersion) =
                 |> promptYesNo
                 |> not
             then
-                raise <| ToolFailureException "Cancelled"
+                raise <| ToolFinished "Cancelled"
     | _ -> ()
 
     queries.["fl_updateConfig"].Bind({| key = "latest-version"; data = string cmd.version |})
@@ -53,5 +53,4 @@ let runSetLatestVersion (cmd: SetLatestVersion) =
 
     printfn "Done"
 
-    if promptYesNo "Do you also wish to update the server's config from database now? (you can do this later by running mgmtool update-config)" then
-        runUpdateFromDatabase ()
+    promptAndRunUpdateFromDatabase ()

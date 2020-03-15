@@ -1,0 +1,23 @@
+{
+  "Groups": [
+    {
+      "ID": 1,
+      "Name": "name"
+    }
+  ],
+  "Categories": [
+    {
+      "Name": "name",
+      "GroupID": 1,
+      "Words": [
+        {
+          "Word": "word",
+          "Corrections": [
+            "correction1",
+            "correction2"
+          ]
+        }
+      ]
+    }
+  ]
+}

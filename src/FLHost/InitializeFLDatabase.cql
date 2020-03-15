@@ -37,10 +37,20 @@ CREATE TABLE IF NOT EXISTS fl_groups (
 
 insert into queries(key, consistency_level, text) values 
 (
-	'fl_readGroups','all','
+	'fl_readGroups','eachquorum','
 	SELECT
 		*
 	FROM fl_groups;
+');
+
+insert into queries(key, consistency_level, text) values 
+(
+	'fl_upsertGroup','eachquorum','
+	UPDATE fl_groups
+	SET
+		name = :name
+	WHERE
+		id = :id;
 ');
 
 CREATE TABLE IF NOT EXISTS fl_categories (
@@ -77,6 +87,14 @@ insert into queries(key, consistency_level, text) values
 	'fl_readCategories','eachquorum','
 	SELECT
 		*
+	FROM fl_categories;
+');
+
+insert into queries(key, consistency_level, text) values 
+(
+	'fl_readCategoryNames','eachquorum','
+	SELECT
+		name
 	FROM fl_categories;
 ');
 

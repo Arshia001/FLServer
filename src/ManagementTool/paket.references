@@ -1,5 +1,6 @@
 CommandLineParser.FSharp
 FSharp.Core
+FSharp.Data
 Microsoft.Extensions.Logging
 Microsoft.Extensions.Logging.Console
 Microsoft.Orleans.Client

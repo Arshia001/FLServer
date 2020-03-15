@@ -7,7 +7,7 @@ open System.IO
 
 [<Verb("update-config", HelpText = "Update config from database, or optionally from a JSON document")>]
 type UpdateConfig = {
-    [<Option('f', "json-file", HelpText = "The json file to use; leave out to update from database")>] jsonConfig: string option
+    [<Option('f', "input-file", HelpText = "The json file to use; leave out to update from database")>] jsonConfig: string option
 }
 
 let runUpdateConfig (cmd: UpdateConfig) =
@@ -15,16 +15,17 @@ let runUpdateConfig (cmd: UpdateConfig) =
 
     match cmd.jsonConfig with
     | Some file ->
-        if not <| File.Exists file then
-            printfn "Cannot find file '%s'" file
-        else
-            let configText = File.ReadAllText file
-            client.Value.GetGrain<ISystemConfig>(0L).UploadConfig(configText) |> runSynchronously
-            printfn "Config updated successfully"
+        if not <| File.Exists file then raise (ToolFinished <| sprintf "Cannot find file '%s'" file)
+
+        let configText = File.ReadAllText file
+        client.Value.GetGrain<ISystemConfig>(0L).UploadConfig(configText) |> runSynchronously
+        printfn "Config updated successfully"
     | None ->
         client.Value.GetGrain<ISystemConfig>(0L).UpdateConfigFromDatabase() |> runSynchronously
         printfn "Config updated successfully"
 
-    ()
-
 let runUpdateFromDatabase () = runUpdateConfig { jsonConfig = None }
+
+let promptAndRunUpdateFromDatabase () =
+    if promptYesNo "Do you also wish to update the server's config from database now? (you can do this later by running mgmtool update-config)" then
+        runUpdateFromDatabase ()

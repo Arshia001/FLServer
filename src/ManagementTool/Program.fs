@@ -9,7 +9,10 @@ let parse =
         DownForMaintenance, 
         UpFromMaintenance, 
         RenameCategory,
-        SetLatestVersion
+        SetLatestVersion,
+        UpdateCategories,
+        UpdateGroups,
+        UpdateAll
     >
 
 [<EntryPoint>]
@@ -23,6 +26,9 @@ let main argv =
             | :? UpFromMaintenance as cmd -> runUpFromMaintenance cmd
             | :? RenameCategory as cmd -> runRenameCategory cmd
             | :? SetLatestVersion as cmd -> runSetLatestVersion cmd
+            | :? UpdateCategories as cmd -> runUpdateCategories cmd
+            | :? UpdateGroups as cmd -> runUpdateGroups cmd
+            | :? UpdateAll as cmd -> runUpdateAll cmd
             | _ -> printfn "Unknown command type %A" p.Value
             0
         | :? NotParsed<obj> as np ->
@@ -34,7 +40,7 @@ let main argv =
             printfn "Parser failure: %A" e
             -1
     with 
-    | ToolFailureException msg ->
+    | ToolFinished msg ->
         printfn "%s" msg
         -1
     | e ->
