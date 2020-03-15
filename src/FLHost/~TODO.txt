@@ -1,9 +1,6 @@
 ﻿OK button and arrows in tutorial
 UPDATE WORDS (this is simple enough)
 
-Add a way to change *latest* version without restarting the service
-Add a way to get number of currently connected clients
-
 Fix lost matchmaking state:
     * Games should try to add themselves when they're activated
     * adding second player to games should fail gracefully for games with two existing players

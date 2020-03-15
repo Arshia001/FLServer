@@ -2,8 +2,10 @@
 using FLGrainInterfaces.Configuration;
 using FLGrains;
 using FLGrains.Configuration;
+using FLGrains.ServiceInterfaces;
 using LightMessage.Common.Util;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Orleans;
@@ -46,7 +48,9 @@ namespace FLHost
                             o.ClientAuthCallback = OnAuth;
                         })
                         .AddSingleton<ILogProvider>(new ConsoleLogProvider(LightMessage.Common.Util.LogLevel.Info))
-                        .AddHostedService<LightMessageHostedService>();
+                        .AddSingleton<LightMessageHostedService>()
+                        .AddSingleton<ILightMessageHostAccessor>(sp => sp.GetRequiredService<LightMessageHostedService>())
+                        .AddHostedService(sp => sp.GetRequiredService<LightMessageHostedService>())
                         ;
                     })
                     .ConfigureLogging(l => l.AddFilter("Orleans", Microsoft.Extensions.Logging.LogLevel.Information).AddConsole())

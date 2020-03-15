@@ -1,4 +1,5 @@
 ﻿using FLGrains;
+using FLGrains.ServiceInterfaces;
 using LightMessage.Common.Util;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -13,13 +14,15 @@ using System.Threading.Tasks;
 namespace FLHost
 {
     //!! Move this into LightMessage itself? There's the issue of the compiler generating a host class for each project...
-    class LightMessageHostedService : IHostedService
+    class LightMessageHostedService : IHostedService, ILightMessageHostAccessor
     {
         private readonly IGrainFactory grainFactory;
         readonly IOptions<LightMessageOptions> options;
         readonly ILogProvider logProvider;
 
         LightMessageHost? host;
+
+        public LightMessageHost Host => host ?? throw new Exception("Premature usage of LightMessageHostedService.Host");
 
         public LightMessageHostedService(IGrainFactory grainFactory, IOptions<LightMessageOptions> options, ILogProvider logProvider)
         {

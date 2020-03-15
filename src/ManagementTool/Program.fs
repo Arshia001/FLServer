@@ -12,7 +12,8 @@ let parse =
         SetLatestVersion,
         UpdateCategories,
         UpdateGroups,
-        UpdateAll
+        UpdateAll,
+        ConnectedClients
     >
 
 [<EntryPoint>]
@@ -29,6 +30,7 @@ let main argv =
             | :? UpdateCategories as cmd -> runUpdateCategories cmd
             | :? UpdateGroups as cmd -> runUpdateGroups cmd
             | :? UpdateAll as cmd -> runUpdateAll cmd
+            | :? ConnectedClients as cmd -> runConnectedClients cmd
             | _ -> printfn "Unknown command type %A" p.Value
             0
         | :? NotParsed<obj> as np ->

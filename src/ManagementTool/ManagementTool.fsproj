@@ -12,6 +12,7 @@
     <Compile Include="SetUpFromMaintenanceCommand.fs" />
     <Compile Include="RenameCategoryCommand.fs" />
     <Compile Include="SetLatestVersionCommand.fs" />
+    <Compile Include="ConnectedClientsCommand.fs" />
     <Compile Include="Categories\Categories.fs" />
     <Compile Include="Categories\UpdateCategoriesCommand.fs" />
     <Compile Include="Categories\UpdateGroupsCommand.fs" />

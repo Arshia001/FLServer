@@ -1,6 +1,7 @@
 ﻿using FLGrainInterfaces;
 using FLGrainInterfaces.Configuration;
 using FLGrains.Configuration;
+using FLGrains.ServerStatistics;
 using FLGrains.ServiceInterfaces;
 using FLGrains.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +35,8 @@ namespace FLGrains
             services.AddSingleton<IFcmNotificationService, FcmNotificationService>();
 
             services.AddSingleton<IEmailService, EmailService>();
+
+            services.AddSingletonNamedService<IControllable, ServerStatisticsControllable>(ServerStatisticsControllable.ServiceName);
 
             return services;
         }

@@ -279,6 +279,8 @@ namespace FLGrains
     {
         LightMessage.OrleansUtils.Host.LightMessageOrleansHost host = new LightMessage.OrleansUtils.Host.LightMessageOrleansHost();
 
+        public int ConnectedClientCount => host.ConnectedClientCount;
+
         public delegate System.Threading.Tasks.Task<System.Guid?> ClientAuthCallbackDelegate(HandShakeMode mode, System.Guid? clientID, string? email, string? password);
 
         ClientAuthCallbackDelegate onClientAuthCallback;
