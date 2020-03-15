@@ -8,7 +8,8 @@ let parse =
         UpdateConfig, 
         DownForMaintenance, 
         UpFromMaintenance, 
-        RenameCategory
+        RenameCategory,
+        SetLatestVersion
     >
 
 [<EntryPoint>]
@@ -21,6 +22,7 @@ let main argv =
             | :? DownForMaintenance as cmd -> runDownForMaintenance cmd
             | :? UpFromMaintenance as cmd -> runUpFromMaintenance cmd
             | :? RenameCategory as cmd -> runRenameCategory cmd
+            | :? SetLatestVersion as cmd -> runSetLatestVersion cmd
             | _ -> printfn "Unknown command type %A" p.Value
             0
         | :? NotParsed<obj> as np ->

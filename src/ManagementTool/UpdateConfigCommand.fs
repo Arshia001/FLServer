@@ -26,3 +26,5 @@ let runUpdateConfig (cmd: UpdateConfig) =
         printfn "Config updated successfully"
 
     ()
+
+let runUpdateFromDatabase () = runUpdateConfig { jsonConfig = None }

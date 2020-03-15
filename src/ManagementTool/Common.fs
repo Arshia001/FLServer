@@ -29,6 +29,9 @@ let buildCassandraSession (keyspace: string) =
     let queries = Queries.CreateInstance(session).Result
     (session, queries)
 
+let executeSingleRow (session: Cassandra.ISession) (statement: Cassandra.IStatement) =
+    session.Execute statement |> Seq.tryExactlyOne
+
 let assertEmptyAndIgnore s =
     if Seq.isEmpty s then ()
     else failwith "Not empty"
@@ -62,3 +65,11 @@ let getKeyspace providedValue =
         if File.Exists "mgmtool.keyspace" then File.ReadAllText "mgmtool.keyspace"
         else raise <| ToolFailureException "No keyspace specified on command line and no mgmtool.keyspace file in current directory"
     )
+
+let tryParseInt (o: obj) =
+    if o = null then
+        None
+    else
+        match string o |> Int32.TryParse with
+        | (true, i) -> Some i
+        | (false, _) -> None

@@ -1,10 +1,6 @@
 ﻿OK button and arrows in tutorial
 UPDATE WORDS (this is simple enough)
 
-ADD WAY TO RENAME CATEGORIES ASAP
-    * option 1: add enabled/disabled setting to all categories, disable old name, enable new name
-    * option 2: add name map (map old name to new name separately, drop old, create new)
-    * option 3: both of above?
 Add a way to change *latest* version without restarting the service
 Add a way to get number of currently connected clients
 
@@ -19,16 +15,10 @@ Disconnect idle clients
 The bloody keyboard!
 
 CLIENT Show pending answer
+
 CLIENT Rewarded video ad
 CLIENT Interesting/Uninteresting data per player to disallow duplicated voting -> store on client, too much work yielding too little value for server
 CLIENT Store log in file
-
-ART Splash
-
-TEST
-    Auto clear after set limit reached
-
-BUGS
 
 *************************************************
 Optional / for later

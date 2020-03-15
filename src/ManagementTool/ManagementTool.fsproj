@@ -11,6 +11,7 @@
     <Compile Include="SetDownForMaintenanceCommand.fs" />
     <Compile Include="SetUpFromMaintenanceCommand.fs" />
     <Compile Include="RenameCategoryCommand.fs" />
+    <Compile Include="SetLatestVersionCommand.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
