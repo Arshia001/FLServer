@@ -55,11 +55,26 @@ namespace FLGrainInterfaces.Configuration
 
         public FLGameLogicServer.WordCategory? GetCategory(string nameNewOrOld)
         {
-            while (RenamedCategoriesByOldName.TryGetValue(nameNewOrOld, out var newName))
-                nameNewOrOld = newName;
+            FLGameLogicServer.WordCategory category;
 
-            if (CategoriesAsGameLogicFormatByName.TryGetValue(nameNewOrOld, out var category))
+            if (CategoriesAsGameLogicFormatByName.TryGetValue(nameNewOrOld, out category))
                 return category;
+
+            // We may accidentally introduce loops into the system by undoing a rename and forgetting to
+            // clean the renamed category entries. This is to prevent an infinite loop in that situation.
+            var visited = new HashSet<string>();
+
+            while (RenamedCategoriesByOldName.TryGetValue(nameNewOrOld, out var newName))
+            {
+                if (CategoriesAsGameLogicFormatByName.TryGetValue(newName, out category))
+                    return category;
+
+                if (visited.Contains(newName))
+                    return null;
+
+                visited.Add(newName);
+                nameNewOrOld = newName;
+            }
 
             return null;
         }
