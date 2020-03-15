@@ -91,7 +91,8 @@ namespace FLGrains
                         if (c == null)
                             return null;
 
-                        if (config.CategoriesAsGameLogicFormatByName.TryGetValue(c, out var category))
+                        var category = config.GetCategory(c);
+                        if (category != null)
                             return category;
 
                         // In case a category was deleted...

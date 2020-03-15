@@ -585,15 +585,19 @@ namespace FLGrains
                 return Task.FromResult((true, state.Gold, duration));
             });
 
-        public Task<(IEnumerable<string> words, ulong? totalGold)> GetAnswers(string category) =>
+        public Task<(IEnumerable<string> words, ulong? totalGold)> GetAnswers(string categoryName) =>
             state.UseStateAndLazyPersist(state =>
             {
                 var config = configReader.Config;
 
-                var words = config.CategoriesAsGameLogicFormatByName[category].Answers;
+                var category = config.GetCategory(categoryName);
+                if (category == null)
+                    return Task.FromResult((Array.Empty<string>().AsEnumerable(), default(ulong?)));
+
+                var words = category.Answers;
                 var gold = default(ulong?);
 
-                if (!state.OwnedCategoryAnswers.Contains(category))
+                if (!state.OwnedCategoryAnswers.Contains(category.CategoryName))
                 {
                     var price = config.ConfigValues.GetAnswersPrice;
                     if (state.Gold < price)
@@ -603,7 +607,7 @@ namespace FLGrains
                     AddStatImpl(1, Statistics.RevealAnswersUsed);
 
                     state.Gold -= price;
-                    state.OwnedCategoryAnswers.Add(category);
+                    state.OwnedCategoryAnswers.Add(category.CategoryName);
                     gold = state.Gold;
                 }
 

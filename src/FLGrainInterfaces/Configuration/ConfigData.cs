@@ -12,6 +12,9 @@ namespace FLGrainInterfaces.Configuration
         [JsonIgnore]
         public List<CategoryConfig>? Categories { get; set; }
 
+        [JsonIgnore]
+        public List<RenamedCategoryConfig>? RenamedCategories { get; set; }
+
         public List<LevelConfig>? PlayerLevels { get; set; }
 
         public List<GoldPackConfig>? GoldPacks { get; set; }

@@ -56,10 +56,67 @@ CREATE TABLE IF NOT EXISTS fl_categories (
 
 insert into queries(key, consistency_level, text) values 
 (
-	'fl_readCategories','all','
+	'fl_readCategory','eachquorum','
+	SELECT
+		*
+	FROM fl_categories
+	WHERE
+		name = :name;
+');
+
+insert into queries(key, consistency_level, text) values 
+(
+	'fl_deleteCategory','eachquorum','
+	DELETE FROM fl_categories
+	WHERE
+		name = :name;
+');
+
+insert into queries(key, consistency_level, text) values 
+(
+	'fl_readCategories','eachquorum','
 	SELECT
 		*
 	FROM fl_categories;
+');
+
+insert into queries(key, consistency_level, text) values 
+(
+	'fl_upsertCategory','eachquorum','
+	UPDATE fl_categories
+	SET
+		group_id = :group_id,
+		words = :words
+	WHERE
+		name = :name;
+');
+
+CREATE TABLE IF NOT EXISTS fl_renamed_categories (
+	old_name text,
+	new_name text,
+
+	PRIMARY KEY (old_name)
+) WITH compression = {
+	'class' : 'LZ4Compressor',
+	'enabled' : true
+};
+
+insert into queries(key, consistency_level, text) values 
+(
+	'fl_readRenamedCategories','eachquorum','
+	SELECT
+		*
+	FROM fl_renamed_categories;
+');
+
+insert into queries(key, consistency_level, text) values 
+(
+	'fl_upsertRenamedCategory','eachquorum','
+	UPDATE fl_renamed_categories
+	SET
+		new_name = :new_name
+	WHERE
+		old_name = :old_name;
 ');
 
 CREATE TABLE IF NOT EXISTS fl_suggested_categories ( // User-suggested categories

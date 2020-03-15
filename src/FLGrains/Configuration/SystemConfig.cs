@@ -137,6 +137,28 @@ namespace FLGrains.Configuration
             return result;
         }
 
+        async Task<List<RenamedCategoryConfig>> ReadRenamedCategoriesFromDatabase(ISession session, Queries queries)
+        {
+            var rows = await session.ExecuteAsync(queries["fl_readRenamedCategories"].Bind());
+
+            var result = new List<RenamedCategoryConfig>();
+
+            foreach (var row in rows)
+            {
+                var oldName = row["old_name"] as string;
+                if (string.IsNullOrEmpty(oldName))
+                    throw new Exception("Found renamed category with no old name");
+
+                var newName = row["new_name"] as string;
+                if (string.IsNullOrEmpty(newName))
+                    throw new Exception("Found renamed category with no new name");
+
+                result.Add(new RenamedCategoryConfig(oldName, newName));
+            }
+
+            return result;
+        }
+
         async Task<bool> InitializeConfigFromFile()
         {
             const string ConfigFileName = "initial-config.json";
@@ -150,8 +172,7 @@ namespace FLGrains.Configuration
 
             var jsonData = await File.ReadAllTextAsync(ConfigFileName);
             var newData = ParseConfigData(jsonData);
-            newData.Groups = await ReadGroupsFromDatabase(session, queries);
-            newData.Categories = await ReadCategoriesFromDatabase(session, queries, newData.Groups);
+            (newData.Groups, newData.Categories, newData.RenamedCategories) = await ReadGroupsAndCategoriesFromDatabase(session, queries);
 
             SetNewData(newData);
 
@@ -162,6 +183,16 @@ namespace FLGrains.Configuration
             return true;
         }
 
+        private async Task<(List<GroupConfig>, List<CategoryConfig>, List<RenamedCategoryConfig>)> ReadGroupsAndCategoriesFromDatabase(ISession session, Queries queries)
+        {
+            var groups = await ReadGroupsFromDatabase(session, queries);
+            return (
+                groups,
+                await ReadCategoriesFromDatabase(session, queries, groups),
+                await ReadRenamedCategoriesFromDatabase(session, queries)
+            );
+        }
+
         async Task InternalUpdateConfigFromDatabase()
         {
             var connectionString = systemSettingsProvider.Settings.Values.ConnectionString;
@@ -169,8 +200,7 @@ namespace FLGrains.Configuration
             var queries = await Queries.CreateInstance(session);
 
             var newData = await ReadConfigDataFromDatabase(session, queries);
-            newData.Groups = await ReadGroupsFromDatabase(session, queries);
-            newData.Categories = await ReadCategoriesFromDatabase(session, queries, newData.Groups);
+            (newData.Groups, newData.Categories, newData.RenamedCategories) = await ReadGroupsAndCategoriesFromDatabase(session, queries);
 
             SetNewData(newData);
         }

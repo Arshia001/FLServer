@@ -11,5 +11,5 @@ type DownForMaintenance = {
 let runDownForMaintenance (cmd: DownForMaintenance) =
     let (session, queries) = buildCassandraSession cmd.keyspace
     let statement = queries.["fl_updateConfig"].Bind({| key = "maintenance-status"; data = "in-progress" |})
-    session.Execute(statement) |> ignore
+    session.Execute(statement) |> assertEmptyAndIgnore
     printfn "Done"

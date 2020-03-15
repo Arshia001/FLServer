@@ -6,11 +6,11 @@
     <AssemblyName>mgmtool</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="RenameSubjectCommand.fs" />
     <Compile Include="Common.fs" />
     <Compile Include="UpdateConfigCommand.fs" />
     <Compile Include="SetDownForMaintenanceCommand.fs" />
     <Compile Include="SetUpFromMaintenanceCommand.fs" />
+    <Compile Include="RenameSubjectCommand.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
