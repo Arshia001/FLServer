@@ -10,7 +10,7 @@
     <Compile Include="UpdateConfigCommand.fs" />
     <Compile Include="SetDownForMaintenanceCommand.fs" />
     <Compile Include="SetUpFromMaintenanceCommand.fs" />
-    <Compile Include="RenameSubjectCommand.fs" />
+    <Compile Include="RenameCategoryCommand.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
