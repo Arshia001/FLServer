@@ -63,8 +63,8 @@
     "InfinitePlayPrice": 200,
     "InfinitePlayTime": "12:00:00",
 
-    "NumRoundsToWinToGetReward": 15,
-    "RoundWinRewardInterval": "12:00:00",
+    "NumRoundsToWinToGetReward": 20,
+    "RoundWinRewardInterval": "1.00:00:00",
     "NumGoldRewardForWinningRounds": 90,
 
     "WordScoreThreshold2": 1.3,
@@ -81,7 +81,7 @@
     "LoserXPGain": 5,
     "DrawXPGain": 10,
 
-    "WinnerGoldGain": 35,
+    "WinnerGoldGain": 30,
     "LoserGoldGain": 0,
     "DrawGoldGain": 10,
 
@@ -89,7 +89,7 @@
 
     "RefreshGroupsAllowedPerRound": 1,
 
-    "InitialGold": 300
+    "InitialGold": 200
   },
   "GoldPacks": [
     {
