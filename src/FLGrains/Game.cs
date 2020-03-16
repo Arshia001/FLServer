@@ -81,7 +81,7 @@ namespace FLGrains
 
         public override async Task OnActivateAsync()
         {
-            state.UseState(state =>
+            await state.UseState(async state =>
             {
                 if (state.GameData != null)
                 {
@@ -99,6 +99,10 @@ namespace FLGrains
                         return config.CategoriesAsGameLogicFormat[RandomHelper.GetInt32(config.CategoriesAsGameLogicFormat.Count)];
                     });
                 }
+
+                // Try to add this game to the matchmaking queue again, it may have been missed
+                if (GetStateInternal(state) == GameState.WaitingForSecondPlayer)
+                    await GrainFactory.GetGrain<IMatchMakingGrain>(0).AddGame(this.AsReference<IGame>(), GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]));
             });
 
             var numPlayers = NumJoinedPlayers;
@@ -147,6 +151,13 @@ namespace FLGrains
         public Task<(Guid opponentID, byte numRounds)> AddSecondPlayer(PlayerInfo playerTwo) =>
             state.UseStateAndPersist(async state =>
             {
+                var gameState = GetStateInternal(state);
+                if (gameState == GameState.New)
+                    throw new VerbatimException("Game not ready to accept second player");
+
+                if (gameState != GameState.WaitingForSecondPlayer)
+                    return (Guid.Empty, default(byte));
+
                 if (state.PlayerIDs[0] == playerTwo.ID)
                     throw new VerbatimException("Player cannot join game with self");
 
@@ -531,7 +542,7 @@ namespace FLGrains
 
         GameState GetStateInternal(GameGrainState state)
         {
-            if (state.PlayerIDs.Length == 0)
+            if (state.PlayerIDs.Length == 0 || gameLogic == null)
                 return GameState.New;
 
             if (state.PlayerIDs[1] == Guid.Empty)

@@ -83,16 +83,21 @@ namespace FLGrains
 
         public override Task OnDeactivateAsync() => state.PerformLazyPersistIfPending();
 
-        public Task AddGame(IGame game, IPlayer firstPlayer) =>
+        public Task AddGame(IGame game, IPlayer firstPlayer)
+        {
+            if (entries.Any(e => e.Game == game))
+                return Task.CompletedTask;
+
             // We don't actually update the state as that incurs a performance penalty.
             // Instead, we simply mark the state wrapper with a pending write. The actual
             // updating of state happens in the State_Persist event handler above.
-            state.UseStateAndLazyPersist(async _state =>
+            return state.UseStateAndLazyPersist(async _state =>
             {
                 var (score, level) = await firstPlayer.GetMatchMakingInfo();
                 var entry = new MatchMakingEntry(game, score, level, firstPlayer.GetPrimaryKey());
                 entries.Add(entry);
             });
+        }
 
         bool Within(uint a, uint b, uint delta) => Math.Abs((int)a - (int)b) <= delta;
 
@@ -107,29 +112,47 @@ namespace FLGrains
             if (detailedLog)
                 logger.LogInformation($"Matching player ID {playerID} with level {level} and score {score}");
 
-            var match = entries.FirstOrDefault(IsMatch(score, level, playerID, config, lastOpponentID, detailedLog));
-
-            if (match != null)
+            while (true)
             {
-                var game = match.Game ?? throw new Exception("Entry without game reference");
-                var (opponentID, numRounds) = await player.JoinGameAsSecondPlayer(game);
-                var opponentInfo = await PlayerInfoHelper.GetInfo(GrainFactory, opponentID);
-                entries.Remove(match);
-                return (game.GetPrimaryKey(), await PlayerInfoHelper.GetInfo(GrainFactory, opponentID), numRounds, false);
-            }
-            else
-            {
-                if (detailedLog)
-                    logger.LogInformation("No match found, will start new game");
+                var match = entries.FirstOrDefault(IsMatch(score, level, playerID, config, lastOpponentID, detailedLog));
 
-                IGame gameToEnter;
-                do
-                    gameToEnter = GrainFactory.GetGrain<IGame>(Guid.NewGuid());
-                while (await gameToEnter.GetState() != GameState.New);
+                if (match != null)
+                {
+                    var game = match.Game;
+                    if (game == null)
+                    {
+                        logger.LogError("Found matchmaking entry with null game reference");
+                        entries.Remove(match);
+                        continue;
+                    }
 
-                var numRounds = await player.JoinGameAsFirstPlayer(gameToEnter);
+                    var (opponentID, numRounds) = await player.JoinGameAsSecondPlayer(game);
 
-                return (gameToEnter.GetPrimaryKey(), null, numRounds, true);
+                    if (opponentID == Guid.Empty)
+                    {
+                        // Game already had a second player
+                        entries.Remove(match);
+                        continue;
+                    }
+
+                    var opponentInfo = await PlayerInfoHelper.GetInfo(GrainFactory, opponentID);
+                    entries.Remove(match);
+                    return (game.GetPrimaryKey(), opponentInfo, numRounds, false);
+                }
+                else
+                {
+                    if (detailedLog)
+                        logger.LogInformation("No match found, will start new game");
+
+                    IGame gameToEnter;
+                    do
+                        gameToEnter = GrainFactory.GetGrain<IGame>(Guid.NewGuid());
+                    while (await gameToEnter.GetState() != GameState.New);
+
+                    var numRounds = await player.JoinGameAsFirstPlayer(gameToEnter);
+
+                    return (gameToEnter.GetPrimaryKey(), null, numRounds, true);
+                }
             }
         }
 

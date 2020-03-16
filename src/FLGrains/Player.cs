@@ -383,7 +383,8 @@ namespace FLGrains
             state.UseStateAndPersist(async state =>
             {
                 var result = await game.AddSecondPlayer(GetPlayerInfoImpl());
-                state.ActiveGames.Add(game.GetPrimaryKey());
+                if (result.opponentID != Guid.Empty)
+                    state.ActiveGames.Add(game.GetPrimaryKey());
                 return result;
             });
 
