@@ -18,10 +18,18 @@ type UpdateCategories = {
 }
 
 let printCategories title (categories: CategoryEntry seq) =
-    categories
-    |> Seq.map (fun c -> "    " + c.Name)
-    |> String.concat "\n"
-    |> printfn "%s:\n%s" title
+    if Seq.isEmpty categories |> not then
+        categories
+        |> Seq.map (fun c -> "    " + c.Name)
+        |> String.concat "\n"
+        |> printfn "%s:\n%s" title
+
+let printNames title (names: string seq) =
+    if Seq.isEmpty names |> not then
+        names
+        |> Seq.map (fun n -> "    " + n)
+        |> String.concat "\n"
+        |> printfn "%s:\n%s" title
 
 let applyChangeSet (session: ISession, queries: Queries) (changeSet: CategoryEntry seq) =
     let query = queries.["fl_upsertCategory"]
@@ -60,9 +68,19 @@ let runUpdateCategories (cmd: UpdateCategories) =
 
     let sameCategories, updatedCategories = oldCategories |> List.partition (fun c -> CategoryEntry.eq c <| existingCategories.[c.Name])
 
+    let providedCategoryNames = providedCategories |> Seq.map (fun c -> c.Name) |> Set.ofSeq
+    let categoriesNotProvided = existingCategories |> Map.toSeq |> Seq.map fst |> Seq.filter (fun k -> Set.contains k providedCategoryNames |> not)
+
     printCategories "New categories" newCategories
     printCategories "Updated categories" updatedCategories
     printCategories "Categories with no changes" sameCategories
+    printNames "Categories not in file" categoriesNotProvided
+
+    if
+        Seq.isEmpty categoriesNotProvided |> not &&
+        promptYesNo "WARNING! Some existing categories were not found in the input file. Continue?" |> not
+    then
+        raise <| ToolFinished "Cancelled"
 
     if cmd.dryRun then raise <| ToolFinished "Dry run requested, stopping"
 

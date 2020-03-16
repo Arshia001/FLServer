@@ -4,21 +4,22 @@ Fix lost matchmaking state:
     * Games should try to add themselves when they're activated
     * adding second player to games should fail gracefully for games with two existing players
 
-Video ads
-back button twice -> two open menus bug
-
-Disconnect idle clients
-The bloody keyboard!
-
-Turn tutorial background taps into actual taps of the OK buttons
-
-CLIENT Rewarded video ad
-CLIENT Interesting/Uninteresting data per player to disallow duplicated voting -> store on client, too much work yielding too little value for server
-CLIENT Store log in file
+NEXT UPDATE:
+    Config changes:
+        5 rounds
+        40 secs round time
+        20 secs time increase powerup
+    Video ads
+    Disconnect idle clients
+    The bloody keyboard!
+    Turn tutorial background taps into actual taps of the OK buttons
+    Fix unsigned gold calculations in statistics
 
 *************************************************
 Optional / for later
 *************************************************
+
+CLIENT Interesting/Uninteresting data per player to disallow duplicated voting -> store on client, too much work yielding too little value for server
 
 SERVER Two clients connecting with same ID causes the server to keep disconnecting them in favor of each other, one of them should back down
 
