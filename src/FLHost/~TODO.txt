@@ -1,5 +1,4 @@
-﻿OK button and arrows in tutorial
-UPDATE WORDS (this is simple enough)
+﻿UPDATE WORDS (this is simple enough)
 
 Fix lost matchmaking state:
     * Games should try to add themselves when they're activated
@@ -11,7 +10,7 @@ back button twice -> two open menus bug
 Disconnect idle clients
 The bloody keyboard!
 
-CLIENT Show pending answer
+Turn tutorial background taps into actual taps of the OK buttons
 
 CLIENT Rewarded video ad
 CLIENT Interesting/Uninteresting data per player to disallow duplicated voting -> store on client, too much work yielding too little value for server
