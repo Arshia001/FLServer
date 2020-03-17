@@ -45,6 +45,8 @@ let runSetLatestVersion (cmd: SetLatestVersion) =
                 |> not
             then
                 raise <| ToolFinished "Cancelled"
+        else if v = cmd.version then
+            raise <| ToolFinished "Already at this version"
     | _ -> ()
 
     queries.["fl_updateConfig"].Bind({| key = "latest-version"; data = string cmd.version |})
