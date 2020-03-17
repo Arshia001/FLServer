@@ -1,4 +1,6 @@
-﻿using Cassandra;
+﻿#pragma warning disable IDE0037 // Use inferred member name
+
+using Cassandra;
 using FLGrainInterfaces;
 using FLGrainInterfaces.Configuration;
 using FLGrains.ServiceInterfaces;
@@ -69,10 +71,18 @@ namespace FLGrains.Configuration
 
         static ConfigData ParseConfigData(string data) => JsonConvert.DeserializeObject<ConfigData>(data, PrivateAccessorContractResolver.SerializerSettings);
 
+        static async Task<string> ReadDatabaseConfigEntry(ISession session, Queries queries, string key)
+        {
+            var rows = await session.ExecuteAsync(queries["fl_readConfig"].Bind(new { key = key }));
+            return Convert.ToString(rows.FirstOrDefault()?["data"]);
+        }
+
+        static Task WriteDatabaseConfigEntry(ISession session, Queries queries, string key, string value) =>
+            session.ExecuteAsync(queries["fl_updateConfig"].Bind(new { data = value, key = key }));
+
         static async Task<ConfigData> ReadConfigDataFromDatabase(ISession session, Queries queries)
         {
-            var rows = await session.ExecuteAsync(queries["fl_readConfig"].Bind(new { key = "config" }));
-            var data = Convert.ToString(rows.FirstOrDefault()?["data"]);
+            var data = await ReadDatabaseConfigEntry(session, queries, "config");
 
             if (!string.IsNullOrEmpty(data))
                 return ParseConfigData(data);
@@ -174,7 +184,7 @@ namespace FLGrains.Configuration
             var newData = ParseConfigData(jsonData);
             (newData.Groups, newData.Categories, newData.RenamedCategories, newData.LatestClientVersion) = await ReadNonJsonConfigDataFromDatabase(session, queries);
 
-            SetNewData(newData);
+            await SetNewData(newData, session, queries);
 
             await WriteConfigToDatabase(jsonData, session, queries);
 
@@ -183,7 +193,7 @@ namespace FLGrains.Configuration
             return true;
         }
 
-        private async Task<(List<GroupConfig>, List<CategoryConfig>, List<RenamedCategoryConfig>, uint latestClientVersion)> 
+        private async Task<(List<GroupConfig>, List<CategoryConfig>, List<RenamedCategoryConfig>, uint latestClientVersion)>
             ReadNonJsonConfigDataFromDatabase(ISession session, Queries queries)
         {
             var groups = await ReadGroupsFromDatabase(session, queries);
@@ -197,15 +207,11 @@ namespace FLGrains.Configuration
 
         async Task<uint> ReadLatestClientVersionFromDatabase(ISession session, Queries queries)
         {
-            var row =
-                (await session.ExecuteAsync(
-                    queries["fl_readConfig"].Bind(new { key = "latest-version" })
-                ))
-                .SingleOrDefault()
-                ?? throw new Exception("Latest client version not specified in database configuration table");
+            var value = await ReadDatabaseConfigEntry(session, queries, "latest-version") ??
+                throw new Exception("Latest client version not specified in database configuration table");
 
-            if (!uint.TryParse((string)row["data"], out var result))
-                throw new Exception($"Value '{row["data"]}' specified for latest client version is not a properly formed unsigned integer");
+            if (!uint.TryParse(value, out var result))
+                throw new Exception($"Value '{value}' specified for latest client version is not a properly formed unsigned integer");
 
             return result;
         }
@@ -219,14 +225,31 @@ namespace FLGrains.Configuration
             var newData = await ReadConfigDataFromDatabase(session, queries);
             (newData.Groups, newData.Categories, newData.RenamedCategories, newData.LatestClientVersion) = await ReadNonJsonConfigDataFromDatabase(session, queries);
 
-            SetNewData(newData);
+            await SetNewData(newData, session, queries);
         }
 
-        void SetNewData(ConfigData newData, bool validate = true)
+        async Task<int> ReadAndIncrementDataVersion(ISession session, Queries queries)
+        {
+            const string key = "config-version";
+
+            var value = await ReadDatabaseConfigEntry(session, queries, key);
+            if (!int.TryParse(value, out var currentVersion))
+            {
+                logger.LogWarning("Failed to read config version from database, will assume 0");
+                currentVersion = 0;
+            }
+
+            ++currentVersion;
+            await WriteDatabaseConfigEntry(session, queries, key, currentVersion.ToString());
+
+            return currentVersion;
+        }
+
+        async Task SetNewData(ConfigData newData, ISession session, Queries queries, bool validate = true)
         {
             if (validate)
                 ReadOnlyConfigData.Validate(newData);
-            newData.Version = (data?.Version ?? 0) + 1;
+            newData.Version = await ReadAndIncrementDataVersion(session, queries);
             data = newData;
         }
 
@@ -243,6 +266,7 @@ namespace FLGrains.Configuration
         {
             var connectionString = systemSettingsProvider.Settings.Values.ConnectionString;
             var session = await CassandraSessionFactory.CreateSession(connectionString);
+            var queries = await Queries.CreateInstance(session);
 
             var data = GetData();
             var newData = ParseConfigData(jsonConfig);
@@ -251,16 +275,14 @@ namespace FLGrains.Configuration
 
             ReadOnlyConfigData.Validate(newData);
 
-            await WriteConfigToDatabase(jsonConfig, session, await Queries.CreateInstance(session));
+            await WriteConfigToDatabase(jsonConfig, session, queries);
 
-            SetNewData(newData, false);
+            await SetNewData(newData, session, queries, false);
 
             await PushUpdateToAllSilos();
         }
 
-        static async Task WriteConfigToDatabase(string jsonConfig, ISession session, Queries queries)
-        {
-            await session.ExecuteAsync(queries["fl_updateConfig"].Bind(new { data = jsonConfig, key = "config" }));
-        }
+        static Task WriteConfigToDatabase(string jsonConfig, ISession session, Queries queries)
+            => WriteDatabaseConfigEntry(session, queries, "config", jsonConfig);
     }
 }
