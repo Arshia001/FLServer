@@ -95,7 +95,7 @@ let promptYesNoCancel prompt =
 let getKeyspace providedValue =
     providedValue 
     |> Option.defaultWith (fun () ->
-        if File.Exists "mgmtool.keyspace" then File.ReadAllText "mgmtool.keyspace"
+        if File.Exists "mgmtool.keyspace" then (File.ReadAllText "mgmtool.keyspace").Trim()
         else raise <| ToolFinished "No keyspace specified on command line and no mgmtool.keyspace file in current directory"
     )
 
