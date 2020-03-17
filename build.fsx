@@ -127,6 +127,7 @@ Target.create "Publish" <|
                     "mgmtool.runtimeconfig.json"
                     "CommandLine.dll"
                     "FSharp.Core.dll"
+                    "FSharp.Data.dll"
                     "TaskBuilder.fs.dll"
                 ]
                 |> Seq.map (Path.combine managementToolOutPath)
