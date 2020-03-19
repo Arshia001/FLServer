@@ -18,10 +18,13 @@ type UpdateGroups = {
 }
 
 let printGroups title (groups: GroupEntry seq) =
-    groups
-    |> Seq.map (fun c -> "    " + c.Name)
-    |> String.concat "\n"
-    |> printfn "%s:\n%s" title
+    if Seq.isEmpty groups |> not then
+        groups
+        |> Seq.map (fun c -> "    " + c.Name)
+        |> String.concat "\n"
+        |> printfn "%s:\n%s" title
+    else
+        printfn "%s: None" title
 
 let applyChangeSet (session: ISession, queries: Queries) (changeSet: GroupEntry seq) =
     let query = queries.["fl_upsertGroup"]
