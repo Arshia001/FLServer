@@ -121,6 +121,9 @@ cqlsh -k fl -f InitializeFLDatabase.cql
     * systemctl daemon-reload
 * Enable auto-start
     * systemctl enable SERVICE-NAME
+* Optionally, make mgmtool available globally
+    * chmod 755 /app/flserver/mgmtool
+    * cp -s /app/flserver/mgmtool /usr/local/bin/mgmtool
 
 # Configure nginx reverse proxy
 
