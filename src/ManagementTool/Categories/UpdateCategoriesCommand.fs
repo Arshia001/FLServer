@@ -23,6 +23,8 @@ let printCategories title (categories: CategoryEntry seq) =
         |> Seq.map (fun c -> "    " + c.Name)
         |> String.concat "\n"
         |> printfn "%s:\n%s" title
+    else
+        printfn "%s: None" title
 
 let printNames title (names: string seq) =
     if Seq.isEmpty names |> not then
@@ -30,6 +32,8 @@ let printNames title (names: string seq) =
         |> Seq.map (fun n -> "    " + n)
         |> String.concat "\n"
         |> printfn "%s:\n%s" title
+    else
+        printfn "%s: None" title
 
 let applyChangeSet (session: ISession, queries: Queries) (changeSet: CategoryEntry seq) =
     let query = queries.["fl_upsertCategory"]
