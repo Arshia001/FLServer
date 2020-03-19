@@ -112,7 +112,7 @@ Target.create "Publish" <|
         let passwordRecoveryOutPath = Path.combine publishDir "flpasswordrecovery"
         let args = sprintf "bundle %s %s %s \"%s\"" buildConfig platform publishFramework passwordRecoveryOutPath
         runFakeTarget args passwordRecoveryPath
-        File.delete <| Path.combine passwordRecoveryOutPath "system-settings.json"
+        File.delete <| Path.combine passwordRecoveryOutPath "Server/system-settings.json"
 
         let managementToolOutPath = Path.combine publishDir ".temp/ManagementTool"
         runDotNetPublish platform managementToolPath managementToolOutPath
