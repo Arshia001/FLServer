@@ -66,6 +66,9 @@ namespace FLGrains
         readonly GrainStateWrapper<GameGrainState> state;
         readonly ILogger logger;
 
+        // Did we already try to add this game to the match making queue during this activation's life?
+        bool triedReAddingToMatchMaking = false;
+
         public Game(IConfigReader configReader, [PersistentState("State")] IPersistentState<GameGrainState> state, ILogger<Game> logger)
         {
             this.configReader = configReader;
@@ -81,7 +84,7 @@ namespace FLGrains
 
         public override async Task OnActivateAsync()
         {
-            await state.UseState(async state =>
+            state.UseState(state =>
             {
                 if (state.GameData != null)
                 {
@@ -99,10 +102,6 @@ namespace FLGrains
                         return config.CategoriesAsGameLogicFormat[RandomHelper.GetInt32(config.CategoriesAsGameLogicFormat.Count)];
                     });
                 }
-
-                // Try to add this game to the matchmaking queue again, it may have been missed
-                if (GetStateInternal(state) == GameState.WaitingForSecondPlayer)
-                    await GrainFactory.GetGrain<IMatchMakingGrain>(0).AddGame(this.AsReference<IGame>(), GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]));
             });
 
             var numPlayers = NumJoinedPlayers;
@@ -593,7 +592,7 @@ namespace FLGrains
                 );
             });
 
-        public Task<SimplifiedGameInfo> GetSimplifiedGameInfo(Guid playerID) =>
+        public Task<SimplifiedGameInfo> GetSimplifiedGameInfo(Guid playerID) => 
             state.UseState(async state =>
             {
                 int index = Index(playerID);
@@ -601,6 +600,13 @@ namespace FLGrains
 
                 var isWinner = index == 0 ? GameLogic.Winner == GameResult.Win0 : GameLogic.Winner == GameResult.Win1;
                 var gameState = GetStateInternal(state);
+
+                // Try to add this game to the matchmaking queue again, it may have been missed
+                if (!triedReAddingToMatchMaking && gameState == GameState.WaitingForSecondPlayer && GameLogic.NumTurnsTakenBy(0) > 0)
+                {
+                    triedReAddingToMatchMaking = true;
+                    await GrainFactory.GetGrain<IMatchMakingGrain>(0).AddGame(this.AsReference<IGame>(), GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]));
+                }
 
                 return new SimplifiedGameInfo
                 (
