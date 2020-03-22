@@ -1,45 +1,46 @@
-﻿//using Bond;
-//using Bond.Tag;
-//using FLGameLogic;
-//using FLGameLogicServer;
-//using FLGrainInterfaces;
-//using FLGrainInterfaces.Configuration;
-//using FLGrains;
-//using LightMessage.Client;
-//using LightMessage.Client.EndPoints;
-//using LightMessage.Common.Messages;
-//using LightMessage.Common.ProtocolMessages;
-//using LightMessage.Common.Util;
-//using Microsoft.Extensions.DependencyInjection;
-//using Microsoft.Extensions.Logging;
-//using Orleans;
-//using Orleans.Configuration;
-//using Orleans.Runtime;
-//using Orleans.Serialization;
-//using OrleansBondUtils;
-//using OrleansCassandraUtils;
-//using OrleansCassandraUtils.Utils;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Net;
-//using System.Threading;
-//using System.Threading.Tasks;
+﻿using Bond;
+using Bond.Tag;
+using FLGameLogic;
+using FLGameLogicServer;
+using FLGrainInterfaces;
+using FLGrainInterfaces.Configuration;
+using FLGrains;
+using LightMessage.Client;
+using LightMessage.Client.EndPoints;
+using LightMessage.Common.Messages;
+using LightMessage.Common.ProtocolMessages;
+using LightMessage.Common.Util;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Orleans;
+using Orleans.Configuration;
+using Orleans.Runtime;
+using Orleans.Serialization;
+using OrleansBondUtils;
+using OrleansCassandraUtils;
+using OrleansCassandraUtils.Utils;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FLTestClient
 {
-    //    class NullGrainReferenceConverter : IGrainReferenceConverter
-    //    {
-    //        public GrainReference GetGrainFromKeyInfo(GrainReferenceKeyInfo keyInfo)
-    //        {
-    //            return null;
-    //        }
+    class NullGrainReferenceConverter : IGrainReferenceConverter
+    {
+        public GrainReference GetGrainFromKeyInfo(GrainReferenceKeyInfo keyInfo)
+        {
+            return null;
+        }
 
-    //        public GrainReference GetGrainFromKeyString(string key)
-    //        {
-    //            return null;
-    //        }
-    //    }
+        public GrainReference GetGrainFromKeyString(string key)
+        {
+            return null;
+        }
+    }
 
     //    [Schema]
     //    public class StatisticWithParameter : IEquatable<StatisticWithParameter>
@@ -188,17 +189,20 @@ namespace FLTestClient
 
         static void Main(string[] args)
         {
-            //            var svc = new ServiceCollection();
-            //            ServiceConfiguration.ConfigureGameServer(svc, new SystemSettings(@"{""ConnectionString"":""Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy""}", ""));
-            //            svc.AddSingleton<IGrainReferenceConverter, NullGrainReferenceConverter>();
-            //            var provider = svc.BuildServiceProvider();
+            var svc = new ServiceCollection();
+            ServiceConfiguration.ConfigureGameServer(svc, new SystemSettings(@"{""ConnectionString"":""Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy""}", ""));
+            svc.AddSingleton<IGrainReferenceConverter, NullGrainReferenceConverter>();
+            var provider = svc.BuildServiceProvider();
 
-            //            BondSerializationUtil.Initialize(provider);
-            //            // var ss = new MatchMakingEntry();
-            //            // ss.OnDeserialized();
-            //            // ss.GameData = new GameLogicServer(1).Serialize();
-            //            // var s = BondSerializer.Serialize(ss);
-            //            // var d = (GameGrain_State)BondSerializer.Deserialize(typeof(GameGrain_State), new ArraySegmentReaderStream(s));
+            BondSerializationUtil.Initialize(provider);
+
+            var data = Convert.FromBase64String(
+                "CwoBDQkQIQ/ZhtmF24wg2K/ZiNmG2YUCDtin2YjYsdin2YbZiNizJAjYstmF24zZhiwI2LLZh9ix2YckCNmF2LHbjNiuKAbYstmH2YQMBtiy2K3ZhCQK2YbZvtiq2YjZhiwM2b7ZhNmI2KrZiNmGIgrZhdi02KrYsduMIgjZiNmG2YjYswQK2LnYt9in2LHYryAM2K7ZiNix2LTbjNivFgbZhdin2YcaBtiy2YfYsQIE2YXZhgII2YbbjNmF2KcCDNmF2KfZhdin2YbZhQIR2KjYudmE2Ycg2K/bjNqv2YcCCNiz2YTYp9mFAgrYqNix2KzbjNizAhjYqtmF2KfYp9in2KfYp9in2KfYp9in2YUCDtmH2YfZh9mH2YfZh9mHAhbYrNmI2YjZiNmI2YbZhtmG2YbZhtmGAgzaqdmH2qnYtNin2YYCD9i02YfYp9ioINiz2YbarwIG2YLZhdixAgpNIGJyaHJqcmlyAgzZvtmI2YTZiNiq2YgCCNmF2KfYsdizAgbYsdmH2KcCENin2YjYsdin2YbYs9mI2YYCCNiy2YjZh9mEAgAA"
+                );
+
+            var obj = BondSerializer.Deserialize(typeof(AggregatorState<CategoryStatisticsData>), new MemoryStream(data));
+
+            Console.WriteLine("Done");
         }
     }
 }

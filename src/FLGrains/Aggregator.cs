@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace FLGrains
 {
     [Schema, BondSerializationTag("#a")]
-    class AggregatorState<T>
+    public class AggregatorState<T>
         where T: class, new()
     {
         [Id(0)]
@@ -87,7 +87,7 @@ namespace FLGrains
         public override Task OnDeactivateAsync() => UpdateAggregator(null);
     }
 
-    //!! shouldn't this be a service?
+    //?? this should be a service, named IAggregateAccessor
     [StatelessWorker]
     abstract class AggregatorCache<TData, TTransformedData> : Grain, IAggregatorCache<TTransformedData>
         where TTransformedData : class

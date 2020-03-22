@@ -437,7 +437,7 @@ namespace FLGrains
             if (result.result == PlayWordResult.Error_TurnOver)
                 throw new VerbatimException("Player's turn is already over");
 
-            if (result.result != PlayWordResult.Duplicate)
+            if (result.result != PlayWordResult.Duplicate && result.score > 0)
                 GrainFactory.GetGrain<ICategoryStatisticsAggregationWorker>(result.category.CategoryName)
                     .AddDelta(new CategoryStatisticsDelta.WordUsage(result.corrected)).Ignore();
 

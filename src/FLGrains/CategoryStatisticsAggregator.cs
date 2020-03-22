@@ -1,6 +1,7 @@
 ﻿using FLGrainInterfaces;
 using FLGrainInterfaces.Configuration;
 using Orleans;
+using Orleans.Concurrency;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +31,7 @@ namespace FLGrains
         protected override CategoryStatisticsData GetDefault() => new CategoryStatisticsData();
     }
 
+    [StatelessWorker]
     class CategoryStatisticsAggregationWorker : AggregationWorker<CategoryStatisticsDelta, CategoryStatisticsData>, ICategoryStatisticsAggregationWorker
     {
         protected override TimeSpan UpdateInterval => TimeSpan.FromMinutes(10);
@@ -57,6 +59,7 @@ namespace FLGrains
         protected override CategoryStatisticsData GetDefault() => new CategoryStatisticsData() { WordScores = new Dictionary<string, int>() };
     }
 
+    [StatelessWorker]
     class CategoryStatisticsAggregatorCache : AggregatorCache<CategoryStatisticsData, AggregatedCategoryStatisticsData>, ICategoryStatisticsAggregatorCache
     {
         readonly IConfigReader configReader;
