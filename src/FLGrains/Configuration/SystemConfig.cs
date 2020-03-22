@@ -272,6 +272,8 @@ namespace FLGrains.Configuration
             var newData = ParseConfigData(jsonConfig);
             newData.Categories = data.Categories;
             newData.Groups = data.Groups;
+            newData.RenamedCategories = data.RenamedCategories;
+            newData.LatestClientVersion = data.LatestClientVersion;
 
             ReadOnlyConfigData.Validate(newData);
 
