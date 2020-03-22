@@ -8,6 +8,8 @@ open System.Threading.Tasks
 open OrleansCassandraUtils.Utils
 open System.IO
 open System.Collections.Generic
+open System.Diagnostics
+open System.Runtime.InteropServices
 
 exception ToolFinished of message : string
 
@@ -86,7 +88,7 @@ let promptYesNoCancel prompt =
         match Console.ReadLine().ToLower() with
         | "y" -> Some true
         | "n" -> Some false
-        | "c" -> raise <| ToolFinished "Cancelled"
+        | "c" -> raise <| ToolFinished "Canceled"
         | _ ->
             printf "Invalid response, please retry [y/n/c] "
             None
@@ -106,3 +108,16 @@ let tryParseInt (o: obj) =
         match string o |> Int32.TryParse with
         | (true, i) -> Some i
         | (false, _) -> None
+
+let exec executable arguments =
+    let proc = Process.Start(executable, arguments)
+    proc.WaitForExit ()
+    if proc.ExitCode <> 0 then
+        sprintf "Failed: process %s with arguments '%s' failed with exit code %i" executable arguments proc.ExitCode |> ToolFinished |> raise
+
+let runNodeTool =
+    let toolName = if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then "nodetool.bat" else "nodetool"
+    exec toolName
+
+let takeSnapshot keyspace table snapshotName =
+    runNodeTool <| sprintf "snapshot %s -cf %s -t %s" keyspace table snapshotName

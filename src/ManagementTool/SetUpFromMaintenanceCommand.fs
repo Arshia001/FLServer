@@ -15,7 +15,7 @@ let runUpFromMaintenance (cmd: UpFromMaintenance) =
             |> promptYesNo
             |> not
     then
-        raise <| ToolFinished "Cancelled"
+        raise <| ToolFinished "Canceled"
 
     let (session, queries) = buildCassandraSession keyspace
     let statement = queries.["fl_updateConfig"].Bind({| key = "maintenance-status"; data = "none" |})

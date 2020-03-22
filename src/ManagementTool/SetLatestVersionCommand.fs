@@ -34,7 +34,7 @@ let runSetLatestVersion (cmd: SetLatestVersion) =
         |> promptYesNo
         |> not
     then
-        raise <| ToolFinished "Cancelled"
+        raise <| ToolFinished "Canceled"
 
     match version with
     | Some v ->
@@ -44,7 +44,7 @@ let runSetLatestVersion (cmd: SetLatestVersion) =
                 |> promptYesNo
                 |> not
             then
-                raise <| ToolFinished "Cancelled"
+                raise <| ToolFinished "Canceled"
         else if v = cmd.version then
             raise <| ToolFinished "Already at this version"
     | _ -> ()

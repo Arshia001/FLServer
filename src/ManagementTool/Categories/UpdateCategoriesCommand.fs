@@ -84,7 +84,7 @@ let runUpdateCategories (cmd: UpdateCategories) =
         Seq.isEmpty categoriesNotProvided |> not &&
         promptYesNo "WARNING! Some existing categories were not found in the input file. Continue?" |> not
     then
-        raise <| ToolFinished "Cancelled"
+        raise <| ToolFinished "Canceled"
 
     if cmd.dryRun then raise <| ToolFinished "Dry run requested, stopping"
 
@@ -104,7 +104,7 @@ let runUpdateCategories (cmd: UpdateCategories) =
 
     if Seq.isEmpty changeSet then raise <| ToolFinished "No changes to process"
 
-    if not <| promptYesNo message then raise <| ToolFinished "Cancelled"
+    if not <| promptYesNo message then raise <| ToolFinished "Canceled"
 
     applyChangeSet (session, queries) changeSet
 

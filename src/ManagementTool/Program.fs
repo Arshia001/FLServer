@@ -13,7 +13,8 @@ let parse =
         UpdateCategories,
         UpdateGroups,
         UpdateAll,
-        ConnectedClients
+        ConnectedClients,
+        DeleteStorage
     >
 
 [<EntryPoint>]
@@ -31,6 +32,7 @@ let main argv =
             | :? UpdateGroups as cmd -> runUpdateGroups cmd
             | :? UpdateAll as cmd -> runUpdateAll cmd
             | :? ConnectedClients as cmd -> runConnectedClients cmd
+            | :? DeleteStorage as cmd -> runDeleteStorage cmd
             | _ -> printfn "Unknown command type %A" p.Value
             0
         | :? NotParsed<obj> as np ->

@@ -84,7 +84,7 @@ let runUpdateGroups (cmd: UpdateGroups) =
 
     if Seq.isEmpty changeSet then raise <| ToolFinished "No changes to process"
 
-    if not <| promptYesNo message then raise <| ToolFinished "Cancelled"
+    if not <| promptYesNo message then raise <| ToolFinished "Canceled"
 
     applyChangeSet (session, queries) changeSet
 
