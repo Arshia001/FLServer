@@ -89,7 +89,10 @@
 
     "RefreshGroupsAllowedPerRound": 1,
 
-    "InitialGold": 200
+    "InitialGold": 200,
+
+    "LeaderBoardTopScoreCount": 200,
+    "LeaderBoardAroundScoreCount": 10
   },
   "GoldPacks": [
     {

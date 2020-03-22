@@ -52,6 +52,9 @@ namespace FLGrainInterfaces.Configuration
 
         public uint InitialGold { get; private set; }
 
+        public uint LeaderBoardTopScoreCount { get; private set; }
+        public uint LeaderBoardAroundScoreCount { get; private set; }
+
         static void FailWith(string error) => throw new ArgumentException(error);
 
         public static void Validate(ConfigValues data)

@@ -14,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FLGrainInterfaces.Configuration;
 
 namespace FLGrains
 {
@@ -85,8 +86,13 @@ namespace FLGrains
         bool changedSinceLastWrite;
         
         readonly ILogger logger;
+        readonly IConfigReader configReader;
 
-        public LeaderBoard(ILogger<ILeaderBoard> logger) => this.logger = logger;
+        public LeaderBoard(ILogger<ILeaderBoard> logger, IConfigReader configReader)
+        {
+            this.logger = logger;
+            this.configReader = configReader;
+        }
 
         public override Task OnActivateAsync()
         {
@@ -212,17 +218,17 @@ namespace FLGrains
             if (logger.IsEnabled(LogLevel.Trace))
                 logger.Trace($"LeaderBoard {this.GetPrimaryKeyString()} - query scores for {userID}");
 
-            //?? convert to parameters
-            var TopCount = 10u;
-            var AroundCount = 10u;
+            var config = configReader.Config;
+            var topCount = config.ConfigValues.LeaderBoardTopScoreCount;
+            var aroundCount = config.ConfigValues.LeaderBoardAroundScoreCount;
 
             var OwnRank = GetRankImpl(userID);
             if (OwnRank == 0)
-                return Task.FromResult((OwnRank, GetTopScoresImpl(TopCount)).AsImmutable());
-            if (OwnRank < TopCount + AroundCount)
-                return Task.FromResult((OwnRank, GetTopScoresImpl((uint)OwnRank + AroundCount)).AsImmutable());
+                return Task.FromResult((OwnRank, GetTopScoresImpl(topCount)).AsImmutable());
+            if (OwnRank < topCount + aroundCount)
+                return Task.FromResult((OwnRank, GetTopScoresImpl(Math.Max(topCount, (uint)OwnRank + aroundCount))).AsImmutable());
             else
-                return Task.FromResult((OwnRank, GetTopScoresImpl(TopCount).Concat(GetScoresAroundImpl(userID, AroundCount)).ToList()).AsImmutable());
+                return Task.FromResult((OwnRank, GetTopScoresImpl(topCount).Concat(GetScoresAroundImpl(userID, aroundCount)).ToList()).AsImmutable());
         }
 
         public Task Remove(Guid userID)
