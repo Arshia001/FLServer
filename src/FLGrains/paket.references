@@ -2,6 +2,6 @@ FirebaseAdmin
 MailKit
 Microsoft.Orleans.Core
 Microsoft.Orleans.Runtime.Abstractions
-Microsoft.Orleans.OrleansCodeGenerator.Build
+Microsoft.Orleans.CodeGenerator.MSBuild
 RazorEngine.NetCore-LinuxDockerFix
 System.Runtime.Caching
