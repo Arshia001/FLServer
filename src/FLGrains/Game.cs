@@ -160,7 +160,11 @@ namespace FLGrains
                 if (state.PlayerIDs[0] == playerTwo.ID)
                     throw new VerbatimException("Player cannot join game with self");
 
+                GameLogic.SecondPlayerJoined();
+
                 state.PlayerIDs[1] = playerTwo.ID;
+
+                await RegisterExpiryReminderIfNecessary();
 
                 await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentJoined(state.PlayerIDs[0], this.GetPrimaryKey(), playerTwo);
 
@@ -347,24 +351,29 @@ namespace FLGrains
                 }
                 else
                 {
-                    if (GameLogic.ExpiryTime.HasValue)
-                    {
-                        // This one minute limit is imposed by Orleans on reminder intervals. In our current
-                        // scenario, a one minute difference is probably not noticeable for a 24-hour timeout.
-                        var timeUntilExpiry = GameLogic.ExpiryTime.Value - DateTime.Now + TimeSpan.FromSeconds(10);
-                        if (timeUntilExpiry > TimeSpan.FromMinutes(1))
-                            await RegisterOrUpdateReminder("e", timeUntilExpiry, TimeSpan.FromMinutes(1));
-                        else
-                        {
-                            logger.Info("Less than one minute remaining to expiry time, will terminate game immediately");
-                            await UnregisterExpiryReminder();
-                            await HandleGameExpiry();
-                        }
-                    }
+                    await RegisterExpiryReminderIfNecessary();
                 }
 
                 return true;
             });
+
+        async Task RegisterExpiryReminderIfNecessary()
+        {
+            if (GameLogic.ExpiryTime.HasValue)
+            {
+                // This one minute limit is imposed by Orleans on reminder intervals. In our current
+                // scenario, a one minute difference is probably not noticeable for a 24-hour timeout.
+                var timeUntilExpiry = GameLogic.ExpiryTime.Value - DateTime.Now + TimeSpan.FromSeconds(10);
+                if (timeUntilExpiry > TimeSpan.FromMinutes(1))
+                    await RegisterOrUpdateReminder("e", timeUntilExpiry, TimeSpan.FromMinutes(1));
+                else
+                {
+                    logger.Info("Less than one minute remaining to expiry time, will terminate game immediately");
+                    await UnregisterExpiryReminder();
+                    await HandleGameExpiry();
+                }
+            }
+        }
 
         public Task ReceiveReminder(string reminderName, TickStatus status) =>
             reminderName switch

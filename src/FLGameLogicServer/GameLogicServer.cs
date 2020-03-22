@@ -70,6 +70,14 @@ namespace FLGameLogicServer
             return result;
         }
 
+        public void SecondPlayerJoined()
+        {
+            if (NumTurnsTakenBy(1) != 0)
+                return;
+
+            ExpiryTime = DateTime.Now + expiryInterval;
+        }
+
         public async Task<(PlayWordResult result, WordCategory category, string corrected, byte score)>
             PlayWord(int player, string word, GetWordScoreDelegate getWordScoreDelegate, Func<int, int> getMaxEditDistance)
         {
