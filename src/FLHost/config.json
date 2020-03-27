@@ -41,17 +41,17 @@
     "MaxDistanceToCorrectByLetterCount": "Math.floor(letterCount / 4)"
   },
   "ConfigValues": {
-    "NumRoundsPerGame": 6,
+    "NumRoundsPerGame": 5,
 
     "GetAnswersPrice": 150,
 
     "NumGroupChoices": 3,
     "PriceToRefreshGroups": 150,
 
-    "ClientTimePerRound": "00:01:00",
+    "ClientTimePerRound": "00:00:40",
     "ExtraTimePerRound": "00:00:10",
 
-    "RoundTimeExtension": "00:00:30",
+    "RoundTimeExtension": "00:00:20",
     "RoundTimeExtensionPrice": 50,
     "NumTimeExtensionsPerRound": 1,
 

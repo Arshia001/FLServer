@@ -1,15 +1,10 @@
 ﻿UPDATE WORDS (this is simple enough)
 
 NEXT UPDATE:
-    Config changes:
-        5 rounds
-        40 secs round time
-        20 secs time increase powerup
     Video ads
     Disconnect idle clients
     The bloody keyboard!
     Turn tutorial background taps into actual taps of the OK buttons
-    Fix unsigned gold calculations in statistics
 
 *************************************************
 Optional / for later
