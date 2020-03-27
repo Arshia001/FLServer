@@ -16,7 +16,7 @@ namespace FLGrains
 {
     class GameEndPoint : GameEndPointBase
     {
-        protected override async Task<(Guid gameID, PlayerInfo? opponentInfo, byte numRounds, bool myTurnFirst)> NewGame(Guid clientID)
+        protected override async Task<(Guid gameID, PlayerInfoDTO? opponentInfo, byte numRounds, bool myTurnFirst, TimeSpan? expiryTimeRemaining)> NewGame(Guid clientID)
         {
             var player = GrainFactory.GetGrain<IPlayer>(clientID);
             var (canEnter, lastOpponentID) = await player.CheckCanEnterGameAndGetLastOpponentID();
@@ -27,13 +27,13 @@ namespace FLGrains
             return await GrainFactory.GetGrain<IMatchMakingGrain>(0).FindOrCreateGame(player, lastOpponentID);
         }
 
-        protected override async Task<IEnumerable<WordScorePairDTO>?> EndRound(Guid clientID, Guid gameID)
+        protected override async Task<(IEnumerable<WordScorePairDTO>? opponentWords, TimeSpan? expiryTimeRemaining)> EndRound(Guid clientID, Guid gameID)
         {
             var result = await GrainFactory.GetGrain<IGame>(gameID).EndRound(clientID);
-            return result.Value?.Select(w => (WordScorePairDTO)w);
+            return (result.Value.opponentWords?.Select(w => (WordScorePairDTO)w), result.Value.expiryTimeRemaining);
         }
 
-        protected override async Task<IEnumerable<SimplifiedGameInfo>> GetAllGames(Guid clientID)
+        protected override async Task<IEnumerable<SimplifiedGameInfoDTO>> GetAllGames(Guid clientID)
         {
             var games = (await GrainFactory.GetGrain<IPlayer>(clientID).GetGames()).Value;
             return await Task.WhenAll(games.Reverse().Select(g => g.GetSimplifiedGameInfo(clientID)));

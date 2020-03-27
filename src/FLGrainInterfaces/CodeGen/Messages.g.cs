@@ -7,7 +7,7 @@ namespace FLGrainInterfaces
     public interface ISystemEndPoint : LightMessage.OrleansUtils.GrainInterfaces.IEndPointGrain
     {
         System.Threading.Tasks.Task<bool> SendNumRoundsWonForRewardUpdated(System.Guid clientID, uint totalRoundsWon);
-        System.Threading.Tasks.Task<bool> SendStatisticUpdated(System.Guid clientID, StatisticValue stat);
+        System.Threading.Tasks.Task<bool> SendStatisticUpdated(System.Guid clientID, StatisticValueDTO stat);
     }
 
     public interface ISuggestionEndPoint : LightMessage.OrleansUtils.GrainInterfaces.IEndPointGrain
@@ -16,8 +16,8 @@ namespace FLGrainInterfaces
 
     public interface IGameEndPoint : LightMessage.OrleansUtils.GrainInterfaces.IEndPointGrain
     {
-        System.Threading.Tasks.Task<bool> SendOpponentJoined(System.Guid clientID, System.Guid gameID, PlayerInfo opponentInfo);
-        System.Threading.Tasks.Task<bool> SendOpponentTurnEnded(System.Guid clientID, System.Guid gameID, byte roundNumber, System.Collections.Generic.IEnumerable<WordScorePairDTO>? wordsPlayed);
+        System.Threading.Tasks.Task<bool> SendOpponentJoined(System.Guid clientID, System.Guid gameID, PlayerInfoDTO opponentInfo, System.TimeSpan? expiryTimeRemaining);
+        System.Threading.Tasks.Task<bool> SendOpponentTurnEnded(System.Guid clientID, System.Guid gameID, byte roundNumber, System.Collections.Generic.IEnumerable<WordScorePairDTO>? wordsPlayed, System.TimeSpan? expiryTimeRemaining);
         System.Threading.Tasks.Task<bool> SendGameEnded(System.Guid clientID, System.Guid gameID, uint myScore, uint theirScore, uint myPlayerScore, uint myPlayerRank, uint myLevel, uint myXP, ulong myGold);
         System.Threading.Tasks.Task<bool> SendGameExpired(System.Guid clientID, System.Guid gameID, bool myWin, uint myPlayerScore, uint myPlayerRank, uint myLevel, uint myXP, ulong myGold);
     }
@@ -131,9 +131,9 @@ namespace FLGrainInterfaces
     }
 
     [Orleans.Concurrency.Immutable]
-    public class PlayerLeaderBoardInfo
+    public class PlayerLeaderBoardInfoDTO
     {
-        public PlayerLeaderBoardInfo(string name)
+        public PlayerLeaderBoardInfoDTO(string name)
         {
             this.Name = name;
         }
@@ -142,26 +142,26 @@ namespace FLGrainInterfaces
 
         public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name));
 
-        public static PlayerLeaderBoardInfo FromParam(LightMessage.Common.Messages.Param param)
+        public static PlayerLeaderBoardInfoDTO FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new PlayerLeaderBoardInfo(array[0].AsString);
+            return new PlayerLeaderBoardInfoDTO(array[0].AsString);
         }
     }
 
     [Orleans.Concurrency.Immutable]
     public class LeaderBoardEntryDTO
     {
-        public LeaderBoardEntryDTO(PlayerLeaderBoardInfo? info, ulong rank, ulong score)
+        public LeaderBoardEntryDTO(PlayerLeaderBoardInfoDTO? info, ulong rank, ulong score)
         {
             this.Info = info;
             this.Rank = rank;
             this.Score = score;
         }
 
-        public PlayerLeaderBoardInfo? Info { get; }
+        public PlayerLeaderBoardInfoDTO? Info { get; }
         public ulong Rank { get; }
         public ulong Score { get; }
 
@@ -172,14 +172,14 @@ namespace FLGrainInterfaces
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new LeaderBoardEntryDTO(PlayerLeaderBoardInfo.FromParam(array[0]), array[1].AsUInt.Value, array[2].AsUInt.Value);
+            return new LeaderBoardEntryDTO(PlayerLeaderBoardInfoDTO.FromParam(array[0]), array[1].AsUInt.Value, array[2].AsUInt.Value);
         }
     }
 
     [Orleans.Concurrency.Immutable]
-    public class PlayerInfo
+    public class PlayerInfoDTO
     {
-        public PlayerInfo(System.Guid id, string name, uint level)
+        public PlayerInfoDTO(System.Guid id, string name, uint level)
         {
             this.ID = id;
             this.Name = name;
@@ -192,19 +192,19 @@ namespace FLGrainInterfaces
 
         public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.Guid(ID), LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.UInt(Level));
 
-        public static PlayerInfo FromParam(LightMessage.Common.Messages.Param param)
+        public static PlayerInfoDTO FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new PlayerInfo(array[0].AsGuid.Value, array[1].AsString, (uint)array[2].AsUInt.Value);
+            return new PlayerInfoDTO(array[0].AsGuid.Value, array[1].AsString, (uint)array[2].AsUInt.Value);
         }
     }
 
     [Orleans.Concurrency.Immutable]
-    public class StatisticValue
+    public class StatisticValueDTO
     {
-        public StatisticValue(Statistics statistic, int parameter, ulong value)
+        public StatisticValueDTO(Statistics statistic, int parameter, ulong value)
         {
             this.Statistic = statistic;
             this.Parameter = parameter;
@@ -217,19 +217,19 @@ namespace FLGrainInterfaces
 
         public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.UEnum(Statistic), LightMessage.Common.Messages.Param.Int(Parameter), LightMessage.Common.Messages.Param.UInt(Value));
 
-        public static StatisticValue FromParam(LightMessage.Common.Messages.Param param)
+        public static StatisticValueDTO FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new StatisticValue(array[0].AsUEnum<Statistics>().Value, (int)array[1].AsInt.Value, array[2].AsUInt.Value);
+            return new StatisticValueDTO(array[0].AsUEnum<Statistics>().Value, (int)array[1].AsInt.Value, array[2].AsUInt.Value);
         }
     }
 
     [Orleans.Concurrency.Immutable]
-    public class OwnPlayerInfo
+    public class OwnPlayerInfoDTO
     {
-        public OwnPlayerInfo(string name, string? email, uint xp, uint level, uint nextLevelXPThreshold, uint score, uint rank, ulong gold, uint currentNumRoundsWonForReward, System.TimeSpan nextRoundWinRewardTimeRemaining, System.TimeSpan? infinitePlayTimeRemaining, System.Collections.Generic.IEnumerable<StatisticValue> statisticsValues, bool isRegistered, bool notificationsEnabled, ulong tutorialProgress)
+        public OwnPlayerInfoDTO(string name, string? email, uint xp, uint level, uint nextLevelXPThreshold, uint score, uint rank, ulong gold, uint currentNumRoundsWonForReward, System.TimeSpan nextRoundWinRewardTimeRemaining, System.TimeSpan? infinitePlayTimeRemaining, System.Collections.Generic.IEnumerable<StatisticValueDTO> statisticsValues, bool isRegistered, bool notificationsEnabled, ulong tutorialProgress)
         {
             this.Name = name;
             this.Email = email;
@@ -259,19 +259,19 @@ namespace FLGrainInterfaces
         public uint CurrentNumRoundsWonForReward { get; }
         public System.TimeSpan NextRoundWinRewardTimeRemaining { get; }
         public System.TimeSpan? InfinitePlayTimeRemaining { get; }
-        public System.Collections.Generic.IReadOnlyList<StatisticValue> StatisticsValues { get; }
+        public System.Collections.Generic.IReadOnlyList<StatisticValueDTO> StatisticsValues { get; }
         public bool IsRegistered { get; }
         public bool NotificationsEnabled { get; }
         public ulong TutorialProgress { get; }
 
         public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.String(Email), LightMessage.Common.Messages.Param.UInt(XP), LightMessage.Common.Messages.Param.UInt(Level), LightMessage.Common.Messages.Param.UInt(NextLevelXPThreshold), LightMessage.Common.Messages.Param.UInt(Score), LightMessage.Common.Messages.Param.UInt(Rank), LightMessage.Common.Messages.Param.UInt(Gold), LightMessage.Common.Messages.Param.UInt(CurrentNumRoundsWonForReward), LightMessage.Common.Messages.Param.TimeSpan(NextRoundWinRewardTimeRemaining), LightMessage.Common.Messages.Param.TimeSpan(InfinitePlayTimeRemaining), LightMessage.Common.Messages.Param.Array(StatisticsValues.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())), LightMessage.Common.Messages.Param.Boolean(IsRegistered), LightMessage.Common.Messages.Param.Boolean(NotificationsEnabled), LightMessage.Common.Messages.Param.UInt(TutorialProgress));
 
-        public static OwnPlayerInfo FromParam(LightMessage.Common.Messages.Param param)
+        public static OwnPlayerInfoDTO FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new OwnPlayerInfo(array[0].AsString, array[1].AsString, (uint)array[2].AsUInt.Value, (uint)array[3].AsUInt.Value, (uint)array[4].AsUInt.Value, (uint)array[5].AsUInt.Value, (uint)array[6].AsUInt.Value, array[7].AsUInt.Value, (uint)array[8].AsUInt.Value, array[9].AsTimeSpan.Value, array[10].AsTimeSpan, array[11].AsArray.Select(a => StatisticValue.FromParam(a)).ToList(), array[12].AsBoolean.Value, array[13].AsBoolean.Value, array[14].AsUInt.Value);
+            return new OwnPlayerInfoDTO(array[0].AsString, array[1].AsString, (uint)array[2].AsUInt.Value, (uint)array[3].AsUInt.Value, (uint)array[4].AsUInt.Value, (uint)array[5].AsUInt.Value, (uint)array[6].AsUInt.Value, array[7].AsUInt.Value, (uint)array[8].AsUInt.Value, array[9].AsTimeSpan.Value, array[10].AsTimeSpan, array[11].AsArray.Select(a => StatisticValueDTO.FromParam(a)).ToList(), array[12].AsBoolean.Value, array[13].AsBoolean.Value, array[14].AsUInt.Value);
         }
     }
 
@@ -302,9 +302,9 @@ namespace FLGrainInterfaces
     }
 
     [Orleans.Concurrency.Immutable]
-    public class GameInfo
+    public class GameInfoDTO
     {
-        public GameInfo(PlayerInfo? otherPlayerInfo, byte numRounds, System.Collections.Generic.IEnumerable<string> categories, System.Collections.Generic.IEnumerable<bool> haveCategoryAnswers, System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<WordScorePairDTO>> myWordsPlayed, System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<WordScorePairDTO>>? theirWordsPlayed, System.DateTime myTurnEndTime, bool myTurnFirst, byte numTurnsTakenByOpponent, bool expired, bool expiredForMe)
+        public GameInfoDTO(PlayerInfoDTO? otherPlayerInfo, byte numRounds, System.Collections.Generic.IEnumerable<string> categories, System.Collections.Generic.IEnumerable<bool> haveCategoryAnswers, System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<WordScorePairDTO>> myWordsPlayed, System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<WordScorePairDTO>>? theirWordsPlayed, System.DateTime myTurnEndTime, bool myTurnFirst, byte numTurnsTakenByOpponent, bool expired, bool expiredForMe, System.TimeSpan? expiryTimeRemaining)
         {
             this.OtherPlayerInfo = otherPlayerInfo;
             this.NumRounds = numRounds;
@@ -317,9 +317,10 @@ namespace FLGrainInterfaces
             this.NumTurnsTakenByOpponent = numTurnsTakenByOpponent;
             this.Expired = expired;
             this.ExpiredForMe = expiredForMe;
+            this.ExpiryTimeRemaining = expiryTimeRemaining;
         }
 
-        public PlayerInfo? OtherPlayerInfo { get; }
+        public PlayerInfoDTO? OtherPlayerInfo { get; }
         public byte NumRounds { get; }
         public System.Collections.Generic.IReadOnlyList<string> Categories { get; }
         public System.Collections.Generic.IReadOnlyList<bool> HaveCategoryAnswers { get; }
@@ -330,22 +331,23 @@ namespace FLGrainInterfaces
         public byte NumTurnsTakenByOpponent { get; }
         public bool Expired { get; }
         public bool ExpiredForMe { get; }
+        public System.TimeSpan? ExpiryTimeRemaining { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(OtherPlayerInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.UInt(NumRounds), LightMessage.Common.Messages.Param.Array(Categories.Select(a => LightMessage.Common.Messages.Param.String(a))), LightMessage.Common.Messages.Param.Array(HaveCategoryAnswers.Select(a => LightMessage.Common.Messages.Param.Boolean(a))), LightMessage.Common.Messages.Param.Array(MyWordsPlayed.Select(a => LightMessage.Common.Messages.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.Messages.Param.Null())))), LightMessage.Common.Messages.Param.Array(TheirWordsPlayed?.Select(a => LightMessage.Common.Messages.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.Messages.Param.Null())))), LightMessage.Common.Messages.Param.DateTime(MyTurnEndTime), LightMessage.Common.Messages.Param.Boolean(MyTurnFirst), LightMessage.Common.Messages.Param.UInt(NumTurnsTakenByOpponent), LightMessage.Common.Messages.Param.Boolean(Expired), LightMessage.Common.Messages.Param.Boolean(ExpiredForMe));
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(OtherPlayerInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.UInt(NumRounds), LightMessage.Common.Messages.Param.Array(Categories.Select(a => LightMessage.Common.Messages.Param.String(a))), LightMessage.Common.Messages.Param.Array(HaveCategoryAnswers.Select(a => LightMessage.Common.Messages.Param.Boolean(a))), LightMessage.Common.Messages.Param.Array(MyWordsPlayed.Select(a => LightMessage.Common.Messages.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.Messages.Param.Null())))), LightMessage.Common.Messages.Param.Array(TheirWordsPlayed?.Select(a => LightMessage.Common.Messages.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.Messages.Param.Null())))), LightMessage.Common.Messages.Param.DateTime(MyTurnEndTime), LightMessage.Common.Messages.Param.Boolean(MyTurnFirst), LightMessage.Common.Messages.Param.UInt(NumTurnsTakenByOpponent), LightMessage.Common.Messages.Param.Boolean(Expired), LightMessage.Common.Messages.Param.Boolean(ExpiredForMe), LightMessage.Common.Messages.Param.TimeSpan(ExpiryTimeRemaining));
 
-        public static GameInfo FromParam(LightMessage.Common.Messages.Param param)
+        public static GameInfoDTO FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new GameInfo(PlayerInfo.FromParam(array[0]), (byte)array[1].AsUInt.Value, array[2].AsArray.Select(a => a.AsString).ToList(), array[3].AsArray.Select(a => a.AsBoolean.Value).ToList(), array[4].AsArray.Select(a => a.AsArray.Select(b => WordScorePairDTO.FromParam(b)).ToList()).ToList(), array[5].AsArray?.Select(a => a.AsArray.Select(b => WordScorePairDTO.FromParam(b)).ToList()).ToList(), array[6].AsDateTime.Value, array[7].AsBoolean.Value, (byte)array[8].AsUInt.Value, array[9].AsBoolean.Value, array[10].AsBoolean.Value);
+            return new GameInfoDTO(PlayerInfoDTO.FromParam(array[0]), (byte)array[1].AsUInt.Value, array[2].AsArray.Select(a => a.AsString).ToList(), array[3].AsArray.Select(a => a.AsBoolean.Value).ToList(), array[4].AsArray.Select(a => a.AsArray.Select(b => WordScorePairDTO.FromParam(b)).ToList()).ToList(), array[5].AsArray?.Select(a => a.AsArray.Select(b => WordScorePairDTO.FromParam(b)).ToList()).ToList(), array[6].AsDateTime.Value, array[7].AsBoolean.Value, (byte)array[8].AsUInt.Value, array[9].AsBoolean.Value, array[10].AsBoolean.Value, array[11].AsTimeSpan);
         }
     }
 
     [Orleans.Concurrency.Immutable]
-    public class SimplifiedGameInfo
+    public class SimplifiedGameInfoDTO
     {
-        public SimplifiedGameInfo(System.Guid gameID, GameState gameState, string? otherPlayerName, bool myTurn, byte myScore, byte theirScore, bool winnerOfExpiredGame)
+        public SimplifiedGameInfoDTO(System.Guid gameID, GameState gameState, string? otherPlayerName, bool myTurn, byte myScore, byte theirScore, bool winnerOfExpiredGame, System.TimeSpan? expiryTimeRemaining)
         {
             this.GameID = gameID;
             this.GameState = gameState;
@@ -354,6 +356,7 @@ namespace FLGrainInterfaces
             this.MyScore = myScore;
             this.TheirScore = theirScore;
             this.WinnerOfExpiredGame = winnerOfExpiredGame;
+            this.ExpiryTimeRemaining = expiryTimeRemaining;
         }
 
         public System.Guid GameID { get; }
@@ -363,15 +366,16 @@ namespace FLGrainInterfaces
         public byte MyScore { get; }
         public byte TheirScore { get; }
         public bool WinnerOfExpiredGame { get; }
+        public System.TimeSpan? ExpiryTimeRemaining { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.Guid(GameID), LightMessage.Common.Messages.Param.UEnum(GameState), LightMessage.Common.Messages.Param.String(OtherPlayerName), LightMessage.Common.Messages.Param.Boolean(MyTurn), LightMessage.Common.Messages.Param.UInt(MyScore), LightMessage.Common.Messages.Param.UInt(TheirScore), LightMessage.Common.Messages.Param.Boolean(WinnerOfExpiredGame));
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.Guid(GameID), LightMessage.Common.Messages.Param.UEnum(GameState), LightMessage.Common.Messages.Param.String(OtherPlayerName), LightMessage.Common.Messages.Param.Boolean(MyTurn), LightMessage.Common.Messages.Param.UInt(MyScore), LightMessage.Common.Messages.Param.UInt(TheirScore), LightMessage.Common.Messages.Param.Boolean(WinnerOfExpiredGame), LightMessage.Common.Messages.Param.TimeSpan(ExpiryTimeRemaining));
 
-        public static SimplifiedGameInfo FromParam(LightMessage.Common.Messages.Param param)
+        public static SimplifiedGameInfoDTO FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new SimplifiedGameInfo(array[0].AsGuid.Value, array[1].AsUEnum<GameState>().Value, array[2].AsString, array[3].AsBoolean.Value, (byte)array[4].AsUInt.Value, (byte)array[5].AsUInt.Value, array[6].AsBoolean.Value);
+            return new SimplifiedGameInfoDTO(array[0].AsGuid.Value, array[1].AsUEnum<GameState>().Value, array[2].AsString, array[3].AsBoolean.Value, (byte)array[4].AsUInt.Value, (byte)array[5].AsUInt.Value, array[6].AsBoolean.Value, array[7].AsTimeSpan);
         }
     }
 

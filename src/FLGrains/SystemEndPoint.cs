@@ -28,7 +28,7 @@ namespace FLGrains
             this.configReader = configReader;
         }
 
-        protected override async Task<(OwnPlayerInfo playerInfo, ConfigValuesDTO configData, IEnumerable<GoldPackConfigDTO> goldPacks)> GetStartupInfo(Guid clientID)
+        protected override async Task<(OwnPlayerInfoDTO playerInfo, ConfigValuesDTO configData, IEnumerable<GoldPackConfigDTO> goldPacks)> GetStartupInfo(Guid clientID)
         {
             var playerInfo = await GrainFactory.GetGrain<IPlayer>(clientID).PerformStartupTasksAndGetInfo();
             var config = configReader.Config;

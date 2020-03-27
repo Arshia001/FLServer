@@ -20,7 +20,7 @@ namespace FLGrainInterfaces
 
     public class PlayerInfoHelper
     {
-        public static Task<PlayerInfo> GetInfo(IGrainFactory grainFactory, Guid playerID) => grainFactory.GetGrain<IPlayer>(playerID).GetPlayerInfo();
+        public static Task<PlayerInfoDTO> GetInfo(IGrainFactory grainFactory, Guid playerID) => grainFactory.GetGrain<IPlayer>(playerID).GetPlayerInfo();
         public static Task<string> GetName(IGrainFactory grainFactory, Guid playerID) => grainFactory.GetGrain<IPlayer>(playerID).GetName();
     }
 
@@ -129,15 +129,15 @@ namespace FLGrainInterfaces
     [BondSerializationTag("@p")]
     public interface IPlayer : IGrainWithGuidKey
     {
-        Task<OwnPlayerInfo> PerformStartupTasksAndGetInfo();
+        Task<OwnPlayerInfoDTO> PerformStartupTasksAndGetInfo();
 
         Task<string> GetName();
-        Task<PlayerInfo> GetPlayerInfo();
-        Task<OwnPlayerInfo> GetOwnPlayerInfo();
-        Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo();
+        Task<PlayerInfoDTO> GetPlayerInfo();
+        Task<OwnPlayerInfoDTO> GetOwnPlayerInfo();
+        Task<PlayerLeaderBoardInfoDTO> GetLeaderBoardInfo();
         Task<(uint score, uint level)> GetMatchMakingInfo();
         Task<uint> GetScore();
-        Task<(PlayerInfo info, bool[] haveCategoryAnswers)> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories);
+        Task<(PlayerInfoDTO info, bool[] haveCategoryAnswers)> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories);
 
         Task<bool> SetUsername(string username);
         Task<RegistrationResult> PerformRegistration(string username, string email, string password);
@@ -149,13 +149,13 @@ namespace FLGrainInterfaces
         Task<bool> ValidatePasswordRecoveryToken(string token);
         Task<UpdatePasswordViaRecoveryTokenResult> UpdatePasswordViaRecoveryToken(string token, string newPassword);
 
-        Task AddStats(List<StatisticValue> values);
+        Task AddStats(List<StatisticValueDTO> values);
 
         Task<Immutable<IReadOnlyList<IGame>>> GetGames();
         Task ClearFinishedGames();
         Task<(bool canEnter, Guid? lastOpponentID)> CheckCanEnterGameAndGetLastOpponentID();
         Task<byte> JoinGameAsFirstPlayer(IGame game);
-        Task<(Guid opponentID, byte numRounds)> JoinGameAsSecondPlayer(IGame game);
+        Task<(Guid opponentID, byte numRounds, TimeSpan? expiryTimeRemaining)> JoinGameAsSecondPlayer(IGame game);
         Task OnRoundCompleted(IGame game, uint myScore);
         Task OnRoundResult(IGame game, CompetitionResult result, ushort groupID);
         Task<(uint score, uint rank, uint level, uint xp, ulong gold)> OnGameResult(IGame game, CompetitionResult result, uint myScore, uint scoreGain, bool gameExpired);

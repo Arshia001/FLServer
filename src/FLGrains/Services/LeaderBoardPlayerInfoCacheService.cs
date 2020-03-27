@@ -23,20 +23,20 @@ namespace FLGrains.Services
             this.configReader = configReader;
         }
 
-        public async Task<IReadOnlyList<PlayerLeaderBoardInfo>> GetProfiles(Guid clientID, IReadOnlyList<LeaderBoardEntry> entries)
+        public async Task<IReadOnlyList<PlayerLeaderBoardInfoDTO>> GetProfiles(Guid clientID, IReadOnlyList<LeaderBoardEntry> entries)
         {
             // Cache user info for one hour, evict and update afterwards in case they update their profiles
             var cacheExpiration = DateTimeOffset.Now.AddHours(1);
             var numTop = configReader.Config.ConfigValues.LeaderBoardTopScoreCount * 3 / 2;
 
-            var profiles = new PlayerLeaderBoardInfo[entries.Count];
+            var profiles = new PlayerLeaderBoardInfoDTO[entries.Count];
             for (int Idx = 0; Idx < profiles.Length; ++Idx)
             {
                 if (entries[Idx].ID == clientID)
                     continue;
 
                 if (entries[Idx].Rank <= numTop)
-                    profiles[Idx] = (PlayerLeaderBoardInfo)leaderBoardInfoCache[entries[Idx].ID.ToString()];
+                    profiles[Idx] = (PlayerLeaderBoardInfoDTO)leaderBoardInfoCache[entries[Idx].ID.ToString()];
 
                 if (profiles[Idx] == null)
                 {

@@ -47,7 +47,7 @@ namespace FLGrains
 
         public override Task OnDeactivateAsync() => state.PerformLazyPersistIfPending();
 
-        public async Task<OwnPlayerInfo> PerformStartupTasksAndGetInfo()
+        public async Task<OwnPlayerInfoDTO> PerformStartupTasksAndGetInfo()
         {
             await state.UseStateAndMaybePersist(state =>
             {
@@ -96,7 +96,7 @@ namespace FLGrains
             return Task.CompletedTask;
         }
 
-        public Task<PlayerInfo> GetPlayerInfo() => Task.FromResult(GetPlayerInfoImpl());
+        public Task<PlayerInfoDTO> GetPlayerInfo() => Task.FromResult(GetPlayerInfoImpl());
 
         Task<string> IPlayer.GetName() => state.UseState(state => Task.FromResult(state.Name));
 
@@ -117,13 +117,13 @@ namespace FLGrains
                 _ => false
             };
 
-        public Task<OwnPlayerInfo> GetOwnPlayerInfo() =>
+        public Task<OwnPlayerInfoDTO> GetOwnPlayerInfo() =>
             state.UseState(async state =>
             {
                 var config = configReader.Config;
                 var timeTillNextReward = config.ConfigValues.RoundWinRewardInterval - (DateTime.Now - state.LastRoundWinRewardTakeTime);
 
-                return new OwnPlayerInfo
+                return new OwnPlayerInfoDTO
                 (
                     name: state.Name,
                     email: state.Email,
@@ -137,7 +137,7 @@ namespace FLGrains
                     gold: state.Gold,
                     infinitePlayTimeRemaining: IsInfinitePlayActive ? InfinitePlayTimeRemaining : default(TimeSpan?),
                     statisticsValues: state.StatisticsValues.Where(kv => ShouldReplicateStatToClient(kv.Key.Statistic))
-                        .Select(kv => new StatisticValue(kv.Key.Statistic, kv.Key.Parameter, kv.Value)),
+                        .Select(kv => new StatisticValueDTO(kv.Key.Statistic, kv.Key.Parameter, kv.Value)),
                     isRegistered: IsRegistered(),
                     notificationsEnabled: state.NotificationsEnabled,
                     tutorialProgress: state.TutorialProgress
@@ -146,13 +146,13 @@ namespace FLGrains
 
         bool IsRegistered() => state.UseState(state => state.Email != null && state.PasswordHash != null);
 
-        public Task<PlayerLeaderBoardInfo> GetLeaderBoardInfo() => state.UseState(state => Task.FromResult(new PlayerLeaderBoardInfo(state.Name)));
+        public Task<PlayerLeaderBoardInfoDTO> GetLeaderBoardInfo() => state.UseState(state => Task.FromResult(new PlayerLeaderBoardInfoDTO(state.Name)));
 
         public Task<(uint score, uint level)> GetMatchMakingInfo() => state.UseState(state => Task.FromResult((state.Score, state.Level)));
 
         public Task<uint> GetScore() => state.UseState(state => Task.FromResult(state.Score));
 
-        PlayerInfo GetPlayerInfoImpl() => state.UseState(state => new PlayerInfo(id: this.GetPrimaryKey(), name: state.Name, level: state.Level));
+        PlayerInfoDTO GetPlayerInfoImpl() => state.UseState(state => new PlayerInfoDTO(id: this.GetPrimaryKey(), name: state.Name, level: state.Level));
 
         LevelConfig GetLevelConfig(ReadOnlyConfigData config) =>
             state.UseState(state =>
@@ -330,7 +330,7 @@ namespace FLGrains
                 {
                     state.StatisticsValues[new StatisticWithParameter(stat, parameter)] = value;
                     if (ShouldReplicateStatToClient(stat))
-                        systemEndPoint?.SendStatisticUpdated(this.GetPrimaryKey(), new StatisticValue(stat, parameter, value))?.Ignore();
+                        systemEndPoint?.SendStatisticUpdated(this.GetPrimaryKey(), new StatisticValueDTO(stat, parameter, value))?.Ignore();
                 }
             });
 
@@ -340,7 +340,7 @@ namespace FLGrains
 
         void AddStatImpl(ulong value, Statistics stat, int parameter = 0) => UpdateStatImpl(stat, parameter, state.UseState(state => GetStat(state, stat)) + value);
 
-        public Task AddStats(List<StatisticValue> values)
+        public Task AddStats(List<StatisticValueDTO> values)
         {
             foreach (var val in values)
                 AddStatImpl(val.Value, val.Statistic, val.Parameter);
@@ -379,7 +379,7 @@ namespace FLGrains
                 return result;
             });
 
-        public Task<(Guid opponentID, byte numRounds)> JoinGameAsSecondPlayer(IGame game) =>
+        public Task<(Guid opponentID, byte numRounds, TimeSpan? expiryTimeRemaining)> JoinGameAsSecondPlayer(IGame game) =>
             state.UseStateAndPersist(async state =>
             {
                 var result = await game.AddSecondPlayer(GetPlayerInfoImpl());
@@ -615,7 +615,7 @@ namespace FLGrains
                 return Task.FromResult((words.AsEnumerable(), gold));
             });
 
-        public Task<(PlayerInfo info, bool[] haveCategoryAnswers)> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories) =>
+        public Task<(PlayerInfoDTO info, bool[] haveCategoryAnswers)> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories) =>
             state.UseState(state =>
             {
                 var ownedCategories = new bool[categories.Count];

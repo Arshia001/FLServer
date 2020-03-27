@@ -101,7 +101,7 @@ namespace FLGrains
 
         bool Within(uint a, uint b, uint delta) => Math.Abs((int)a - (int)b) <= delta;
 
-        public async Task<(Guid gameID, PlayerInfo? opponentInfo, byte numRounds, bool myTurnFirst)> FindOrCreateGame(IPlayer player, Guid? lastOpponentID)
+        public async Task<(Guid gameID, PlayerInfoDTO? opponentInfo, byte numRounds, bool myTurnFirst, TimeSpan? expiryTimeRemaining)> FindOrCreateGame(IPlayer player, Guid? lastOpponentID)
         {
             var config = configReader.Config;
             var (score, level) = await player.GetMatchMakingInfo();
@@ -126,7 +126,7 @@ namespace FLGrains
                         continue;
                     }
 
-                    var (opponentID, numRounds) = await player.JoinGameAsSecondPlayer(game);
+                    var (opponentID, numRounds, expiryTimeRemaining) = await player.JoinGameAsSecondPlayer(game);
 
                     if (opponentID == Guid.Empty)
                     {
@@ -137,7 +137,7 @@ namespace FLGrains
 
                     var opponentInfo = await PlayerInfoHelper.GetInfo(GrainFactory, opponentID);
                     entries.Remove(match);
-                    return (game.GetPrimaryKey(), opponentInfo, numRounds, false);
+                    return (game.GetPrimaryKey(), opponentInfo, numRounds, false, expiryTimeRemaining);
                 }
                 else
                 {
@@ -151,7 +151,7 @@ namespace FLGrains
 
                     var numRounds = await player.JoinGameAsFirstPlayer(gameToEnter);
 
-                    return (gameToEnter.GetPrimaryKey(), null, numRounds, true);
+                    return (gameToEnter.GetPrimaryKey(), null, numRounds, true, default);
                 }
             }
         }

@@ -12,10 +12,10 @@ namespace FLGameLogic
 
         public static GameLogicClient CreateFromState(int numRounds, IEnumerable<string> categories,
             IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes, int firstTurn, bool expired,
-            int expiredFor)
+            int expiredFor, TimeSpan? expiryTimeRemaining)
         {
             var result = new GameLogicClient(firstTurn);
-            result.RestoreGameState(numRounds, categories, wordsPlayed, turnEndTimes, expired, expiredFor);
+            result.RestoreGameState(numRounds, categories, wordsPlayed, turnEndTimes, expired, expiredFor, expiryTimeRemaining);
             return result;
         }
 
@@ -30,6 +30,8 @@ namespace FLGameLogic
         public override bool Expired => expired;
 
         public override int ExpiredFor => expiredFor;
+
+        public DateTime? ExpiryTime { get; set; }
 
         private GameLogicClient(int firstTurn) : base(firstTurn) { }
 
@@ -82,7 +84,7 @@ namespace FLGameLogic
 
         public void RestoreGameState(int numRounds, IEnumerable<string> categories,
             IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes, bool expired,
-            int expiredFor)
+            int expiredFor, TimeSpan? expiryTimeRemaining)
         {
             this.categories = categories.ToList();
             if (this.categories.Count < numRounds)
@@ -90,6 +92,7 @@ namespace FLGameLogic
 
             this.expired = expired;
             this.expiredFor = expiredFor;
+            ExpiryTime = expiryTimeRemaining.HasValue ? DateTime.Now + expiryTimeRemaining.Value : default(DateTime?);
 
             base.RestoreGameState(wordsPlayed, turnEndTimes);
         }

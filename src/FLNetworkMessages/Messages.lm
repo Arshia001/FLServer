@@ -117,7 +117,7 @@ enum SetPasswordResult
 	PasswordNotComplexEnough
 }
 
-contract PlayerLeaderBoardInfo
+contract PlayerLeaderBoardInfoDTO
 {
 	Name: string;
 	//!! avatar
@@ -125,12 +125,12 @@ contract PlayerLeaderBoardInfo
 
 contract LeaderBoardEntryDTO
 {
-	Info: PlayerLeaderBoardInfo?;
+	Info: PlayerLeaderBoardInfoDTO?;
 	Rank: u64;
 	Score: u64;
 }
 
-contract PlayerInfo
+contract PlayerInfoDTO
 {
 	ID: guid;
 	Name: string;
@@ -138,14 +138,14 @@ contract PlayerInfo
 	//!! avatar
 }
 
-contract StatisticValue
+contract StatisticValueDTO
 {
 	Statistic: Statistics;
 	Parameter: i32;
 	Value: u64;
 }
 
-contract OwnPlayerInfo
+contract OwnPlayerInfoDTO
 {
 	Name: string;
 	Email: string?;
@@ -158,7 +158,7 @@ contract OwnPlayerInfo
 	CurrentNumRoundsWonForReward: u32;
 	NextRoundWinRewardTimeRemaining: timespan;
 	InfinitePlayTimeRemaining: timespan?;
-	StatisticsValues: StatisticValue[];
+	StatisticsValues: StatisticValueDTO[];
 	IsRegistered: bool;
 	NotificationsEnabled: bool;
 	TutorialProgress: u64;
@@ -170,9 +170,9 @@ contract WordScorePairDTO castfrom(FLGameLogic.WordScorePair)
 	Score, WordScorePair.score: u8;
 }
 
-contract GameInfo
+contract GameInfoDTO
 {
-    OtherPlayerInfo: PlayerInfo?;
+    OtherPlayerInfo: PlayerInfoDTO?;
     NumRounds: u8;
     Categories: string[];
 	HaveCategoryAnswers: bool[];
@@ -183,9 +183,10 @@ contract GameInfo
     NumTurnsTakenByOpponent: u8;
 	Expired: bool;
 	ExpiredForMe: bool;
+	ExpiryTimeRemaining: timespan?;
 }
 
-contract SimplifiedGameInfo
+contract SimplifiedGameInfoDTO
 {
     GameID: guid;
     GameState: GameState;
@@ -194,6 +195,7 @@ contract SimplifiedGameInfo
     MyScore: u8;
     TheirScore: u8;
 	WinnerOfExpiredGame: bool;
+	ExpiryTimeRemaining: timespan?;
 }
 
 contract ConfigValuesDTO castfrom(FLGrainInterfaces.Configuration.ConfigValues server oneway)
@@ -243,7 +245,7 @@ endpoint System sys
 
 	notification StatisticUpdated st
 	{
-		stat: StatisticValue;
+		stat: StatisticValueDTO;
 	}
 
 	request GetStartupInfo st
@@ -251,7 +253,7 @@ endpoint System sys
 		{ }
 		->
 		{
-			playerInfo: OwnPlayerInfo;
+			playerInfo: OwnPlayerInfoDTO;
 			configData: ConfigValuesDTO;
 			goldPacks: GoldPackConfigDTO[];
 		}
@@ -377,7 +379,8 @@ endpoint Game gm
 	notification OpponentJoined opj
 	{
 		gameID: guid;
-		opponentInfo: PlayerInfo;
+		opponentInfo: PlayerInfoDTO;
+		expiryTimeRemaining: timespan?;
 	}
 
 	notification OpponentTurnEnded opr
@@ -385,6 +388,7 @@ endpoint Game gm
 		gameID: guid;
 		roundNumber: u8;
 		wordsPlayed: WordScorePairDTO[]?;
+		expiryTimeRemaining: timespan?;
 	}
 
 	notification GameEnded gend
@@ -416,9 +420,10 @@ endpoint Game gm
 		->
 		{
 			gameID: guid;
-			opponentInfo: PlayerInfo?;
+			opponentInfo: PlayerInfoDTO?;
 			numRounds: u8;
 			myTurnFirst: bool;
+			expiryTimeRemaining: timespan?;
 		}
 	}
 
@@ -508,6 +513,7 @@ endpoint Game gm
 		->
 		{
 			opponentWords: WordScorePairDTO[]?;
+			expiryTimeRemaining: timespan?;
 		}
 	}
 
@@ -518,7 +524,7 @@ endpoint Game gm
 		}
 		->
 		{
-			gameInfo: GameInfo;
+			gameInfo: GameInfoDTO;
 		}
 	}
 
@@ -527,7 +533,7 @@ endpoint Game gm
 		{ }
 		->
 		{
-			games: SimplifiedGameInfo[];
+			games: SimplifiedGameInfoDTO[];
 		}
 	}
 

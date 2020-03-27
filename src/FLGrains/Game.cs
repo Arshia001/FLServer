@@ -147,7 +147,7 @@ namespace FLGrains
             });
         }
 
-        public Task<(Guid opponentID, byte numRounds)> AddSecondPlayer(PlayerInfo playerTwo) =>
+        public Task<(Guid opponentID, byte numRounds, TimeSpan? expiryTimeRemaining)> AddSecondPlayer(PlayerInfoDTO playerTwo) =>
             state.UseStateAndPersist(async state =>
             {
                 var gameState = GetStateInternal(state);
@@ -155,7 +155,7 @@ namespace FLGrains
                     throw new VerbatimException("Game not ready to accept second player");
 
                 if (gameState != GameState.WaitingForSecondPlayer)
-                    return (Guid.Empty, default(byte));
+                    return (Guid.Empty, default(byte), default(TimeSpan?));
 
                 if (state.PlayerIDs[0] == playerTwo.ID)
                     throw new VerbatimException("Player cannot join game with self");
@@ -166,10 +166,14 @@ namespace FLGrains
 
                 await RegisterExpiryReminderIfNecessary();
 
-                await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentJoined(state.PlayerIDs[0], this.GetPrimaryKey(), playerTwo);
+                var timeRemaining = GetExpiryTimeRemaining();
 
-                return (state.PlayerIDs[0], (byte)gameLogic.NumRounds);
+                await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentJoined(state.PlayerIDs[0], (this).GetPrimaryKey(), playerTwo, timeRemaining);
+
+                return (state.PlayerIDs[0], (byte)gameLogic.NumRounds, timeRemaining);
             });
+
+        TimeSpan? GetExpiryTimeRemaining() => GameLogic.ExpiryTime == null ? default(TimeSpan?) : GameLogic.ExpiryTime.Value - DateTime.Now;
 
         (bool shouldChooseCategory, string? category, int roundIndex, TimeSpan? roundTime) StartRound(int playerIndex)
         {
@@ -244,7 +248,7 @@ namespace FLGrains
                     throw new VerbatimException($"Specified group {groupID} is not a valid choice out of ({string.Join(", ", state.GroupChoices)})");
             });
 
-            GrainFactory.GetGrain<IPlayer>(id).AddStats(new List<StatisticValue> { new StatisticValue(Statistics.GroupChosen_Param, groupID, 1) }).Ignore();
+            GrainFactory.GetGrain<IPlayer>(id).AddStats(new List<StatisticValueDTO> { new StatisticValueDTO(Statistics.GroupChosen_Param, groupID, 1) }).Ignore();
 
             var config = configReader.Config;
 
@@ -302,7 +306,7 @@ namespace FLGrains
                 var myID = this.GetPrimaryKey();
 
                 var sentEndTurn = await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentTurnEnded(state.PlayerIDs[1 - playerIndex], myID, (byte)roundIndex,
-                    opponentFinishedThisRound ? GameLogic.GetPlayerAnswers(playerIndex, roundIndex).Select(w => (WordScorePairDTO)w).ToList() : null);
+                    opponentFinishedThisRound ? GameLogic.GetPlayerAnswers(playerIndex, roundIndex).Select(w => (WordScorePairDTO)w).ToList() : null, GetExpiryTimeRemaining());
 
                 if (!sentEndTurn && !opponentFinishedThisRound)
                     await GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[1 - playerIndex]).SendMyTurnStartedNotification(state.PlayerIDs[playerIndex]);
@@ -450,14 +454,14 @@ namespace FLGrains
                 GrainFactory.GetGrain<ICategoryStatisticsAggregationWorker>(result.category.CategoryName)
                     .AddDelta(new CategoryStatisticsDelta.WordUsage(result.corrected)).Ignore();
 
-            var stats = new List<StatisticValue>();
+            var stats = new List<StatisticValueDTO>();
             if (result.result == PlayWordResult.Duplicate)
-                stats.Add(new StatisticValue(Statistics.WordsPlayedDuplicate, 0, 1));
+                stats.Add(new StatisticValueDTO(Statistics.WordsPlayedDuplicate, 0, 1));
             else
-                stats.Add(new StatisticValue(Statistics.WordsPlayedScore_Param, result.score, 1));
+                stats.Add(new StatisticValueDTO(Statistics.WordsPlayedScore_Param, result.score, 1));
 
             if (result.corrected != word)
-                stats.Add(new StatisticValue(Statistics.WordsCorrected, result.score, 1));
+                stats.Add(new StatisticValueDTO(Statistics.WordsCorrected, result.score, 1));
 
             GrainFactory.GetGrain<IPlayer>(id).AddStats(stats).Ignore();
 
@@ -477,7 +481,7 @@ namespace FLGrains
             return GrainFactory.GetGrain<ICategoryStatisticsAggregatorCache>(category.CategoryName).GetScore(word);
         }
 
-        public async Task<Immutable<IEnumerable<WordScorePair>?>> EndRound(Guid playerID)
+        public async Task<Immutable<(IEnumerable<WordScorePair>? opponentWords, TimeSpan? expiryTimeRemaining)>> EndRound(Guid playerID)
         {
             int index = Index(playerID);
 
@@ -488,9 +492,9 @@ namespace FLGrains
             await HandleEndTurn(index, turnIndex);
 
             if (GameLogic.PlayerFinishedTurn(1 - index, turnIndex))
-                return GameLogic.GetPlayerAnswers(1 - index, turnIndex).AsEnumerable().AsNullable().AsImmutable();
+                return (GameLogic.GetPlayerAnswers(1 - index, turnIndex).AsEnumerable().AsNullable(), GetExpiryTimeRemaining()).AsImmutable();
             else
-                return default(IEnumerable<WordScorePair>).AsImmutable();
+                return (default(IEnumerable<WordScorePair>), GetExpiryTimeRemaining()).AsImmutable();
         }
 
         public Task<TimeSpan?> IncreaseRoundTime(Guid playerID) => state.UseStateAndMaybePersist(s =>
@@ -569,7 +573,7 @@ namespace FLGrains
 
         public Task<Guid[]> GetPlayerIDs() => state.UseState(state => Task.FromResult(state.PlayerIDs));
 
-        public Task<GameInfo> GetGameInfo(Guid playerID) =>
+        public Task<GameInfoDTO> GetGameInfo(Guid playerID) =>
             state.UseState(async state =>
             {
                 if (GetStateInternal(state) == GameState.New)
@@ -585,7 +589,7 @@ namespace FLGrains
 
                 var ownedCategories = await GrainFactory.GetGrain<IPlayer>(playerID).HaveAnswersForCategories(categories);
 
-                return new GameInfo
+                return new GameInfoDTO
                 (
                     otherPlayerInfo: playerInfo,
                     numRounds: (byte)GameLogic.Categories.Count,
@@ -597,11 +601,12 @@ namespace FLGrains
                     numTurnsTakenByOpponent: (byte)GameLogic.NumTurnsTakenByIncludingCurrent(1 - index),
                     haveCategoryAnswers: ownedCategories,
                     expired: GameLogic.Expired,
-                    expiredForMe: GameLogic.ExpiredFor == index
+                    expiredForMe: GameLogic.ExpiredFor == index,
+                    expiryTimeRemaining: GetStateInternal(state) == GameState.InProgress && GameLogic.ExpiryTime.HasValue ? GameLogic.ExpiryTime.Value - DateTime.Now : default(TimeSpan?)
                 );
             });
 
-        public Task<SimplifiedGameInfo> GetSimplifiedGameInfo(Guid playerID) => 
+        public Task<SimplifiedGameInfoDTO> GetSimplifiedGameInfo(Guid playerID) => 
             state.UseState(async state =>
             {
                 int index = Index(playerID);
@@ -617,7 +622,7 @@ namespace FLGrains
                     await GrainFactory.GetGrain<IMatchMakingGrain>(0).AddGame(this.AsReference<IGame>(), GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]));
                 }
 
-                return new SimplifiedGameInfo
+                return new SimplifiedGameInfoDTO
                 (
                     gameID: this.GetPrimaryKey(),
                     gameState: gameState,
@@ -625,7 +630,8 @@ namespace FLGrains
                     myTurn: GameLogic.Turn == index,
                     myScore: GameLogic.GetNumRoundsWon(index),
                     theirScore: GameLogic.GetNumRoundsWon(1 - index),
-                    winnerOfExpiredGame: gameState == GameState.Expired && isWinner
+                    winnerOfExpiredGame: gameState == GameState.Expired && isWinner,
+                    expiryTimeRemaining: gameState == GameState.InProgress && GameLogic.ExpiryTime.HasValue ? GameLogic.ExpiryTime.Value - DateTime.Now : default(TimeSpan?)
                 );
             });
     }

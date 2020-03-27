@@ -8,6 +8,6 @@ namespace FLGrains.ServiceInterfaces
 {
     public interface ILeaderBoardPlayerInfoCacheService
     {
-        Task<IReadOnlyList<PlayerLeaderBoardInfo>> GetProfiles(Guid clientID, IReadOnlyList<LeaderBoardEntry> entries);
+        Task<IReadOnlyList<PlayerLeaderBoardInfoDTO>> GetProfiles(Guid clientID, IReadOnlyList<LeaderBoardEntry> entries);
     }
 }
