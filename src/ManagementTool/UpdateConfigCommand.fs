@@ -11,18 +11,18 @@ type UpdateConfig = {
 }
 
 let runUpdateConfig (cmd: UpdateConfig) =
-    let client = lazy buildOrleansClient ()
-
     match cmd.jsonConfig with
     | Some file ->
         if not <| File.Exists file then raise (ToolFinished <| sprintf "Cannot find file '%s'" file)
 
         let configText = File.ReadAllText file
-        client.Value.GetGrain<ISystemConfig>(0L).UploadConfig(configText) |> runSynchronously
-        printfn "Config updated successfully"
+        use client = buildOrleansClient ()
+        client.GetGrain<ISystemConfig>(0L).UploadConfig(configText) |> runSynchronously
+        raise <| ToolFinished "Config updated successfully"
     | None ->
-        client.Value.GetGrain<ISystemConfig>(0L).UpdateConfigFromDatabase() |> runSynchronously
-        printfn "Config updated successfully"
+        use client = buildOrleansClient ()
+        client.GetGrain<ISystemConfig>(0L).UpdateConfigFromDatabase() |> runSynchronously
+        raise <| ToolFinished "Config updated successfully"
 
 let runUpdateFromDatabase () = runUpdateConfig { jsonConfig = None }
 

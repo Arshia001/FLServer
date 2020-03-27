@@ -8,8 +8,8 @@ open FLGrainInterfaces.ServerStatistics
 type ConnectedClients() = class end
 
 let runConnectedClients (_: ConnectedClients) =
-    let client = buildOrleansClient ()
+    use client = buildOrleansClient ()
 
     let count = client.GetGrain<IServerStatistics>(0L).GetConnectedClientCount().Result
 
-    printfn "Connected clients across all server(s): %i" count
+    sprintf "Connected clients across all server(s): %i" count |> ToolFinished |> raise
