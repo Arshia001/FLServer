@@ -15,8 +15,6 @@ NEXT UPDATE:
 Optional / for later
 *************************************************
 
-CLIENT Interesting/Uninteresting data per player to disallow duplicated voting -> store on client, too much work yielding too little value for server
-
 SERVER Two clients connecting with same ID causes the server to keep disconnecting them in favor of each other, one of them should back down
 
 SERVER An mgmtool command to disable an existing category

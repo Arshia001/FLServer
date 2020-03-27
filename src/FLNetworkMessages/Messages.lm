@@ -210,6 +210,20 @@ contract ConfigValuesDTO castfrom(FLGrainInterfaces.Configuration.ConfigValues s
 	InfinitePlayPrice: u32;
 	NumTimeExtensionsPerRound: u32;
 	RefreshGroupsAllowedPerRound: u8;
+	InfinitePlayTime: timespan;
+	NumRoundsPerGame: u8;
+	NumGroupChoices: u8;
+	ClientTimePerRound: timespan;
+	GameInactivityTimeout: timespan;
+	MaxScoreGain: u32;
+	MinScoreGain: u32;
+	LoserScoreLossRatio: f32;
+	WinnerXPGain: u32;
+	LoserXPGain: u32;
+	DrawXPGain: u32;
+	WinnerGoldGain: u32;
+	LoserGoldGain: u32;
+	DrawGoldGain: u32;
 }
 
 contract GoldPackConfigDTO castfrom(FLGrainInterfaces.Configuration.GoldPackConfig server oneway)
