@@ -43,7 +43,7 @@
   "ConfigValues": {
     "NumRoundsPerGame": 5,
 
-    "GetAnswersPrice": 150,
+    "GetAnswersPrice": 300,
 
     "NumGroupChoices": 3,
     "PriceToRefreshGroups": 150,
@@ -91,7 +91,7 @@
 
     "InitialGold": 200,
 
-    "LeaderBoardTopScoreCount": 200,
+    "LeaderBoardTopScoreCount": 100,
     "LeaderBoardAroundScoreCount": 10
   },
   "GoldPacks": [
