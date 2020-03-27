@@ -1,4 +1,5 @@
 ﻿using Bond;
+using FLGrainInterfaces.Utility;
 using LightMessage.Common.Messages;
 using Orleans;
 using Orleans.Concurrency;
@@ -124,6 +125,12 @@ namespace FLGrainInterfaces
 
         [Id(21)]
         public ulong TutorialProgress { get; set; }
+
+        [Id(22)]
+        public TimeBasedValueState<uint, Unit>? VideoAdsWatchedTodayState { get; set; }
+
+        [Id(23)]
+        public DateTime? LastVideoAdWatchedTime { get; set; }
     }
 
     [BondSerializationTag("@p")]
@@ -181,6 +188,8 @@ namespace FLGrainInterfaces
         Task SendGameEndedNotification(Guid opponentID);
 
         Task SetTutorialProgress(ulong progress);
+
+        Task<ulong> GiveVideoAdReward();
     }
 
     public static class PlayerIndex

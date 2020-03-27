@@ -92,7 +92,11 @@
     "InitialGold": 200,
 
     "LeaderBoardTopScoreCount": 100,
-    "LeaderBoardAroundScoreCount": 10
+    "LeaderBoardAroundScoreCount": 10,
+
+    "VideoAdGold": 50,
+    "VideoAdInterval": "00:00:20",
+    "VideoAdsAllowedPerDay": 10
   },
   "GoldPacks": [
     {

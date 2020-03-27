@@ -137,6 +137,14 @@ namespace FLGrains
             await GrainFactory.GetGrain<IPlayer>(input.ClientID).SetTutorialProgress(array[0].AsUInt.Value);
             return Success();
         }
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("vadr")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_GiveVideoAdReward(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).GiveVideoAdReward();
+            return Success(LightMessage.Common.Messages.Param.UInt(result));
+        }
     }
 
     [LightMessage.OrleansUtils.GrainInterfaces.EndPointNameAttribute("sg"), Orleans.Concurrency.StatelessWorkerAttribute(128)]

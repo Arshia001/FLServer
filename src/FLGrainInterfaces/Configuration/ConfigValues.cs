@@ -55,6 +55,10 @@ namespace FLGrainInterfaces.Configuration
         public uint LeaderBoardTopScoreCount { get; private set; }
         public uint LeaderBoardAroundScoreCount { get; private set; }
 
+        public uint VideoAdGold { get; private set; }
+        public TimeSpan VideoAdInterval { get; private set; }
+        public uint VideoAdsAllowedPerDay { get; private set; }
+
         static void FailWith(string error) => throw new ArgumentException(error);
 
         public static void Validate(ConfigValues data)
@@ -92,6 +96,9 @@ namespace FLGrainInterfaces.Configuration
             CheckNotEqual(data.WinnerXPGain, 0u, "winner XP gain");
             CheckNotEqual(data.WordScoreThreshold2, 0, "word score threshold 2");
             CheckNotEqual(data.WordScoreThreshold3, 0, "word score threshold 3");
+            CheckNotEqual(data.VideoAdGold, 0u, "video ad gold");
+            CheckNotEqual(data.VideoAdInterval, TimeSpan.Zero, "video ad interval");
+            CheckNotEqual(data.VideoAdsAllowedPerDay, 0u, "video ad allowed per day");
         }
     }
 }

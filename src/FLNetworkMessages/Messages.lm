@@ -226,6 +226,7 @@ contract ConfigValuesDTO castfrom(FLGrainInterfaces.Configuration.ConfigValues s
 	WinnerGoldGain: u32;
 	LoserGoldGain: u32;
 	DrawGoldGain: u32;
+	VideoAdGold: u32;
 }
 
 contract GoldPackConfigDTO castfrom(FLGrainInterfaces.Configuration.GoldPackConfig server oneway)
@@ -345,6 +346,8 @@ endpoint System sys
 	request ClearFinishedGames cfg via Player(clientid).ClearFinishedGames() { { } -> noresponse }
 
 	request SetTutorialProgress tutp via Player(clientid).SetTutorialProgress(progress) { { progress: u64; } -> {} }
+
+	request GiveVideoAdReward vadr via Player(clientid).GiveVideoAdReward() { {} -> { totalGold: u64; } }
 }
 
 endpoint Suggestion sg

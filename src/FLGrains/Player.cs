@@ -1,5 +1,6 @@
 ﻿using FLGrainInterfaces;
 using FLGrainInterfaces.Configuration;
+using FLGrainInterfaces.Utility;
 using FLGrains.ServiceInterfaces;
 using FLGrains.Utility;
 using LightMessage.OrleansUtils.Grains;
@@ -23,6 +24,7 @@ namespace FLGrains
         readonly ISystemSettingsProvider systemSettings;
         readonly IEmailService emailService;
         readonly GrainStateWrapper<PlayerState> state;
+        readonly DailyResetValue<uint> videoAdsWatchedToday;
         ISystemEndPoint? systemEndPoint;
 
         public Player(
@@ -36,12 +38,28 @@ namespace FLGrains
             this.fcmNotificationService = fcmNotificationService;
             this.systemSettings = systemSettings;
             this.emailService = emailService;
+
             this.state = new GrainStateWrapper<PlayerState>(state);
+            this.state.Persist += State_Persist;
+
+            videoAdsWatchedToday = new DailyResetValue<uint>(0);
+        }
+
+        private void State_Persist(object sender, PersistStateEventArgs<PlayerState> e)
+        {
+            e.State.VideoAdsWatchedTodayState = videoAdsWatchedToday.Serialize();
         }
 
         public override Task OnActivateAsync()
         {
             systemEndPoint = GrainFactory.GetGrain<ISystemEndPoint>(0);
+
+            state.UseState(state =>
+            {
+                if (state.VideoAdsWatchedTodayState != null)
+                    videoAdsWatchedToday.Deserialize(state.VideoAdsWatchedTodayState);
+            });
+
             return base.OnActivateAsync();
         }
 
@@ -689,5 +707,25 @@ namespace FLGrains
         }
 
         public Task SetTutorialProgress(ulong progress) => state.UseStateAndPersist(s => s.TutorialProgress = progress);
+
+        public Task<ulong> GiveVideoAdReward() => state.UseStateAndMaybePersist(state =>
+        {
+            var now = DateTime.Now;
+            var config = configReader.Config.ConfigValues;
+
+            if (state.LastVideoAdWatchedTime.HasValue && now - state.LastVideoAdWatchedTime.Value < config.VideoAdInterval)
+                return (false, state.Gold);
+
+            var adsWatched = videoAdsWatchedToday.UpdateAndGetValue(now);
+
+            if (adsWatched >= config.VideoAdsAllowedPerDay)
+                return (false, state.Gold);
+
+            videoAdsWatchedToday.SetValue(adsWatched + 1, now);
+
+            state.LastVideoAdWatchedTime = now;
+            state.Gold += config.VideoAdGold;
+            return (true, state.Gold);
+        });
     }
 }
