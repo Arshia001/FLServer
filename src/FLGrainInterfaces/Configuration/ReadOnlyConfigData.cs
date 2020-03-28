@@ -81,29 +81,21 @@ namespace FLGrainInterfaces.Configuration
             return null;
         }
 
-        [DoesNotReturn] static void FailWith(string error) => throw new ArgumentException(error);
-
         public static void Validate(ConfigData data)
         {
-            static void CheckList<T>(IReadOnlyList<T>? list, string name)
-            {
-                if (list == null || list.Count == 0)
-                    FailWith($"No {name}");
-            }
-
-            CheckList(data.Groups, "groups");
-            CheckList(data.Categories, "categories");
-            CheckList(data.PlayerLevels, "player levels");
-            CheckList(data.GoldPacks, "gold packs");
+            Validation.CheckList(data.Groups, "groups");
+            Validation.CheckList(data.Categories, "categories");
+            Validation.CheckList(data.PlayerLevels, "player levels");
+            Validation.CheckList(data.GoldPacks, "gold packs");
 
             if (data.RenamedCategories == null)
-                FailWith("No renamed categories");
+                Validation.FailWith("No renamed categories");
 
             if (data.EditDistanceConfig == null || data.EditDistanceConfig.MaxDistanceToCorrectByLetterCount == null)
-                FailWith("No edit distance config");
+                Validation.FailWith("No edit distance config");
 
             if (data.ConfigValues == null)
-                FailWith("No config values");
+                Validation.FailWith("No config values");
 
             try
             {
@@ -111,13 +103,13 @@ namespace FLGrainInterfaces.Configuration
             }
             catch (Exception ex)
             {
-                FailWith($"Failed to index config data due to:\n{ex}");
+                Validation.FailWith($"Failed to index config data due to:\n{ex}");
             }
 
             ConfigValues.Validate(data.ConfigValues);
 
             if (data.Groups!.Count < data.ConfigValues.NumGroupChoices)
-                FailWith($"Too few groups, need at least {data.ConfigValues.NumGroupChoices}");
+                Validation.FailWith($"Too few groups, need at least {data.ConfigValues.NumGroupChoices}");
         }
     }
 }

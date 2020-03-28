@@ -42,6 +42,12 @@ namespace FLGrains
 
         [Id(6)]
         public int NumGroupRefreshesRemainingForThisRound { get; set; }
+
+        [Id(7)]
+        public int[] TimeExtensionsForEntireGame { get; set; } = new[] { 0, 0 };
+
+        [Id(8)]
+        public int[] WordsRevealedForThisRound { get; set; } = new[] { 0, 0 };
     }
 
     //?? Now, we only need a way to reactivate these if one of them goes down... Same old challenge.
@@ -225,7 +231,11 @@ namespace FLGrains
             }
             else
             {
-                await state.UseStateAndPersist(s => s.TimeExtensionsForThisRound[index] = 0);
+                await state.UseStateAndPersist(state => 
+                {
+                    state.TimeExtensionsForThisRound[index] = 0; 
+                    state.WordsRevealedForThisRound[index] = 0; 
+                });
 
                 return (category, await GrainFactory.GetGrain<IPlayer>(id).HaveAnswersForCategory(category), roundTime, false, Enumerable.Empty<GroupInfoDTO>());
             }
@@ -271,6 +281,7 @@ namespace FLGrains
             await state.UseStateAndPersist(state =>
             {
                 state.TimeExtensionsForThisRound[index] = 0;
+                state.WordsRevealedForThisRound[index] = 0;
                 state.GroupChooser = -1;
                 state.GroupChoices = null;
             });
@@ -497,41 +508,71 @@ namespace FLGrains
                 return (default(IEnumerable<WordScorePair>), GetExpiryTimeRemaining()).AsImmutable();
         }
 
-        public Task<TimeSpan?> IncreaseRoundTime(Guid playerID) => state.UseStateAndMaybePersist(s =>
-        {
-            var config = configReader.Config;
+        public Task<(ulong? gold, TimeSpan? remainingTime)> IncreaseRoundTime(Guid playerID) =>
+            state.UseStateAndMaybePersist(async state =>
+            {
+                var config = configReader.Config;
 
-            var index = Index(playerID);
-            if (s.TimeExtensionsForThisRound[index] >= config.ConfigValues.NumTimeExtensionsPerRound)
-                return (false, default(TimeSpan?));
+                var index = Index(playerID);
+                if (state.TimeExtensionsForThisRound[index] >= config.ConfigValues.NumTimeExtensionsPerRound ||
+                    !GameLogic.CanExtendTime(index))
+                    return (false, (default(ulong?), default(TimeSpan?)));
 
-            var extension = config.ConfigValues.RoundTimeExtension;
-            var endTime = GameLogic.ExtendRoundTime(index, extension);
-            ++s.TimeExtensionsForThisRound[index];
-            return (true, endTime == null ? default(TimeSpan?) : extension);
-        });
+                var prices = config.ConfigValues.RoundTimeExtensionPrices!;
+                var price =
+                    state.TimeExtensionsForEntireGame[index] < prices.Count ?
+                    prices[state.TimeExtensionsForEntireGame[index]] :
+                    prices[prices.Count - 1];
 
-        public async Task<(string word, byte wordScore)?> RevealWord(Guid playerID)
-        {
-            var index = Index(playerID);
-            if (!GameLogic.IsTurnInProgress(index))
-                return null;
+                var gold = await GrainFactory.GetGrain<IPlayer>(playerID).IncreaseRoundTime(this.GetPrimaryKey(), price);
+                if (!gold.HasValue)
+                    return (false, (default(ulong?), default(TimeSpan?)));
 
-            var turnIndex = GameLogic.NumTurnsTakenBy(index);
-            var category = GameLogic.Categories[turnIndex];
-            var answers = GameLogic.GetPlayerAnswers(index, turnIndex);
+                var extension = config.ConfigValues.RoundTimeExtension;
+                var endTime = GameLogic.ExtendRoundTime(index, extension);
+                ++state.TimeExtensionsForThisRound[index];
+                ++state.TimeExtensionsForEntireGame[index];
 
-            if (answers.Count == category.Answers.Count)
-                return null;
+                return (true, (gold, endTime == null ? default(TimeSpan?) : extension));
+            });
 
-            string word;
-            do
-                word = category.Answers[RandomHelper.GetInt32(category.Answers.Count)];
-            while (answers.Any(a => a.word == word));
+        public Task<(ulong? gold, string? word, byte? wordScore)> RevealWord(Guid playerID) =>
+            state.UseStateAndMaybePersist(async state =>
+            {
+                var config = configReader.Config;
 
-            var (score, _) = await PlayWord(playerID, word);
-            return (word, score);
-        }
+                var index = Index(playerID);
+                if (!GameLogic.IsTurnInProgress(index))
+                    return (false, (default(ulong?), default(string), default(byte?)));
+
+                var turnIndex = GameLogic.NumTurnsTakenBy(index);
+                var category = GameLogic.Categories[turnIndex];
+                var answers = GameLogic.GetPlayerAnswers(index, turnIndex);
+
+                if (answers.Count == category.Answers.Count)
+                    return (false, (default(ulong?), default(string), default(byte?)));
+
+                var prices = config.ConfigValues.RevealWordPrices!;
+                var price =
+                    state.WordsRevealedForThisRound[index] < prices.Count ?
+                    prices[state.WordsRevealedForThisRound[index]] :
+                    prices[prices.Count - 1];
+
+                var gold = await GrainFactory.GetGrain<IPlayer>(playerID).RevealWord(this.GetPrimaryKey(), price);
+                if (!gold.HasValue)
+                    return (false, (default(ulong?), default(string), default(byte?)));
+
+                string word;
+                do
+                    word = category.Answers[RandomHelper.GetInt32(category.Answers.Count)];
+                while (answers.Any(a => a.word == word));
+
+                var (score, _) = await PlayWord(playerID, word);
+
+                ++state.WordsRevealedForThisRound[index];
+
+                return (true, (gold, word, score));
+            });
 
         public Task<List<GroupConfig>?> RefreshGroups(Guid guid) =>
             state.UseStateAndMaybePersist(state =>
@@ -602,11 +643,12 @@ namespace FLGrains
                     haveCategoryAnswers: ownedCategories,
                     expired: GameLogic.Expired,
                     expiredForMe: GameLogic.ExpiredFor == index,
-                    expiryTimeRemaining: GetStateInternal(state) == GameState.InProgress && GameLogic.ExpiryTime.HasValue ? GameLogic.ExpiryTime.Value - DateTime.Now : default(TimeSpan?)
+                    expiryTimeRemaining: GetStateInternal(state) == GameState.InProgress && GameLogic.ExpiryTime.HasValue ? GameLogic.ExpiryTime.Value - DateTime.Now : default(TimeSpan?),
+                    roundTimeExtensions: (uint)state.TimeExtensionsForEntireGame[index]
                 );
             });
 
-        public Task<SimplifiedGameInfoDTO> GetSimplifiedGameInfo(Guid playerID) => 
+        public Task<SimplifiedGameInfoDTO> GetSimplifiedGameInfo(Guid playerID) =>
             state.UseState(async state =>
             {
                 int index = Index(playerID);

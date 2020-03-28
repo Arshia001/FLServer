@@ -24,8 +24,8 @@ namespace FLGrainInterfaces
         Task<(byte wordScore, string corrected)> PlayWord(Guid id, string word);
         Task<Immutable<(IEnumerable<WordScorePair>? opponentWords, TimeSpan? expiryTimeRemaining)>> EndRound(Guid playerID); // Returns words opponent played this round, if they took their turn already
 
-        Task<TimeSpan?> IncreaseRoundTime(Guid playerID);
-        Task<(string word, byte wordScore)?> RevealWord(Guid playerID);
+        Task<(ulong? gold, TimeSpan? remainingTime)> IncreaseRoundTime(Guid playerID);
+        Task<(ulong? gold, string? word, byte? wordScore)> RevealWord(Guid playerID);
 
         Task<List<GroupConfig>?> RefreshGroups(Guid guid);
 

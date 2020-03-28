@@ -187,6 +187,7 @@ contract GameInfoDTO
 	Expired: bool;
 	ExpiredForMe: bool;
 	ExpiryTimeRemaining: timespan?;
+	RoundTimeExtensions: u32;
 }
 
 contract SimplifiedGameInfoDTO
@@ -208,8 +209,8 @@ contract ConfigValuesDTO castfrom(FLGrainInterfaces.Configuration.ConfigValues s
 	NumGoldRewardForWinningRounds: u32;
 	PriceToRefreshGroups: u32;
 	RoundTimeExtension: timespan;
-	RoundTimeExtensionPrice: u32;
-	RevealWordPrice: u32;
+	RoundTimeExtensionPrices: u32[];
+	RevealWordPrices: u32[];
 	GetAnswersPrice: u32;
 	MaxActiveGames: u32;
 	InfinitePlayPrice: u32;
@@ -496,7 +497,7 @@ endpoint Game gm
 		}
 	}
 
-	request IncreaseRoundTime irt via Player(clientid).IncreaseRoundTime(gameID)
+	request IncreaseRoundTime irt via Game(gameID).IncreaseRoundTime(clientid)
 	{
 		{
 			gameID: guid;
@@ -508,7 +509,7 @@ endpoint Game gm
 		}
 	}
 
-	request RevealWord rvw via Player(clientid).RevealWord(gameID)
+	request RevealWord rvw via Game(gameID).RevealWord(clientid)
 	{
 		{
 			gameID: guid;

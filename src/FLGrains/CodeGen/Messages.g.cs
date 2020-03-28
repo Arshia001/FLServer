@@ -224,7 +224,7 @@ namespace FLGrains
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_IncreaseRoundTime(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
-            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).IncreaseRoundTime(array[0].AsGuid.Value);
+            var result = await GrainFactory.GetGrain<IGame>(array[0].AsGuid.Value).IncreaseRoundTime(input.ClientID);
             return Success(LightMessage.Common.Messages.Param.UInt(result.gold), LightMessage.Common.Messages.Param.TimeSpan(result.remainingTime));
         }
 
@@ -232,7 +232,7 @@ namespace FLGrains
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_RevealWord(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
-            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).RevealWord(array[0].AsGuid.Value);
+            var result = await GrainFactory.GetGrain<IGame>(array[0].AsGuid.Value).RevealWord(input.ClientID);
             return Success(LightMessage.Common.Messages.Param.UInt(result.gold), LightMessage.Common.Messages.Param.String(result.word), LightMessage.Common.Messages.Param.UInt(result.wordScore));
         }
 

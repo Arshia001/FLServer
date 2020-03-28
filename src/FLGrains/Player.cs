@@ -516,40 +516,30 @@ namespace FLGrains
                 return (state.Score, (uint)rank, level, xp, gold);
             });
 
-        public Task<(ulong? gold, TimeSpan? remainingTime)> IncreaseRoundTime(Guid gameID) =>
-            state.UseStateAndLazyPersist<Task<(ulong? gold, TimeSpan? remainingTime)>>(async state =>
+        public Task<ulong?> IncreaseRoundTime(Guid gameID, uint price) =>
+            state.UseStateAndLazyPersist(state =>
             {
-                var price = configReader.Config.ConfigValues.RoundTimeExtensionPrice;
-                if (state.Gold < price)
-                    throw new VerbatimException("Insufficient gold");
-
-                var time = await GrainFactory.GetGrain<IGame>(gameID).IncreaseRoundTime(this.GetPrimaryKey());
-                if (time == null)
-                    return (null, null);
+                if (state.Gold < price || !state.ActiveGames.Contains(gameID))
+                    return Task.FromResult(default(ulong?));
 
                 AddStatImpl(price, Statistics.MoneySpentTimePowerup);
                 AddStatImpl(1, Statistics.TimePowerupUsed);
 
                 state.Gold -= price;
-                return (state.Gold, time.Value);
+                return Task.FromResult((ulong?)state.Gold);
             });
 
-        public Task<(ulong? gold, string? word, byte? wordScore)> RevealWord(Guid gameID) =>
-            state.UseStateAndLazyPersist<Task<(ulong? gold, string? word, byte? wordScore)>>(async state =>
+        public Task<ulong?> RevealWord(Guid gameID, uint price) =>
+            state.UseStateAndLazyPersist(state =>
             {
-                var price = configReader.Config.ConfigValues.RevealWordPrice;
-                if (state.Gold < price)
-                    throw new VerbatimException("Insufficient gold");
-
-                var result = await GrainFactory.GetGrain<IGame>(gameID).RevealWord(this.GetPrimaryKey());
-                if (result == null)
-                    return (null, null, null);
+                if (state.Gold < price || !state.ActiveGames.Contains(gameID))
+                    return Task.FromResult(default(ulong?));
 
                 AddStatImpl(price, Statistics.MoneySpentHelpPowerup);
                 AddStatImpl(1, Statistics.HelpPowerupUsed);
 
                 state.Gold -= price;
-                return (state.Gold, result.Value.word, result.Value.wordScore);
+                return Task.FromResult((ulong?)state.Gold);
             });
 
         public Task<IEnumerable<GroupInfoDTO>?> RefreshGroups(Guid gameID) =>

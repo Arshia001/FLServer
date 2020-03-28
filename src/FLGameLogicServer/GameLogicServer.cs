@@ -138,9 +138,11 @@ namespace FLGameLogicServer
                 ExpiryTime = ExpiryTime
             };
 
+        public bool CanExtendTime(int player) => IsTurnInProgress(player);
+
         public DateTime? ExtendRoundTime(int player, TimeSpan amount)
         {
-            if (!IsTurnInProgress(player))
+            if (!CanExtendTime(player))
                 return null;
 
             turnEndTimes[player] += amount;

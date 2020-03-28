@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace FLGrainInterfaces.Configuration
 {
@@ -11,10 +12,10 @@ namespace FLGrainInterfaces.Configuration
         public TimeSpan ExtraTimePerRound { get; private set; }
 
         public TimeSpan RoundTimeExtension { get; private set; }
-        public uint RoundTimeExtensionPrice { get; private set; }
+        public IReadOnlyList<uint>? RoundTimeExtensionPrices { get; private set; }
         public uint NumTimeExtensionsPerRound { get; private set; }
 
-        public uint RevealWordPrice { get; private set; }
+        public IReadOnlyList<uint>? RevealWordPrices { get; private set; }
 
         public uint GetAnswersPrice { get; private set; }
 
@@ -59,44 +60,37 @@ namespace FLGrainInterfaces.Configuration
         public VideoAdLimitConfig CoinRewardVideo { get; private set; }
         public VideoAdLimitConfig GetCategoryAnswersVideo { get; private set; }
 
-        public static void FailWith(string error) => throw new ArgumentException(error);
-
         public static void Validate(ConfigValues data)
         {
-            static void CheckNotEqual<T>(T t, T test, string name) where T : notnull
-            {
-                if (t.Equals(test))
-                    FailWith($"{name} shouldn't be {test}");
-            }
+            Validation.CheckNotEqual(data.ClientTimePerRound, TimeSpan.Zero, "client time per round");
+            Validation.CheckNotEqual(data.DrawGoldGain, 0u, "draw gold gain");
+            Validation.CheckNotEqual(data.DrawXPGain, 0u, "draw XP gain");
+            Validation.CheckNotEqual(data.ExtraTimePerRound, TimeSpan.Zero, "extra time per round");
+            Validation.CheckNotEqual(data.GameInactivityTimeout, TimeSpan.Zero, "game inactivity timeout");
+            Validation.CheckNotEqual(data.InfinitePlayPrice, 0u, "infinite play price");
+            Validation.CheckNotEqual(data.InfinitePlayTime, TimeSpan.Zero, "infinite play time");
+            Validation.CheckNotEqual(data.LoserScoreLossRatio, 0, "loser score loss ratio");
+            Validation.CheckNotEqual(data.MatchmakingLevelDifference, 0u, "matchmaking level difference");
+            Validation.CheckNotEqual(data.MatchmakingScoreDifference, 0u, "matchmaking score difference");
+            Validation.CheckNotEqual(data.MaxActiveGames, 0u, "max active games");
+            Validation.CheckNotEqual(data.MaxScoreGain, 0u, "max score gain");
+            Validation.CheckNotEqual(data.NumGoldRewardForWinningRounds, 0u, "gold reward for winning rounds");
+            Validation.CheckNotEqual(data.NumGroupChoices, 0u, "group choices");
+            Validation.CheckNotEqual(data.NumRoundsPerGame, 0u, "rounds per game");
+            Validation.CheckNotEqual(data.NumRoundsToWinToGetReward, 0u, "rounds to win to get reward");
+            Validation.CheckNotEqual(data.NumTimeExtensionsPerRound, 0u, "time extensions per round");
+            Validation.CheckNotEqual(data.PriceToRefreshGroups, 0u, "refresh group price");
+            Validation.CheckNotEqual(data.RoundTimeExtension, TimeSpan.Zero, "round time extension amount");
+            Validation.CheckNotEqual(data.RoundWinRewardInterval, TimeSpan.Zero, "win reward interval");
+            Validation.CheckNotEqual(data.WinnerGoldGain, 0u, "winner gold gain");
+            Validation.CheckNotEqual(data.WinnerXPGain, 0u, "winner XP gain");
+            Validation.CheckNotEqual(data.WordScoreThreshold2, 0, "word score threshold 2");
+            Validation.CheckNotEqual(data.WordScoreThreshold3, 0, "word score threshold 3");
+            Validation.CheckNotEqual(data.VideoAdGold, 0u, "video ad gold");
+            Validation.CheckNotEqual(data.GetAnswersPrice, 0u, "answers prices");
 
-            CheckNotEqual(data.ClientTimePerRound, TimeSpan.Zero, "client time per round");
-            CheckNotEqual(data.DrawGoldGain, 0u, "draw gold gain");
-            CheckNotEqual(data.DrawXPGain, 0u, "draw XP gain");
-            CheckNotEqual(data.ExtraTimePerRound, TimeSpan.Zero, "extra time per round");
-            CheckNotEqual(data.GameInactivityTimeout, TimeSpan.Zero, "game inactivity timeout");
-            CheckNotEqual(data.GetAnswersPrice, 0u, "answers price");
-            CheckNotEqual(data.InfinitePlayPrice, 0u, "infinite play price");
-            CheckNotEqual(data.InfinitePlayTime, TimeSpan.Zero, "infinite play time");
-            CheckNotEqual(data.LoserScoreLossRatio, 0, "loser score loss ratio");
-            CheckNotEqual(data.MatchmakingLevelDifference, 0u, "matchmaking level difference");
-            CheckNotEqual(data.MatchmakingScoreDifference, 0u, "matchmaking score difference");
-            CheckNotEqual(data.MaxActiveGames, 0u, "max active games");
-            CheckNotEqual(data.MaxScoreGain, 0u, "max score gain");
-            CheckNotEqual(data.NumGoldRewardForWinningRounds, 0u, "gold reward for winning rounds");
-            CheckNotEqual(data.NumGroupChoices, 0u, "group choices");
-            CheckNotEqual(data.NumRoundsPerGame, 0u, "rounds per game");
-            CheckNotEqual(data.NumRoundsToWinToGetReward, 0u, "rounds to win to get reward");
-            CheckNotEqual(data.NumTimeExtensionsPerRound, 0u, "time extensions per round");
-            CheckNotEqual(data.PriceToRefreshGroups, 0u, "refresh group price");
-            CheckNotEqual(data.RevealWordPrice, 0u, "reveal word price");
-            CheckNotEqual(data.RoundTimeExtension, TimeSpan.Zero, "round time extension amount");
-            CheckNotEqual(data.RoundTimeExtensionPrice, 0u, "round time extension price");
-            CheckNotEqual(data.RoundWinRewardInterval, TimeSpan.Zero, "win reward interval");
-            CheckNotEqual(data.WinnerGoldGain, 0u, "winner gold gain");
-            CheckNotEqual(data.WinnerXPGain, 0u, "winner XP gain");
-            CheckNotEqual(data.WordScoreThreshold2, 0, "word score threshold 2");
-            CheckNotEqual(data.WordScoreThreshold3, 0, "word score threshold 3");
-            CheckNotEqual(data.VideoAdGold, 0u, "video ad gold");
+            Validation.CheckList(data.RevealWordPrices, "reveal word prices");
+            Validation.CheckList(data.RoundTimeExtensionPrices, "round time extension price");
 
             data.CoinRewardVideo.Validate("coin reward video");
             data.GetCategoryAnswersVideo.Validate("get category answers video");

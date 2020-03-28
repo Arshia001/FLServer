@@ -307,7 +307,7 @@ namespace FLGrainInterfaces
     [Orleans.Concurrency.Immutable]
     public class GameInfoDTO
     {
-        public GameInfoDTO(PlayerInfoDTO? otherPlayerInfo, byte numRounds, System.Collections.Generic.IEnumerable<string> categories, System.Collections.Generic.IEnumerable<bool> haveCategoryAnswers, System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<WordScorePairDTO>> myWordsPlayed, System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<WordScorePairDTO>>? theirWordsPlayed, System.DateTime myTurnEndTime, bool myTurnFirst, byte numTurnsTakenByOpponent, bool expired, bool expiredForMe, System.TimeSpan? expiryTimeRemaining)
+        public GameInfoDTO(PlayerInfoDTO? otherPlayerInfo, byte numRounds, System.Collections.Generic.IEnumerable<string> categories, System.Collections.Generic.IEnumerable<bool> haveCategoryAnswers, System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<WordScorePairDTO>> myWordsPlayed, System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<WordScorePairDTO>>? theirWordsPlayed, System.DateTime myTurnEndTime, bool myTurnFirst, byte numTurnsTakenByOpponent, bool expired, bool expiredForMe, System.TimeSpan? expiryTimeRemaining, uint roundTimeExtensions)
         {
             this.OtherPlayerInfo = otherPlayerInfo;
             this.NumRounds = numRounds;
@@ -321,6 +321,7 @@ namespace FLGrainInterfaces
             this.Expired = expired;
             this.ExpiredForMe = expiredForMe;
             this.ExpiryTimeRemaining = expiryTimeRemaining;
+            this.RoundTimeExtensions = roundTimeExtensions;
         }
 
         public PlayerInfoDTO? OtherPlayerInfo { get; }
@@ -335,15 +336,16 @@ namespace FLGrainInterfaces
         public bool Expired { get; }
         public bool ExpiredForMe { get; }
         public System.TimeSpan? ExpiryTimeRemaining { get; }
+        public uint RoundTimeExtensions { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(OtherPlayerInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.UInt(NumRounds), LightMessage.Common.Messages.Param.Array(Categories.Select(a => LightMessage.Common.Messages.Param.String(a))), LightMessage.Common.Messages.Param.Array(HaveCategoryAnswers.Select(a => LightMessage.Common.Messages.Param.Boolean(a))), LightMessage.Common.Messages.Param.Array(MyWordsPlayed.Select(a => LightMessage.Common.Messages.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.Messages.Param.Null())))), LightMessage.Common.Messages.Param.Array(TheirWordsPlayed?.Select(a => LightMessage.Common.Messages.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.Messages.Param.Null())))), LightMessage.Common.Messages.Param.DateTime(MyTurnEndTime), LightMessage.Common.Messages.Param.Boolean(MyTurnFirst), LightMessage.Common.Messages.Param.UInt(NumTurnsTakenByOpponent), LightMessage.Common.Messages.Param.Boolean(Expired), LightMessage.Common.Messages.Param.Boolean(ExpiredForMe), LightMessage.Common.Messages.Param.TimeSpan(ExpiryTimeRemaining));
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(OtherPlayerInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.UInt(NumRounds), LightMessage.Common.Messages.Param.Array(Categories.Select(a => LightMessage.Common.Messages.Param.String(a))), LightMessage.Common.Messages.Param.Array(HaveCategoryAnswers.Select(a => LightMessage.Common.Messages.Param.Boolean(a))), LightMessage.Common.Messages.Param.Array(MyWordsPlayed.Select(a => LightMessage.Common.Messages.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.Messages.Param.Null())))), LightMessage.Common.Messages.Param.Array(TheirWordsPlayed?.Select(a => LightMessage.Common.Messages.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.Messages.Param.Null())))), LightMessage.Common.Messages.Param.DateTime(MyTurnEndTime), LightMessage.Common.Messages.Param.Boolean(MyTurnFirst), LightMessage.Common.Messages.Param.UInt(NumTurnsTakenByOpponent), LightMessage.Common.Messages.Param.Boolean(Expired), LightMessage.Common.Messages.Param.Boolean(ExpiredForMe), LightMessage.Common.Messages.Param.TimeSpan(ExpiryTimeRemaining), LightMessage.Common.Messages.Param.UInt(RoundTimeExtensions));
 
         public static GameInfoDTO FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new GameInfoDTO(PlayerInfoDTO.FromParam(array[0]), (byte)array[1].AsUInt.Value, array[2].AsArray.Select(a => a.AsString).ToList(), array[3].AsArray.Select(a => a.AsBoolean.Value).ToList(), array[4].AsArray.Select(a => a.AsArray.Select(b => WordScorePairDTO.FromParam(b)).ToList()).ToList(), array[5].AsArray?.Select(a => a.AsArray.Select(b => WordScorePairDTO.FromParam(b)).ToList()).ToList(), array[6].AsDateTime.Value, array[7].AsBoolean.Value, (byte)array[8].AsUInt.Value, array[9].AsBoolean.Value, array[10].AsBoolean.Value, array[11].AsTimeSpan);
+            return new GameInfoDTO(PlayerInfoDTO.FromParam(array[0]), (byte)array[1].AsUInt.Value, array[2].AsArray.Select(a => a.AsString).ToList(), array[3].AsArray.Select(a => a.AsBoolean.Value).ToList(), array[4].AsArray.Select(a => a.AsArray.Select(b => WordScorePairDTO.FromParam(b)).ToList()).ToList(), array[5].AsArray?.Select(a => a.AsArray.Select(b => WordScorePairDTO.FromParam(b)).ToList()).ToList(), array[6].AsDateTime.Value, array[7].AsBoolean.Value, (byte)array[8].AsUInt.Value, array[9].AsBoolean.Value, array[10].AsBoolean.Value, array[11].AsTimeSpan, (uint)array[12].AsUInt.Value);
         }
     }
 
@@ -385,15 +387,15 @@ namespace FLGrainInterfaces
     [Orleans.Concurrency.Immutable]
     public class ConfigValuesDTO
     {
-        public ConfigValuesDTO(byte numRoundsToWinToGetReward, System.TimeSpan roundWinRewardInterval, uint numGoldRewardForWinningRounds, uint priceToRefreshGroups, System.TimeSpan roundTimeExtension, uint roundTimeExtensionPrice, uint revealWordPrice, uint getAnswersPrice, uint maxActiveGames, uint infinitePlayPrice, uint numTimeExtensionsPerRound, byte refreshGroupsAllowedPerRound, System.TimeSpan infinitePlayTime, byte numRoundsPerGame, byte numGroupChoices, System.TimeSpan clientTimePerRound, System.TimeSpan gameInactivityTimeout, uint maxScoreGain, uint minScoreGain, float loserScoreLossRatio, uint winnerXPGain, uint loserXPGain, uint drawXPGain, uint winnerGoldGain, uint loserGoldGain, uint drawGoldGain, uint videoAdGold)
+        public ConfigValuesDTO(byte numRoundsToWinToGetReward, System.TimeSpan roundWinRewardInterval, uint numGoldRewardForWinningRounds, uint priceToRefreshGroups, System.TimeSpan roundTimeExtension, System.Collections.Generic.IEnumerable<uint> roundTimeExtensionPrices, System.Collections.Generic.IEnumerable<uint> revealWordPrices, uint getAnswersPrice, uint maxActiveGames, uint infinitePlayPrice, uint numTimeExtensionsPerRound, byte refreshGroupsAllowedPerRound, System.TimeSpan infinitePlayTime, byte numRoundsPerGame, byte numGroupChoices, System.TimeSpan clientTimePerRound, System.TimeSpan gameInactivityTimeout, uint maxScoreGain, uint minScoreGain, float loserScoreLossRatio, uint winnerXPGain, uint loserXPGain, uint drawXPGain, uint winnerGoldGain, uint loserGoldGain, uint drawGoldGain, uint videoAdGold)
         {
             this.NumRoundsToWinToGetReward = numRoundsToWinToGetReward;
             this.RoundWinRewardInterval = roundWinRewardInterval;
             this.NumGoldRewardForWinningRounds = numGoldRewardForWinningRounds;
             this.PriceToRefreshGroups = priceToRefreshGroups;
             this.RoundTimeExtension = roundTimeExtension;
-            this.RoundTimeExtensionPrice = roundTimeExtensionPrice;
-            this.RevealWordPrice = revealWordPrice;
+            this.RoundTimeExtensionPrices = roundTimeExtensionPrices.ToList();
+            this.RevealWordPrices = revealWordPrices.ToList();
             this.GetAnswersPrice = getAnswersPrice;
             this.MaxActiveGames = maxActiveGames;
             this.InfinitePlayPrice = infinitePlayPrice;
@@ -421,8 +423,8 @@ namespace FLGrainInterfaces
         public uint NumGoldRewardForWinningRounds { get; }
         public uint PriceToRefreshGroups { get; }
         public System.TimeSpan RoundTimeExtension { get; }
-        public uint RoundTimeExtensionPrice { get; }
-        public uint RevealWordPrice { get; }
+        public System.Collections.Generic.IReadOnlyList<uint> RoundTimeExtensionPrices { get; }
+        public System.Collections.Generic.IReadOnlyList<uint> RevealWordPrices { get; }
         public uint GetAnswersPrice { get; }
         public uint MaxActiveGames { get; }
         public uint InfinitePlayPrice { get; }
@@ -444,16 +446,16 @@ namespace FLGrainInterfaces
         public uint DrawGoldGain { get; }
         public uint VideoAdGold { get; }
 
-        public static implicit operator ConfigValuesDTO(FLGrainInterfaces.Configuration.ConfigValues obj) => new ConfigValuesDTO(obj.NumRoundsToWinToGetReward, obj.RoundWinRewardInterval, obj.NumGoldRewardForWinningRounds, obj.PriceToRefreshGroups, obj.RoundTimeExtension, obj.RoundTimeExtensionPrice, obj.RevealWordPrice, obj.GetAnswersPrice, obj.MaxActiveGames, obj.InfinitePlayPrice, obj.NumTimeExtensionsPerRound, obj.RefreshGroupsAllowedPerRound, obj.InfinitePlayTime, obj.NumRoundsPerGame, obj.NumGroupChoices, obj.ClientTimePerRound, obj.GameInactivityTimeout, obj.MaxScoreGain, obj.MinScoreGain, obj.LoserScoreLossRatio, obj.WinnerXPGain, obj.LoserXPGain, obj.DrawXPGain, obj.WinnerGoldGain, obj.LoserGoldGain, obj.DrawGoldGain, obj.VideoAdGold);
+        public static implicit operator ConfigValuesDTO(FLGrainInterfaces.Configuration.ConfigValues obj) => new ConfigValuesDTO(obj.NumRoundsToWinToGetReward, obj.RoundWinRewardInterval, obj.NumGoldRewardForWinningRounds, obj.PriceToRefreshGroups, obj.RoundTimeExtension, obj.RoundTimeExtensionPrices.ToList(), obj.RevealWordPrices.ToList(), obj.GetAnswersPrice, obj.MaxActiveGames, obj.InfinitePlayPrice, obj.NumTimeExtensionsPerRound, obj.RefreshGroupsAllowedPerRound, obj.InfinitePlayTime, obj.NumRoundsPerGame, obj.NumGroupChoices, obj.ClientTimePerRound, obj.GameInactivityTimeout, obj.MaxScoreGain, obj.MinScoreGain, obj.LoserScoreLossRatio, obj.WinnerXPGain, obj.LoserXPGain, obj.DrawXPGain, obj.WinnerGoldGain, obj.LoserGoldGain, obj.DrawGoldGain, obj.VideoAdGold);
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.UInt(NumRoundsToWinToGetReward), LightMessage.Common.Messages.Param.TimeSpan(RoundWinRewardInterval), LightMessage.Common.Messages.Param.UInt(NumGoldRewardForWinningRounds), LightMessage.Common.Messages.Param.UInt(PriceToRefreshGroups), LightMessage.Common.Messages.Param.TimeSpan(RoundTimeExtension), LightMessage.Common.Messages.Param.UInt(RoundTimeExtensionPrice), LightMessage.Common.Messages.Param.UInt(RevealWordPrice), LightMessage.Common.Messages.Param.UInt(GetAnswersPrice), LightMessage.Common.Messages.Param.UInt(MaxActiveGames), LightMessage.Common.Messages.Param.UInt(InfinitePlayPrice), LightMessage.Common.Messages.Param.UInt(NumTimeExtensionsPerRound), LightMessage.Common.Messages.Param.UInt(RefreshGroupsAllowedPerRound), LightMessage.Common.Messages.Param.TimeSpan(InfinitePlayTime), LightMessage.Common.Messages.Param.UInt(NumRoundsPerGame), LightMessage.Common.Messages.Param.UInt(NumGroupChoices), LightMessage.Common.Messages.Param.TimeSpan(ClientTimePerRound), LightMessage.Common.Messages.Param.TimeSpan(GameInactivityTimeout), LightMessage.Common.Messages.Param.UInt(MaxScoreGain), LightMessage.Common.Messages.Param.UInt(MinScoreGain), LightMessage.Common.Messages.Param.Float(LoserScoreLossRatio), LightMessage.Common.Messages.Param.UInt(WinnerXPGain), LightMessage.Common.Messages.Param.UInt(LoserXPGain), LightMessage.Common.Messages.Param.UInt(DrawXPGain), LightMessage.Common.Messages.Param.UInt(WinnerGoldGain), LightMessage.Common.Messages.Param.UInt(LoserGoldGain), LightMessage.Common.Messages.Param.UInt(DrawGoldGain), LightMessage.Common.Messages.Param.UInt(VideoAdGold));
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.UInt(NumRoundsToWinToGetReward), LightMessage.Common.Messages.Param.TimeSpan(RoundWinRewardInterval), LightMessage.Common.Messages.Param.UInt(NumGoldRewardForWinningRounds), LightMessage.Common.Messages.Param.UInt(PriceToRefreshGroups), LightMessage.Common.Messages.Param.TimeSpan(RoundTimeExtension), LightMessage.Common.Messages.Param.Array(RoundTimeExtensionPrices.Select(a => LightMessage.Common.Messages.Param.UInt(a))), LightMessage.Common.Messages.Param.Array(RevealWordPrices.Select(a => LightMessage.Common.Messages.Param.UInt(a))), LightMessage.Common.Messages.Param.UInt(GetAnswersPrice), LightMessage.Common.Messages.Param.UInt(MaxActiveGames), LightMessage.Common.Messages.Param.UInt(InfinitePlayPrice), LightMessage.Common.Messages.Param.UInt(NumTimeExtensionsPerRound), LightMessage.Common.Messages.Param.UInt(RefreshGroupsAllowedPerRound), LightMessage.Common.Messages.Param.TimeSpan(InfinitePlayTime), LightMessage.Common.Messages.Param.UInt(NumRoundsPerGame), LightMessage.Common.Messages.Param.UInt(NumGroupChoices), LightMessage.Common.Messages.Param.TimeSpan(ClientTimePerRound), LightMessage.Common.Messages.Param.TimeSpan(GameInactivityTimeout), LightMessage.Common.Messages.Param.UInt(MaxScoreGain), LightMessage.Common.Messages.Param.UInt(MinScoreGain), LightMessage.Common.Messages.Param.Float(LoserScoreLossRatio), LightMessage.Common.Messages.Param.UInt(WinnerXPGain), LightMessage.Common.Messages.Param.UInt(LoserXPGain), LightMessage.Common.Messages.Param.UInt(DrawXPGain), LightMessage.Common.Messages.Param.UInt(WinnerGoldGain), LightMessage.Common.Messages.Param.UInt(LoserGoldGain), LightMessage.Common.Messages.Param.UInt(DrawGoldGain), LightMessage.Common.Messages.Param.UInt(VideoAdGold));
 
         public static ConfigValuesDTO FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new ConfigValuesDTO((byte)array[0].AsUInt.Value, array[1].AsTimeSpan.Value, (uint)array[2].AsUInt.Value, (uint)array[3].AsUInt.Value, array[4].AsTimeSpan.Value, (uint)array[5].AsUInt.Value, (uint)array[6].AsUInt.Value, (uint)array[7].AsUInt.Value, (uint)array[8].AsUInt.Value, (uint)array[9].AsUInt.Value, (uint)array[10].AsUInt.Value, (byte)array[11].AsUInt.Value, array[12].AsTimeSpan.Value, (byte)array[13].AsUInt.Value, (byte)array[14].AsUInt.Value, array[15].AsTimeSpan.Value, array[16].AsTimeSpan.Value, (uint)array[17].AsUInt.Value, (uint)array[18].AsUInt.Value, array[19].AsFloat.Value, (uint)array[20].AsUInt.Value, (uint)array[21].AsUInt.Value, (uint)array[22].AsUInt.Value, (uint)array[23].AsUInt.Value, (uint)array[24].AsUInt.Value, (uint)array[25].AsUInt.Value, (uint)array[26].AsUInt.Value);
+            return new ConfigValuesDTO((byte)array[0].AsUInt.Value, array[1].AsTimeSpan.Value, (uint)array[2].AsUInt.Value, (uint)array[3].AsUInt.Value, array[4].AsTimeSpan.Value, array[5].AsArray.Select(a => (uint)a.AsUInt.Value).ToList(), array[6].AsArray.Select(a => (uint)a.AsUInt.Value).ToList(), (uint)array[7].AsUInt.Value, (uint)array[8].AsUInt.Value, (uint)array[9].AsUInt.Value, (uint)array[10].AsUInt.Value, (byte)array[11].AsUInt.Value, array[12].AsTimeSpan.Value, (byte)array[13].AsUInt.Value, (byte)array[14].AsUInt.Value, array[15].AsTimeSpan.Value, array[16].AsTimeSpan.Value, (uint)array[17].AsUInt.Value, (uint)array[18].AsUInt.Value, array[19].AsFloat.Value, (uint)array[20].AsUInt.Value, (uint)array[21].AsUInt.Value, (uint)array[22].AsUInt.Value, (uint)array[23].AsUInt.Value, (uint)array[24].AsUInt.Value, (uint)array[25].AsUInt.Value, (uint)array[26].AsUInt.Value);
         }
     }
 

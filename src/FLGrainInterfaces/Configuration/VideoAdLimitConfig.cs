@@ -11,14 +11,8 @@ namespace FLGrainInterfaces.Configuration
 
         public void Validate(string nameInError)
         {
-            void CheckNotEqual<T>(T t, T test, string name)
-            {
-                if ((t == null && test == null) || (t != null && test != null && t.Equals(test)))
-                    ConfigValues.FailWith($"{nameInError} -> {name} shouldn't be {test}");
-            }
-
-            CheckNotEqual(Interval, null, "interval");
-            CheckNotEqual(NumberAllowedPerDay, null, "ads allowed per day");
+            Validation.CheckNotEqual(Interval, null, $"{nameInError} -> interval");
+            Validation.CheckNotEqual(NumberAllowedPerDay, null, $"{nameInError} -> ads allowed per day");
         }
     }
 }

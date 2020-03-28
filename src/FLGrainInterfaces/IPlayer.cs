@@ -169,8 +169,8 @@ namespace FLGrainInterfaces
 
         Task<(bool success, ulong totalGold, TimeSpan duration)> ActivateInfinitePlay();
 
-        Task<(ulong? gold, TimeSpan? remainingTime)> IncreaseRoundTime(Guid gameID);
-        Task<(ulong? gold, string? word, byte? wordScore)> RevealWord(Guid gameID);
+        Task<ulong?> IncreaseRoundTime(Guid gameID, uint price);
+        Task<ulong?> RevealWord(Guid gameID, uint price);
 
         Task<(IEnumerable<string> words, ulong? totalGold)> GetAnswers(string categoryName);
         Task<IEnumerable<string>> GetAnswersByVideoAd(string categoryName);
