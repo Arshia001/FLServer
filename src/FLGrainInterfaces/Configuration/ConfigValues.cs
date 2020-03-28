@@ -45,7 +45,7 @@ namespace FLGrainInterfaces.Configuration
         public uint WinnerGoldGain { get; private set; }
         public uint LoserGoldGain { get; private set; }
         public uint DrawGoldGain { get; private set; }
-        
+
         public uint MaxGameHistoryEntries { get; private set; }
 
         public byte RefreshGroupsAllowedPerRound { get; private set; }
@@ -56,10 +56,10 @@ namespace FLGrainInterfaces.Configuration
         public uint LeaderBoardAroundScoreCount { get; private set; }
 
         public uint VideoAdGold { get; private set; }
-        public TimeSpan VideoAdInterval { get; private set; }
-        public uint VideoAdsAllowedPerDay { get; private set; }
+        public VideoAdLimitConfig CoinRewardVideo { get; private set; }
+        public VideoAdLimitConfig GetCategoryAnswersVideo { get; private set; }
 
-        static void FailWith(string error) => throw new ArgumentException(error);
+        public static void FailWith(string error) => throw new ArgumentException(error);
 
         public static void Validate(ConfigValues data)
         {
@@ -97,8 +97,9 @@ namespace FLGrainInterfaces.Configuration
             CheckNotEqual(data.WordScoreThreshold2, 0, "word score threshold 2");
             CheckNotEqual(data.WordScoreThreshold3, 0, "word score threshold 3");
             CheckNotEqual(data.VideoAdGold, 0u, "video ad gold");
-            CheckNotEqual(data.VideoAdInterval, TimeSpan.Zero, "video ad interval");
-            CheckNotEqual(data.VideoAdsAllowedPerDay, 0u, "video ad allowed per day");
+
+            data.CoinRewardVideo.Validate("coin reward video");
+            data.GetCategoryAnswersVideo.Validate("get category answers video");
         }
     }
 }

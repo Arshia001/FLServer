@@ -60,7 +60,10 @@ enum Statistics
 	MoneySpentInfinitePlay,
 	InfinitePlayUsed,
 	GameLostDueToExpiry,
-	RoundsCompleted
+	RoundsCompleted,
+	VideoAdsWatched,
+	CoinRewardVideoAdsWatched,
+	GetCategoryAnswersVideoAdsWatched
 }
 
 enum LeaderBoardSubject
@@ -237,6 +240,14 @@ contract GoldPackConfigDTO castfrom(FLGrainInterfaces.Configuration.GoldPackConf
 	Tag: GoldPackTag;
 }
 
+contract VideoAdTrackerInfoDTO
+{
+	TimeSinceLastWatched: timespan?;
+	NumberWatchedToday: u32;
+	Interval: timespan;
+	NumberPerDay: u32;
+}
+
 endpoint System sys 
 {
 	notification NumRoundsWonForRewardUpdated rwu
@@ -257,6 +268,8 @@ endpoint System sys
 			playerInfo: OwnPlayerInfoDTO;
 			configData: ConfigValuesDTO;
 			goldPacks: GoldPackConfigDTO[];
+			coinRewardVideo: VideoAdTrackerInfoDTO;
+			getCategoryAnswersVideo: VideoAdTrackerInfoDTO;
 		}
 	}
 
@@ -549,6 +562,17 @@ endpoint Game gm
 		{
 			words: string[];
 			totalGold: u64?;
+		}
+	}
+
+	request GetAnswersByVideoAd ansad via Player(clientid).GetAnswersByVideoAd(category)
+	{
+		{
+			category: string;
+		}
+		->
+		{
+			words: string[];
 		}
 	}
 

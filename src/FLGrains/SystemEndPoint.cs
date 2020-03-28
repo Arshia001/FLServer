@@ -1,6 +1,7 @@
 ﻿using FLGameLogic;
 using FLGrainInterfaces;
 using FLGrainInterfaces.Configuration;
+using FLGrainInterfaces.Utility;
 using FLGrains.ServiceInterfaces;
 using LightMessage.Common.Messages;
 using LightMessage.OrleansUtils.GrainInterfaces;
@@ -28,11 +29,26 @@ namespace FLGrains
             this.configReader = configReader;
         }
 
-        protected override async Task<(OwnPlayerInfoDTO playerInfo, ConfigValuesDTO configData, IEnumerable<GoldPackConfigDTO> goldPacks)> GetStartupInfo(Guid clientID)
+        protected override async Task<(OwnPlayerInfoDTO playerInfo, ConfigValuesDTO configData, IEnumerable<GoldPackConfigDTO> goldPacks,
+            VideoAdTrackerInfoDTO coinRewardVideo, VideoAdTrackerInfoDTO getCategoryAnswersVideo)> GetStartupInfo(Guid clientID)
         {
-            var playerInfo = await GrainFactory.GetGrain<IPlayer>(clientID).PerformStartupTasksAndGetInfo();
+            static VideoAdTrackerInfoDTO GetTrackerInfoDTO(VideoAdLimitTrackerInfo state, VideoAdLimitConfig config) =>
+                new VideoAdTrackerInfoDTO(
+                    timeSinceLastWatched: state.LastAdWatchedTime.HasValue ? DateTime.Now - state.LastAdWatchedTime.Value : default(TimeSpan?),
+                    numberWatchedToday: state.NumberWatchedToday,
+                    interval: config.Interval ?? TimeSpan.Zero,
+                    numberPerDay: config.NumberAllowedPerDay ?? 0
+                    );
+
+            var (playerInfo, coinRewardVideo, getCategoryAnswersVideo) = await GrainFactory.GetGrain<IPlayer>(clientID).PerformStartupTasksAndGetInfo();
             var config = configReader.Config;
-            return (playerInfo, config.ConfigValues, config.GoldPacks.Values.Select(g => (GoldPackConfigDTO)g));
+            return (
+                playerInfo,
+                config.ConfigValues,
+                config.GoldPacks.Values.Select(g => (GoldPackConfigDTO)g),
+                GetTrackerInfoDTO(coinRewardVideo, config.ConfigValues.CoinRewardVideo),
+                GetTrackerInfoDTO(getCategoryAnswersVideo, config.ConfigValues.GetCategoryAnswersVideo)
+                );
         }
 
         protected override async Task<IEnumerable<LeaderBoardEntryDTO>> GetLeaderBoard(Guid clientID, LeaderBoardSubject subject, LeaderBoardGroup group)

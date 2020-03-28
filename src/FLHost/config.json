@@ -95,8 +95,15 @@
     "LeaderBoardAroundScoreCount": 10,
 
     "VideoAdGold": 50,
-    "VideoAdInterval": "00:00:20",
-    "VideoAdsAllowedPerDay": 10
+
+    "CoinRewardVideo": {
+      "Interval": "03:00:00",
+      "NumberAllowedPerDay": 100
+    },
+    "GetCategoryAnswersVideo": {
+      "Interval": "00:00:00",
+      "NumberAllowedPerDay": 1
+    }
   },
   "GoldPacks": [
     {

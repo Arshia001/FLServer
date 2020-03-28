@@ -24,7 +24,10 @@ namespace FLGrains
         readonly ISystemSettingsProvider systemSettings;
         readonly IEmailService emailService;
         readonly GrainStateWrapper<PlayerState> state;
-        readonly DailyResetValue<uint> videoAdsWatchedToday;
+
+        readonly VideoAdLimitTracker coinRewardAdTracker;
+        readonly VideoAdLimitTracker getCategoryAnswersAdTracker;
+
         ISystemEndPoint? systemEndPoint;
 
         public Player(
@@ -42,12 +45,14 @@ namespace FLGrains
             this.state = new GrainStateWrapper<PlayerState>(state);
             this.state.Persist += State_Persist;
 
-            videoAdsWatchedToday = new DailyResetValue<uint>(0);
+            coinRewardAdTracker = new VideoAdLimitTracker(() => configReader.Config.ConfigValues.CoinRewardVideo);
+            getCategoryAnswersAdTracker = new VideoAdLimitTracker(() => configReader.Config.ConfigValues.GetCategoryAnswersVideo);
         }
 
         private void State_Persist(object sender, PersistStateEventArgs<PlayerState> e)
         {
-            e.State.VideoAdsWatchedTodayState = videoAdsWatchedToday.Serialize();
+            e.State.CoinRewardVideoTrackerState = coinRewardAdTracker.Serialize();
+            e.State.GetCategoryAnswersVideoTrackerState = getCategoryAnswersAdTracker.Serialize();
         }
 
         public override Task OnActivateAsync()
@@ -56,8 +61,10 @@ namespace FLGrains
 
             state.UseState(state =>
             {
-                if (state.VideoAdsWatchedTodayState != null)
-                    videoAdsWatchedToday.Deserialize(state.VideoAdsWatchedTodayState);
+                if (state.CoinRewardVideoTrackerState != null)
+                    coinRewardAdTracker.Deserialize(state.CoinRewardVideoTrackerState);
+                if (state.GetCategoryAnswersVideoTrackerState != null)
+                    getCategoryAnswersAdTracker.Deserialize(state.GetCategoryAnswersVideoTrackerState);
             });
 
             return base.OnActivateAsync();
@@ -65,7 +72,7 @@ namespace FLGrains
 
         public override Task OnDeactivateAsync() => state.PerformLazyPersistIfPending();
 
-        public async Task<OwnPlayerInfoDTO> PerformStartupTasksAndGetInfo()
+        public async Task<(OwnPlayerInfoDTO info, VideoAdLimitTrackerInfo coinRewardVideo, VideoAdLimitTrackerInfo getCategoryAnswersVideo)> PerformStartupTasksAndGetInfo()
         {
             await state.UseStateAndMaybePersist(state =>
             {
@@ -96,7 +103,7 @@ namespace FLGrains
                 return FLTaskExtensions.False;
             });
 
-            return await GetOwnPlayerInfo();
+            return (await GetOwnPlayerInfo(), coinRewardAdTracker.GetInfo(), getCategoryAnswersAdTracker.GetInfo());
         }
 
         public Task<Immutable<IReadOnlyList<IGame>>> GetGames() =>
@@ -605,13 +612,13 @@ namespace FLGrains
             });
 
         public Task<(IEnumerable<string> words, ulong? totalGold)> GetAnswers(string categoryName) =>
-            state.UseStateAndLazyPersist(state =>
+            state.UseStateAndMaybePersist(state =>
             {
                 var config = configReader.Config;
 
                 var category = config.GetCategory(categoryName);
                 if (category == null)
-                    return Task.FromResult((Array.Empty<string>().AsEnumerable(), default(ulong?)));
+                    return (false, (Array.Empty<string>().AsEnumerable(), default(ulong?)));
 
                 var words = category.Answers;
                 var gold = default(ulong?);
@@ -630,7 +637,33 @@ namespace FLGrains
                     gold = state.Gold;
                 }
 
-                return Task.FromResult((words.AsEnumerable(), gold));
+                return (true, (words.AsEnumerable(), gold));
+            });
+
+        public Task<IEnumerable<string>> GetAnswersByVideoAd(string categoryName) =>
+            state.UseStateAndMaybePersist(state =>
+            {
+                var config = configReader.Config;
+
+                var category = config.GetCategory(categoryName);
+                if (category == null)
+                    return (false, Array.Empty<string>().AsEnumerable());
+
+                var words = category.Answers;
+
+                if (!state.OwnedCategoryAnswers.Contains(category.CategoryName))
+                {
+                    if (!getCategoryAnswersAdTracker.GetCanWatchAndIncrement())
+                        return (false, Array.Empty<string>().AsEnumerable());
+
+                    AddStatImpl(1, Statistics.VideoAdsWatched);
+                    AddStatImpl(1, Statistics.GetCategoryAnswersVideoAdsWatched);
+                    AddStatImpl(1, Statistics.RevealAnswersUsed);
+
+                    state.OwnedCategoryAnswers.Add(category.CategoryName);
+                }
+
+                return (true, words.AsEnumerable());
             });
 
         public Task<(PlayerInfoDTO info, bool[] haveCategoryAnswers)> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories) =>
@@ -710,22 +743,16 @@ namespace FLGrains
 
         public Task<ulong> GiveVideoAdReward() => state.UseStateAndMaybePersist(state =>
         {
-            var now = DateTime.Now;
-            var config = configReader.Config.ConfigValues;
+            if (coinRewardAdTracker.GetCanWatchAndIncrement())
+            {
+                AddStatImpl(1, Statistics.VideoAdsWatched);
+                AddStatImpl(1, Statistics.CoinRewardVideoAdsWatched);
 
-            if (state.LastVideoAdWatchedTime.HasValue && now - state.LastVideoAdWatchedTime.Value < config.VideoAdInterval)
-                return (false, state.Gold);
+                state.Gold += configReader.Config.ConfigValues.VideoAdGold;
+                return (true, state.Gold);
+            }
 
-            var adsWatched = videoAdsWatchedToday.UpdateAndGetValue(now);
-
-            if (adsWatched >= config.VideoAdsAllowedPerDay)
-                return (false, state.Gold);
-
-            videoAdsWatchedToday.SetValue(adsWatched + 1, now);
-
-            state.LastVideoAdWatchedTime = now;
-            state.Gold += config.VideoAdGold;
-            return (true, state.Gold);
+            return (false, state.Gold);
         });
     }
 }

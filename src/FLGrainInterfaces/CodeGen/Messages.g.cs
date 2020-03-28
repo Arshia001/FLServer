@@ -73,7 +73,10 @@ namespace FLGrainInterfaces
         MoneySpentInfinitePlay,
         InfinitePlayUsed,
         GameLostDueToExpiry,
-        RoundsCompleted
+        RoundsCompleted,
+        VideoAdsWatched,
+        CoinRewardVideoAdsWatched,
+        GetCategoryAnswersVideoAdsWatched
     }
 
     public enum LeaderBoardSubject
@@ -480,6 +483,33 @@ namespace FLGrainInterfaces
                 return null;
             var array = param.AsArray;
             return new GoldPackConfigDTO(array[0].AsString, (uint)array[1].AsUInt.Value, array[2].AsString, array[3].AsUEnum<GoldPackTag>().Value);
+        }
+    }
+
+    [Orleans.Concurrency.Immutable]
+    public class VideoAdTrackerInfoDTO
+    {
+        public VideoAdTrackerInfoDTO(System.TimeSpan? timeSinceLastWatched, uint numberWatchedToday, System.TimeSpan interval, uint numberPerDay)
+        {
+            this.TimeSinceLastWatched = timeSinceLastWatched;
+            this.NumberWatchedToday = numberWatchedToday;
+            this.Interval = interval;
+            this.NumberPerDay = numberPerDay;
+        }
+
+        public System.TimeSpan? TimeSinceLastWatched { get; }
+        public uint NumberWatchedToday { get; }
+        public System.TimeSpan Interval { get; }
+        public uint NumberPerDay { get; }
+
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.TimeSpan(TimeSinceLastWatched), LightMessage.Common.Messages.Param.UInt(NumberWatchedToday), LightMessage.Common.Messages.Param.TimeSpan(Interval), LightMessage.Common.Messages.Param.UInt(NumberPerDay));
+
+        public static VideoAdTrackerInfoDTO FromParam(LightMessage.Common.Messages.Param param)
+        {
+            if (param.IsNull)
+                return null;
+            var array = param.AsArray;
+            return new VideoAdTrackerInfoDTO(array[0].AsTimeSpan, (uint)array[1].AsUInt.Value, array[2].AsTimeSpan.Value, (uint)array[3].AsUInt.Value);
         }
     }
 

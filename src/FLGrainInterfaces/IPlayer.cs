@@ -126,17 +126,17 @@ namespace FLGrainInterfaces
         [Id(21)]
         public ulong TutorialProgress { get; set; }
 
-        [Id(22)]
-        public TimeBasedValueState<uint, Unit>? VideoAdsWatchedTodayState { get; set; }
+        [Id(24)]
+        public VideoAdLimitTrackerState? CoinRewardVideoTrackerState { get; set; }
 
-        [Id(23)]
-        public DateTime? LastVideoAdWatchedTime { get; set; }
+        [Id(25)]
+        public VideoAdLimitTrackerState? GetCategoryAnswersVideoTrackerState { get; set; }
     }
 
     [BondSerializationTag("@p")]
     public interface IPlayer : IGrainWithGuidKey
     {
-        Task<OwnPlayerInfoDTO> PerformStartupTasksAndGetInfo();
+        Task<(OwnPlayerInfoDTO info, VideoAdLimitTrackerInfo coinRewardVideo, VideoAdLimitTrackerInfo getCategoryAnswersVideo)> PerformStartupTasksAndGetInfo();
 
         Task<string> GetName();
         Task<PlayerInfoDTO> GetPlayerInfo();
@@ -172,7 +172,8 @@ namespace FLGrainInterfaces
         Task<(ulong? gold, TimeSpan? remainingTime)> IncreaseRoundTime(Guid gameID);
         Task<(ulong? gold, string? word, byte? wordScore)> RevealWord(Guid gameID);
 
-        Task<(IEnumerable<string> words, ulong? totalGold)> GetAnswers(string category);
+        Task<(IEnumerable<string> words, ulong? totalGold)> GetAnswers(string categoryName);
+        Task<IEnumerable<string>> GetAnswersByVideoAd(string categoryName);
         Task<bool> HaveAnswersForCategory(string category);
         Task<IReadOnlyList<bool>> HaveAnswersForCategories(IReadOnlyList<string> categories);
 
