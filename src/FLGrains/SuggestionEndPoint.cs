@@ -16,6 +16,6 @@ namespace FLGrains
             suggestionService.RegisterCategorySuggestion(clientID, name, words);
 
         protected override Task SuggestWord(Guid clientID, string categoryName, IReadOnlyList<string> words) =>
-            suggestionService.RegisterCategorySuggestion(clientID, categoryName, words);
+            suggestionService.RegisterWordSuggestion(clientID, categoryName, words);
     }
 }
