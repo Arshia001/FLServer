@@ -20,7 +20,7 @@ namespace FLGrains
 
         private SuggestionService(Queries queries) => this.queries = queries;
 
-        public Task RegisterCategorySuggestion(Guid ownerID, string categoryName, IEnumerable<string> words) =>
+        public Task RegisterCategorySuggestion(Guid ownerID, string categoryName, string words) =>
             queries.Session.ExecuteAsync(queries["fl_UpsertSuggestedCategory"].Bind(new
             {
                 name = categoryName,
@@ -28,16 +28,16 @@ namespace FLGrains
                 words = words
             }));
 
-        public async Task<IEnumerable<(string category, IEnumerable<string> words)>> GetCategorySuggestionsByUser(Guid ownerID)
+        public async Task<IEnumerable<(string category, string words)>> GetCategorySuggestionsByUser(Guid ownerID)
         {
             var rows = await queries.Session.ExecuteAsync(queries["fl_ReadSuggestedCategoriesByUser"].Bind(new { owner_id = ownerID }));
-            return rows.Select(r => ((string)r["name"], (IEnumerable<string>)r["words"]));
+            return rows.Select(r => ((string)r["name"], (string)r["words"]));
         }
 
-        public async Task<IEnumerable<(Guid ownerID, string category, IEnumerable<string> words)>> GetAllCategorySuggestions()
+        public async Task<IEnumerable<(Guid ownerID, string category, string words)>> GetAllCategorySuggestions()
         {
             var rows = await queries.Session.ExecuteAsync(queries["fl_ReadSuggestedCategories"].Bind());
-            return rows.Select(r => ((Guid)r["owner_id"], (string)r["name"], (IEnumerable<string>)r["words"]));
+            return rows.Select(r => ((Guid)r["owner_id"], (string)r["name"], (string)r["words"]));
         }
 
         public Task RegisterWordSuggestion(Guid ownerID, string categoryName, IEnumerable<string> words) =>

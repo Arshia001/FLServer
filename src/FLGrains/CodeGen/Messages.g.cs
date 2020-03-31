@@ -159,13 +159,13 @@ namespace FLGrains
     [LightMessage.OrleansUtils.GrainInterfaces.EndPointNameAttribute("sg"), Orleans.Concurrency.StatelessWorkerAttribute(128)]
     public abstract class SuggestionEndPointBase : LightMessage.OrleansUtils.Grains.EndPointGrain, ISuggestionEndPoint
     {
-        protected abstract System.Threading.Tasks.Task SuggestCategory(System.Guid clientID, string name, System.Collections.Generic.IReadOnlyList<string> words);
+        protected abstract System.Threading.Tasks.Task SuggestCategory(System.Guid clientID, string name, string words);
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("csug")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_SuggestCategory(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
-            await SuggestCategory(input.ClientID, array[0].AsString, array[1].AsArray.Select(a => a.AsString).ToList());
+            await SuggestCategory(input.ClientID, array[0].AsString, array[1].AsString);
             return Success();
         }
 

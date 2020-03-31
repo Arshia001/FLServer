@@ -140,20 +140,9 @@ insert into queries(key, consistency_level, text) values
 CREATE TABLE IF NOT EXISTS fl_suggested_categories ( // User-suggested categories
 	owner_id uuid,
 	name text,
-	words set<text>,
+	words text,
 	
 	PRIMARY KEY (owner_id, name)
-) WITH compression = {
-	'class' : 'LZ4Compressor',
-	'enabled' : true
-};
-
-CREATE TABLE IF NOT EXISTS fl_suggested_words ( // User-suggested words for **existing** categories
-	owner_id uuid,
-	category_name text,
-	words set<text>,
-	
-	PRIMARY KEY (owner_id, category_name)
 ) WITH compression = {
 	'class' : 'LZ4Compressor',
 	'enabled' : true
@@ -164,7 +153,7 @@ insert into queries(key, consistency_level, text) values
 	'fl_UpsertSuggestedCategory','one','
 	UPDATE fl_suggested_categories
 	SET
-		words = words + :words
+		words = :words
 	WHERE
 		name = :name AND
 		owner_id = :owner_id;
@@ -185,6 +174,17 @@ insert into queries(key, consistency_level, text) values
 	'fl_ReadSuggestedCategories','one','
 	SELECT * FROM fl_suggested_categories;
 ');
+
+CREATE TABLE IF NOT EXISTS fl_suggested_words ( // User-suggested words for **existing** categories
+	owner_id uuid,
+	category_name text,
+	words set<text>,
+	
+	PRIMARY KEY (owner_id, category_name)
+) WITH compression = {
+	'class' : 'LZ4Compressor',
+	'enabled' : true
+};
 
 insert into queries(key, consistency_level, text) values 
 (

@@ -397,7 +397,7 @@ endpoint Suggestion sg
 	{
 		{
 			name: string;
-			words: string[];
+			words: string;
 		}
 		-> { }
 	}

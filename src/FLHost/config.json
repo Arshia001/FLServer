@@ -126,31 +126,31 @@
     },
     {
       "Sku": "GoldPack2",
-      "NumGold": 2700,
+      "NumGold": 1300,
       "Title": "یه مشت سکه",
       "Tag": "None"
     },
     {
       "Sku": "GoldPack3",
-      "NumGold": 6000,
+      "NumGold": 2700,
       "Title": "یه کیسه سکه",
       "Tag": "None"
     },
     {
       "Sku": "GoldPack4",
-      "NumGold": 17500,
+      "NumGold": 6000,
       "Title": "یه صندوق سکه",
       "Tag": "BestSelling"
     },
     {
       "Sku": "GoldPack5",
-      "NumGold": 38000,
+      "NumGold": 17500,
       "Title": "یه گاوصندوق سکه",
       "Tag": "None"
     },
     {
       "Sku": "GoldPack6",
-      "NumGold": 90000,
+      "NumGold": 38000,
       "Title": "یه کوه سکه",
       "Tag": "BestValue"
     }

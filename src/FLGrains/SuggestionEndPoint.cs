@@ -12,7 +12,7 @@ namespace FLGrains
 
         public SuggestionEndPoint(ISuggestionService suggestionService) => this.suggestionService = suggestionService;
 
-        protected override Task SuggestCategory(Guid clientID, string name, IReadOnlyList<string> words) =>
+        protected override Task SuggestCategory(Guid clientID, string name, string words) =>
             suggestionService.RegisterCategorySuggestion(clientID, name, words);
 
         protected override Task SuggestWord(Guid clientID, string categoryName, IReadOnlyList<string> words) =>
