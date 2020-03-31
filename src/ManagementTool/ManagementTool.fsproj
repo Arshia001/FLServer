@@ -18,6 +18,8 @@
     <Compile Include="Categories\UpdateCategoriesCommand.fs" />
     <Compile Include="Categories\UpdateGroupsCommand.fs" />
     <Compile Include="Categories\UpdateAllCommand.fs" />
+    <Compile Include="Gifts\WordSuggestionGiftCommand.fs" />
+    <Compile Include="Gifts\CategorySuggestionGiftCommand.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

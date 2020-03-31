@@ -8,6 +8,7 @@ namespace FLGrainInterfaces
     {
         System.Threading.Tasks.Task<bool> SendNumRoundsWonForRewardUpdated(System.Guid clientID, uint totalRoundsWon);
         System.Threading.Tasks.Task<bool> SendStatisticUpdated(System.Guid clientID, StatisticValueDTO stat);
+        System.Threading.Tasks.Task<bool> SendCoinGiftReceived(System.Guid clientID, CoinGiftInfoDTO gift);
     }
 
     public interface ISuggestionEndPoint : LightMessage.OrleansUtils.GrainInterfaces.IEndPointGrain
@@ -131,6 +132,13 @@ namespace FLGrainInterfaces
         Success,
         NotRegistered,
         PasswordNotComplexEnough
+    }
+
+    public enum CoinGiftSubject
+    {
+        GiftToAll,
+        SuggestedWords,
+        SuggestedCategories
     }
 
     [Orleans.Concurrency.Immutable]
@@ -512,6 +520,43 @@ namespace FLGrainInterfaces
                 return null;
             var array = param.AsArray;
             return new VideoAdTrackerInfoDTO(array[0].AsTimeSpan, (uint)array[1].AsUInt.Value, array[2].AsTimeSpan.Value, (uint)array[3].AsUInt.Value);
+        }
+    }
+
+    [Orleans.Concurrency.Immutable]
+    public class CoinGiftInfoDTO
+    {
+        public CoinGiftInfoDTO(System.Guid giftID, CoinGiftSubject subject, uint count, string? description, string? extraData1, string? extraData2, string? extraData3, string? extraData4)
+        {
+            this.GiftID = giftID;
+            this.Subject = subject;
+            this.Count = count;
+            this.Description = description;
+            this.ExtraData1 = extraData1;
+            this.ExtraData2 = extraData2;
+            this.ExtraData3 = extraData3;
+            this.ExtraData4 = extraData4;
+        }
+
+        public System.Guid GiftID { get; }
+        public CoinGiftSubject Subject { get; }
+        public uint Count { get; }
+        public string? Description { get; }
+        public string? ExtraData1 { get; }
+        public string? ExtraData2 { get; }
+        public string? ExtraData3 { get; }
+        public string? ExtraData4 { get; }
+
+        public static implicit operator CoinGiftInfoDTO(FLGrainInterfaces.CoinGiftInfo obj) => new CoinGiftInfoDTO(obj.GiftID, obj.Subject, obj.Count, obj.Description, obj.ExtraData1, obj.ExtraData2, obj.ExtraData3, obj.ExtraData4);
+
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.Guid(GiftID), LightMessage.Common.Messages.Param.UEnum(Subject), LightMessage.Common.Messages.Param.UInt(Count), LightMessage.Common.Messages.Param.String(Description), LightMessage.Common.Messages.Param.String(ExtraData1), LightMessage.Common.Messages.Param.String(ExtraData2), LightMessage.Common.Messages.Param.String(ExtraData3), LightMessage.Common.Messages.Param.String(ExtraData4));
+
+        public static CoinGiftInfoDTO FromParam(LightMessage.Common.Messages.Param param)
+        {
+            if (param.IsNull)
+                return null;
+            var array = param.AsArray;
+            return new CoinGiftInfoDTO(array[0].AsGuid.Value, array[1].AsUEnum<CoinGiftSubject>().Value, (uint)array[2].AsUInt.Value, array[3].AsString, array[4].AsString, array[5].AsString, array[6].AsString, array[7].AsString);
         }
     }
 

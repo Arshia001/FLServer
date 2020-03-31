@@ -10,14 +10,15 @@ namespace FLGrains
     {
         public virtual System.Threading.Tasks.Task<bool> SendNumRoundsWonForRewardUpdated(System.Guid clientID, uint totalRoundsWon) => SendMessage(clientID, "rwu", LightMessage.Common.Messages.Param.UInt(totalRoundsWon));
         public virtual System.Threading.Tasks.Task<bool> SendStatisticUpdated(System.Guid clientID, StatisticValueDTO stat) => SendMessage(clientID, "st", stat?.ToParam() ?? LightMessage.Common.Messages.Param.Null());
-        protected abstract System.Threading.Tasks.Task<(OwnPlayerInfoDTO playerInfo, ConfigValuesDTO configData, System.Collections.Generic.IEnumerable<GoldPackConfigDTO> goldPacks, VideoAdTrackerInfoDTO coinRewardVideo, VideoAdTrackerInfoDTO getCategoryAnswersVideo)> GetStartupInfo(System.Guid clientID);
+        public virtual System.Threading.Tasks.Task<bool> SendCoinGiftReceived(System.Guid clientID, CoinGiftInfoDTO gift) => SendMessage(clientID, "cg", gift?.ToParam() ?? LightMessage.Common.Messages.Param.Null());
+        protected abstract System.Threading.Tasks.Task<(OwnPlayerInfoDTO playerInfo, ConfigValuesDTO configData, System.Collections.Generic.IEnumerable<GoldPackConfigDTO> goldPacks, VideoAdTrackerInfoDTO coinRewardVideo, VideoAdTrackerInfoDTO getCategoryAnswersVideo, System.Collections.Generic.IEnumerable<CoinGiftInfoDTO> coinGifts)> GetStartupInfo(System.Guid clientID);
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("st")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_GetStartupInfo(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
             var result = await GetStartupInfo(input.ClientID);
-            return Success(result.playerInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), result.configData?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.Array(result.goldPacks.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())), result.coinRewardVideo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), result.getCategoryAnswersVideo?.ToParam() ?? LightMessage.Common.Messages.Param.Null());
+            return Success(result.playerInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), result.configData?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.Array(result.goldPacks.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())), result.coinRewardVideo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), result.getCategoryAnswersVideo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.Array(result.coinGifts.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("trwr")]
@@ -143,6 +144,14 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).GiveVideoAdReward();
+            return Success(LightMessage.Common.Messages.Param.UInt(result));
+        }
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("ccg")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_ClaimCoinGift(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).ClaimCoinGift(array[0].AsGuid.Value);
             return Success(LightMessage.Common.Messages.Param.UInt(result));
         }
     }

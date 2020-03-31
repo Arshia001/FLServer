@@ -72,24 +72,25 @@ namespace FLGrains
 
         public override Task OnDeactivateAsync() => state.PerformLazyPersistIfPending();
 
-        public async Task<(OwnPlayerInfoDTO info, VideoAdLimitTrackerInfo coinRewardVideo, VideoAdLimitTrackerInfo getCategoryAnswersVideo)> PerformStartupTasksAndGetInfo()
+        public async Task<(OwnPlayerInfoDTO info, VideoAdLimitTrackerInfo coinRewardVideo, VideoAdLimitTrackerInfo getCategoryAnswersVideo,
+            IEnumerable<CoinGiftInfo> coinGifts)> PerformStartupTasksAndGetInfo()
         {
-            await state.UseStateAndMaybePersist(state =>
+            var gifts = await state.UseStateAndMaybePersist(state =>
             {
                 var config = configReader.Config.ConfigValues;
 
-                if (state.Level == 0)
+                if (IsNewPlayer(state))
                 {
                     state.Gold = config.InitialGold;
                     state.Level = 1;
 
-                    var id = this.GetPrimaryKey();
+                    var id = (this).GetPrimaryKey();
                     LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).Set(id, 0).Ignore();
                     LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.XP).Set(id, 0).Ignore();
 
                     state.Name = "مهمان " + RandomHelper.GetInt32(100_000, 1_000_000).ToString();
 
-                    return FLTaskExtensions.True;
+                    return (true, state.CoinGifts);
                 }
 
                 if (state.PastGames.Count > config.MaxGameHistoryEntries)
@@ -97,14 +98,16 @@ namespace FLGrains
                     while (state.PastGames.Count > config.MaxGameHistoryEntries)
                         state.PastGames.RemoveAt(0);
 
-                    return FLTaskExtensions.True;
+                    return (true, state.CoinGifts);
                 }
 
-                return FLTaskExtensions.False;
+                return (false, state.CoinGifts);
             });
 
-            return (await GetOwnPlayerInfo(), coinRewardAdTracker.GetInfo(), getCategoryAnswersAdTracker.GetInfo());
+            return (await GetOwnPlayerInfo(), coinRewardAdTracker.GetInfo(), getCategoryAnswersAdTracker.GetInfo(), gifts);
         }
+
+        static bool IsNewPlayer(PlayerState state) => state.Level == 0;
 
         public Task<Immutable<IReadOnlyList<IGame>>> GetGames() =>
             state.UseState(state =>
@@ -743,6 +746,39 @@ namespace FLGrains
             }
 
             return (false, state.Gold);
+        });
+
+        public Task<bool> ReceiveCoinGift(CoinGiftInfo gift) => state.UseStateAndMaybePersist(state =>
+        {
+            if (IsNewPlayer(state))
+            {
+                // We mistakenly attempted to gift a non-existing player
+                DeactivateOnIdle();
+                return (false, false);
+            }
+
+            state.CoinGifts.Add(gift);
+
+            systemEndPoint?.SendCoinGiftReceived(this.GetPrimaryKey(), gift).Ignore();
+
+            return (true, true);
+        });
+
+        public Task<ulong?> ClaimCoinGift(Guid giftID) => state.UseStateAndMaybePersist(state =>
+        {
+            var index = state.CoinGifts.FindIndex(g => g.GiftID == giftID);
+
+            if (index < 0)
+                return (false, default(ulong?));
+
+            var gift = state.CoinGifts[index];
+            state.CoinGifts.RemoveAt(index);
+
+            if (gift.ExpiryTime < DateTime.Now)
+                return (false, default(ulong?));
+
+            state.Gold += gift.Count;
+            return (true, state.Gold);
         });
     }
 }

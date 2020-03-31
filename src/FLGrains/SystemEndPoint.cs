@@ -30,7 +30,8 @@ namespace FLGrains
         }
 
         protected override async Task<(OwnPlayerInfoDTO playerInfo, ConfigValuesDTO configData, IEnumerable<GoldPackConfigDTO> goldPacks,
-            VideoAdTrackerInfoDTO coinRewardVideo, VideoAdTrackerInfoDTO getCategoryAnswersVideo)> GetStartupInfo(Guid clientID)
+            VideoAdTrackerInfoDTO coinRewardVideo, VideoAdTrackerInfoDTO getCategoryAnswersVideo, IEnumerable<CoinGiftInfoDTO> coinGifts)> 
+            GetStartupInfo(Guid clientID)
         {
             static VideoAdTrackerInfoDTO GetTrackerInfoDTO(VideoAdLimitTrackerInfo state, VideoAdLimitConfig config) =>
                 new VideoAdTrackerInfoDTO(
@@ -40,14 +41,15 @@ namespace FLGrains
                     numberPerDay: config.NumberAllowedPerDay ?? 0
                     );
 
-            var (playerInfo, coinRewardVideo, getCategoryAnswersVideo) = await GrainFactory.GetGrain<IPlayer>(clientID).PerformStartupTasksAndGetInfo();
+            var (playerInfo, coinRewardVideo, getCategoryAnswersVideo, gifts) = await GrainFactory.GetGrain<IPlayer>(clientID).PerformStartupTasksAndGetInfo();
             var config = configReader.Config;
             return (
                 playerInfo,
                 config.ConfigValues,
                 config.GoldPacks.Values.Select(g => (GoldPackConfigDTO)g),
                 GetTrackerInfoDTO(coinRewardVideo, config.ConfigValues.CoinRewardVideo),
-                GetTrackerInfoDTO(getCategoryAnswersVideo, config.ConfigValues.GetCategoryAnswersVideo)
+                GetTrackerInfoDTO(getCategoryAnswersVideo, config.ConfigValues.GetCategoryAnswersVideo),
+                gifts.Select(g => (CoinGiftInfoDTO)g)
                 );
         }
 

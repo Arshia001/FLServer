@@ -131,12 +131,16 @@ namespace FLGrainInterfaces
 
         [Id(25)]
         public VideoAdLimitTrackerState? GetCategoryAnswersVideoTrackerState { get; set; }
+
+        [Id(26)]
+        public List<CoinGiftInfo> CoinGifts { get; set; } = new List<CoinGiftInfo>();
     }
 
     [BondSerializationTag("@p")]
     public interface IPlayer : IGrainWithGuidKey
     {
-        Task<(OwnPlayerInfoDTO info, VideoAdLimitTrackerInfo coinRewardVideo, VideoAdLimitTrackerInfo getCategoryAnswersVideo)> PerformStartupTasksAndGetInfo();
+        Task<(OwnPlayerInfoDTO info, VideoAdLimitTrackerInfo coinRewardVideo, VideoAdLimitTrackerInfo getCategoryAnswersVideo,
+            IEnumerable<CoinGiftInfo> coinGifts)> PerformStartupTasksAndGetInfo();
 
         Task<string> GetName();
         Task<PlayerInfoDTO> GetPlayerInfo();
@@ -191,6 +195,9 @@ namespace FLGrainInterfaces
         Task SetTutorialProgress(ulong progress);
 
         Task<ulong> GiveVideoAdReward();
+
+        Task<bool> ReceiveCoinGift(CoinGiftInfo gift);
+        Task<ulong?> ClaimCoinGift(Guid giftID);
     }
 
     public static class PlayerIndex

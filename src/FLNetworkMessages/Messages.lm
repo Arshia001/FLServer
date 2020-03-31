@@ -120,6 +120,13 @@ enum SetPasswordResult
 	PasswordNotComplexEnough
 }
 
+enum CoinGiftSubject
+{
+	GiftToAll,
+	SuggestedWords,
+	SuggestedCategories
+}
+
 contract PlayerLeaderBoardInfoDTO
 {
 	Name: string;
@@ -249,6 +256,18 @@ contract VideoAdTrackerInfoDTO
 	NumberPerDay: u32;
 }
 
+contract CoinGiftInfoDTO castfrom(FLGrainInterfaces.CoinGiftInfo server oneway)
+{
+	GiftID: guid;
+	Subject: CoinGiftSubject;
+	Count: u32;
+	Description: string?;
+	ExtraData1: string?;
+	ExtraData2: string?;
+	ExtraData3: string?;
+	ExtraData4: string?;
+}
+
 endpoint System sys 
 {
 	notification NumRoundsWonForRewardUpdated rwu
@@ -261,6 +280,11 @@ endpoint System sys
 		stat: StatisticValueDTO;
 	}
 
+	notification CoinGiftReceived cg
+	{
+		gift: CoinGiftInfoDTO;
+	}
+
 	request GetStartupInfo st
 	{
 		{ }
@@ -271,6 +295,7 @@ endpoint System sys
 			goldPacks: GoldPackConfigDTO[];
 			coinRewardVideo: VideoAdTrackerInfoDTO;
 			getCategoryAnswersVideo: VideoAdTrackerInfoDTO;
+			coinGifts: CoinGiftInfoDTO[];
 		}
 	}
 
@@ -362,6 +387,8 @@ endpoint System sys
 	request SetTutorialProgress tutp via Player(clientid).SetTutorialProgress(progress) { { progress: u64; } -> {} }
 
 	request GiveVideoAdReward vadr via Player(clientid).GiveVideoAdReward() { {} -> { totalGold: u64; } }
+
+	request ClaimCoinGift ccg via Player(clientid).ClaimCoinGift(id) { { id: guid; } -> { totalGold: u64?; } }
 }
 
 endpoint Suggestion sg

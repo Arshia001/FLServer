@@ -14,7 +14,9 @@ let parse =
         UpdateGroups,
         UpdateAll,
         ConnectedClients,
-        DeleteStorage
+        DeleteStorage,
+        WordSuggestionGift,
+        CategorySuggestionGift
     >
 
 [<EntryPoint>]
@@ -33,6 +35,8 @@ let main argv =
             | :? UpdateAll as cmd -> runUpdateAll cmd
             | :? ConnectedClients as cmd -> runConnectedClients cmd
             | :? DeleteStorage as cmd -> runDeleteStorage cmd
+            | :? WordSuggestionGift as cmd -> runWordSuggestionGift cmd
+            | :? CategorySuggestionGift as cmd -> runCategorySuggestionGift cmd
             | _ -> printfn "Unknown command type %A" p.Value
             0
         | :? NotParsed<obj> as np ->
@@ -48,5 +52,5 @@ let main argv =
         printfn "%s" msg
         -1
     | e ->
-        printfn "Internal error: %A" e
+        printfn "\n\nInternal error: %A" e
         -1
