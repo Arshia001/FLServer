@@ -15,7 +15,7 @@ namespace FLGameLogic
             int expiredFor, TimeSpan? expiryTimeRemaining)
         {
             var result = new GameLogicClient(firstTurn);
-            result.RestoreGameState(numRounds, categories, wordsPlayed, turnEndTimes, expired, expiredFor, turnTimeRemaining);
+            result.RestoreGameState(numRounds, categories, wordsPlayed, turnEndTimes, expired, expiredFor, expiryTimeRemaining);
             return result;
         }
 
