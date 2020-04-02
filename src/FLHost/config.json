@@ -106,7 +106,7 @@
     "LeaderBoardTopScoreCount": 100,
     "LeaderBoardAroundScoreCount": 10,
 
-    "VideoAdGold": 50,
+    "VideoAdGold": 30,
 
     "CoinRewardVideo": {
       "Interval": "03:00:00",
