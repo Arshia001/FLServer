@@ -15,7 +15,7 @@ namespace FLGameLogic
             int expiredFor, TimeSpan? expiryTimeRemaining)
         {
             var result = new GameLogicClient(firstTurn);
-            result.RestoreGameState(numRounds, categories, wordsPlayed, turnEndTimes, expired, expiredFor, expiryTimeRemaining);
+            result.RestoreGameState(numRounds, categories, wordsPlayed, turnEndTimes, expired, expiredFor, turnTimeRemaining);
             return result;
         }
 
@@ -112,6 +112,9 @@ namespace FLGameLogic
 
         public bool RegisterPlayedWord(int player, string word, byte score)
         {
+            if (playerAnswers[player].Count <= RoundNumber)
+                return false;
+
             if (!playerAnswers[player][RoundNumber].Any(w => w.word == word))
             {
                 playerAnswers[player][RoundNumber].Add(new WordScorePair(word, score));
