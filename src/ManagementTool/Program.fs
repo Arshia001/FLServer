@@ -9,7 +9,7 @@ let parse =
         DownForMaintenance, 
         UpFromMaintenance, 
         RenameCategory,
-        SetLatestVersion,
+        SetVersion,
         UpdateCategories,
         UpdateGroups,
         UpdateAll,
@@ -29,7 +29,7 @@ let main argv =
             | :? DownForMaintenance as cmd -> runDownForMaintenance cmd
             | :? UpFromMaintenance as cmd -> runUpFromMaintenance cmd
             | :? RenameCategory as cmd -> runRenameCategory cmd
-            | :? SetLatestVersion as cmd -> runSetLatestVersion cmd
+            | :? SetVersion as cmd -> runSetVersion cmd
             | :? UpdateCategories as cmd -> runUpdateCategories cmd
             | :? UpdateGroups as cmd -> runUpdateGroups cmd
             | :? UpdateAll as cmd -> runUpdateAll cmd

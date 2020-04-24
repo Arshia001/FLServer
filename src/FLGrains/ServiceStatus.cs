@@ -17,7 +17,10 @@ namespace FLGrains
             this.configReader = configReader;
         }
 
-        public Task<(uint latest, uint minimumSupported)> GetClientVersion() =>
-            Task.FromResult((configReader.Config.LatestClientVersion, systemSettings.Settings.Values.MinimumSupportedVersion));
+        public Task<(uint latest, uint minimumSupported, uint lastCompatible)> GetClientVersion()
+        {
+            var config = configReader.Config;
+            return Task.FromResult((config.LatestClientVersion, systemSettings.Settings.Values.MinimumSupportedVersion, config.LastCompatibleClientVersion));
+        }
     }
 }

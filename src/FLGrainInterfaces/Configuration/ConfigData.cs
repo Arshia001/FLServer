@@ -18,6 +18,9 @@ namespace FLGrainInterfaces.Configuration
         [JsonIgnore]
         public uint LatestClientVersion { get; set; }
 
+        [JsonIgnore]
+        public uint LastCompatibleClientVersion { get; set; }
+
         public List<LevelConfig>? PlayerLevels { get; set; }
 
         public List<GoldPackConfig>? GoldPacks { get; set; }

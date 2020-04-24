@@ -2,7 +2,7 @@
   "profiles": {
     "CsvLevelImporter": {
       "commandName": "Project",
-      "commandLineArgs": "folderToJson \"..\\..\\..\\..\\..\\Words\\Files\" \"..\\..\\..\\..\\..\\Words\\Output\\categories.json\""
+      "commandLineArgs": "\"..\\..\\..\\..\\..\\Words\\Files\" \"..\\..\\..\\..\\..\\Words\\Output\\categories.json\""
     }
   }
 }

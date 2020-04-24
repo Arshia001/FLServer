@@ -51,6 +51,8 @@ namespace FLGrainInterfaces.Configuration
 
         public uint LatestClientVersion => data.LatestClientVersion;
 
+        public uint LastCompatibleClientVersion => data.LastCompatibleClientVersion;
+
         public int Version => data.Version;
 
         readonly ConfigData data;
