@@ -51,9 +51,6 @@ let buildOrleansClient () =
     let client =
         ClientBuilder()
             .UseLocalhostClustering(40000, "FLService", "FLCluster")
-            .ConfigureLogging(fun l -> 
-                l.AddFilter("Orleans", LogLevel.Information).AddConsole() |> ignore
-            )
             .Build()
 
     client.Connect (fun _ -> Task.FromResult false) |> runSynchronously
@@ -106,6 +103,14 @@ let tryParseInt (o: obj) =
         None
     else
         match string o |> Int32.TryParse with
+        | (true, i) -> Some i
+        | (false, _) -> None
+
+let tryParseGuid (o: obj) =
+    if o = null then
+        None
+    else
+        match string o |> Guid.TryParse with
         | (true, i) -> Some i
         | (false, _) -> None
 
