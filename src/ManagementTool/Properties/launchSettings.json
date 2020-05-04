@@ -1,7 +1,8 @@
 {
   "profiles": {
     "ManagementTool": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "read-suggestions -c -f \"!!categories\" -k fl_server_dev"
     }
   }
 }

@@ -34,6 +34,17 @@ module Seq =
 
     let equal s1 s2 = equalBy (=) s1 s2
 
+    let iterInterleaved (fInterleave: unit -> unit) (f: 'a -> unit) (s: 'a seq) =
+        let e = s.GetEnumerator()
+        let mutable first = true
+        while e.MoveNext() do
+            if first then
+                first <- false
+            else
+                fInterleave ()
+
+            f e.Current
+
 module Dictionary =
     let equalBy (valueEq: 'b -> 'b -> bool) (d1: IDictionary<'a, 'b>) (d2: IDictionary<'a, 'b>) =
         if d1.Count <> d2.Count then false
@@ -61,12 +72,15 @@ let buildCassandraSession (keyspace: string) =
     let queries = Queries.CreateInstance(session).Result
     (session, queries)
 
-let executeSingleRow (session: Cassandra.ISession) (statement: Cassandra.IStatement) =
-    session.Execute statement |> Seq.tryExactlyOne
-
 let assertEmptyAndIgnore s =
     if Seq.isEmpty s then ()
     else failwith "Not empty"
+
+let executeSingleRow (session: Cassandra.ISession) (statement: Cassandra.IStatement) =
+    session.Execute statement |> Seq.tryExactlyOne
+
+let executeNonQuery (session: Cassandra.ISession) (statement: Cassandra.IStatement) =
+    session.Execute statement |> assertEmptyAndIgnore
 
 let promptYesNo prompt =
     printf "%s [y/n] " prompt

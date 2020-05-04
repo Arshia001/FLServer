@@ -5,7 +5,7 @@
 	PRIMARY KEY (key)
 );
 
-insert into queries(key, consistency_level, text) values 
+insert into queries(key, consistency_level, text) values
 (
 	'fl_readConfig','eachquorum','
 	SELECT
@@ -15,7 +15,7 @@ insert into queries(key, consistency_level, text) values
 		key = :key;
 ');
 
-insert into queries(key, consistency_level, text) values 
+insert into queries(key, consistency_level, text) values
 (
 	'fl_updateConfig','eachquorum','
 	UPDATE fl_config
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS fl_groups (
 	'enabled' : true
 };
 
-insert into queries(key, consistency_level, text) values 
+insert into queries(key, consistency_level, text) values
 (
 	'fl_readGroups','eachquorum','
 	SELECT
@@ -43,7 +43,7 @@ insert into queries(key, consistency_level, text) values
 	FROM fl_groups;
 ');
 
-insert into queries(key, consistency_level, text) values 
+insert into queries(key, consistency_level, text) values
 (
 	'fl_upsertGroup','eachquorum','
 	UPDATE fl_groups
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS fl_categories (
 	'enabled' : true
 };
 
-insert into queries(key, consistency_level, text) values 
+insert into queries(key, consistency_level, text) values
 (
 	'fl_readCategory','eachquorum','
 	SELECT
@@ -74,7 +74,7 @@ insert into queries(key, consistency_level, text) values
 		name = :name;
 ');
 
-insert into queries(key, consistency_level, text) values 
+insert into queries(key, consistency_level, text) values
 (
 	'fl_deleteCategory','eachquorum','
 	DELETE FROM fl_categories
@@ -82,7 +82,7 @@ insert into queries(key, consistency_level, text) values
 		name = :name;
 ');
 
-insert into queries(key, consistency_level, text) values 
+insert into queries(key, consistency_level, text) values
 (
 	'fl_readCategories','eachquorum','
 	SELECT
@@ -90,7 +90,7 @@ insert into queries(key, consistency_level, text) values
 	FROM fl_categories;
 ');
 
-insert into queries(key, consistency_level, text) values 
+insert into queries(key, consistency_level, text) values
 (
 	'fl_readCategoryNames','eachquorum','
 	SELECT
@@ -98,7 +98,7 @@ insert into queries(key, consistency_level, text) values
 	FROM fl_categories;
 ');
 
-insert into queries(key, consistency_level, text) values 
+insert into queries(key, consistency_level, text) values
 (
 	'fl_upsertCategory','eachquorum','
 	UPDATE fl_categories
@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS fl_renamed_categories (
 	'enabled' : true
 };
 
-insert into queries(key, consistency_level, text) values 
+insert into queries(key, consistency_level, text) values
 (
 	'fl_readRenamedCategories','eachquorum','
 	SELECT
@@ -127,7 +127,7 @@ insert into queries(key, consistency_level, text) values
 	FROM fl_renamed_categories;
 ');
 
-insert into queries(key, consistency_level, text) values 
+insert into queries(key, consistency_level, text) values
 (
 	'fl_upsertRenamedCategory','eachquorum','
 	UPDATE fl_renamed_categories
@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS fl_suggested_categories ( // User-suggested categorie
 	'enabled' : true
 };
 
-insert into queries(key, consistency_level, text) values 
+insert into queries(key, consistency_level, text) values
 (
 	'fl_UpsertSuggestedCategory','one','
 	UPDATE fl_suggested_categories
@@ -159,7 +159,7 @@ insert into queries(key, consistency_level, text) values
 		owner_id = :owner_id;
 ');
 
-insert into queries(key, consistency_level, text) values 
+insert into queries(key, consistency_level, text) values
 (
 	'fl_ReadSuggestedCategoriesByUser','one','
 	SELECT
@@ -169,10 +169,19 @@ insert into queries(key, consistency_level, text) values
 		owner_id = :owner_id;
 ');
 
-insert into queries(key, consistency_level, text) values 
+insert into queries(key, consistency_level, text) values
 (
 	'fl_ReadSuggestedCategories','one','
 	SELECT * FROM fl_suggested_categories;
+');
+
+insert into queries(key, consistency_level, text) values
+(
+	'fl_DeleteSuggestedCategory','one','
+	DELETE FROM fl_suggested_categories
+	WHERE
+		owner_id = :owner_id AND
+		name = :name;
 ');
 
 CREATE TABLE IF NOT EXISTS fl_suggested_words ( // User-suggested words for **existing** categories
@@ -186,7 +195,7 @@ CREATE TABLE IF NOT EXISTS fl_suggested_words ( // User-suggested words for **ex
 	'enabled' : true
 };
 
-insert into queries(key, consistency_level, text) values 
+insert into queries(key, consistency_level, text) values
 (
 	'fl_UpsertSuggestedWords','one','
 	UPDATE fl_suggested_words
@@ -197,7 +206,7 @@ insert into queries(key, consistency_level, text) values
 		owner_id = :owner_id;
 ');
 
-insert into queries(key, consistency_level, text) values 
+insert into queries(key, consistency_level, text) values
 (
 	'fl_ReadSuggestedWordsByUser','one','
 	SELECT
@@ -207,8 +216,17 @@ insert into queries(key, consistency_level, text) values
 		owner_id = :owner_id;
 ');
 
-insert into queries(key, consistency_level, text) values 
+insert into queries(key, consistency_level, text) values
 (
 	'fl_ReadSuggestedWords','one','
 	SELECT * FROM fl_suggested_words;
+');
+
+insert into queries(key, consistency_level, text) values
+(
+	'fl_DeleteSuggestedWord','one','
+	DELETE FROM fl_suggested_words
+	WHERE
+		owner_id = :owner_id AND
+		category_name = :category_name;
 ');

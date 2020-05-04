@@ -16,7 +16,8 @@ let parse =
         ConnectedClients,
         DeleteStorage,
         WordSuggestionGift,
-        CategorySuggestionGift
+        CategorySuggestionGift,
+        ReadSuggestions
     >
 
 [<EntryPoint>]
@@ -37,6 +38,7 @@ let main argv =
             | :? DeleteStorage as cmd -> runDeleteStorage cmd
             | :? WordSuggestionGift as cmd -> runWordSuggestionGift cmd
             | :? CategorySuggestionGift as cmd -> runCategorySuggestionGift cmd
+            | :? ReadSuggestions as cmd -> runReadSuggestions cmd
             | _ -> printfn "Unknown command type %A" p.Value
             0
         | :? NotParsed<obj> as np ->

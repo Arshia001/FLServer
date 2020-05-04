@@ -20,6 +20,7 @@
     <Compile Include="Categories\UpdateAllCommand.fs" />
     <Compile Include="Gifts\WordSuggestionGiftCommand.fs" />
     <Compile Include="Gifts\CategorySuggestionGiftCommand.fs" />
+    <Compile Include="ReadSuggestionsCommand.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
