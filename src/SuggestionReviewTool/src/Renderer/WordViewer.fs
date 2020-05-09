@@ -195,7 +195,8 @@ let recordList model dispatch =
     [
         Mui.list [
             prop.style [
-                length.percent 100 |> style.height
+                length.percent 100 |> style.maxHeight
+                style.overflow.auto
             ]
             list.children (
                 model.Records
@@ -236,7 +237,9 @@ let recordViewer model dispatch =
                 prop.children [
                     Mui.list [
                         prop.style [
+                            Feliz.Interop.mkStyle "max-height" "calc(100% - 72px)"
                             Feliz.Interop.mkStyle "height" "calc(100% - 72px)"
+                            style.overflow.auto
                         ]
                         list.children (
                             model.Records.[i].Words

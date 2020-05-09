@@ -28,12 +28,15 @@ let createMainWindow () =
         w.nodeIntegration <- true
       )
       o.show <- false
+      o.title <- "Suggestion Review Tool"
     ))
 
   win.onceReadyToShow(fun _ ->
     win.show()
     mainWinState.manage win
   ) |> ignore
+
+  win.onPageTitleUpdated(fun e _ _ -> e.preventDefault()) |> ignore
 
   #if DEBUG
   // Set up dev tools

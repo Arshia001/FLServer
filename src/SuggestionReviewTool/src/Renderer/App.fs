@@ -139,7 +139,7 @@ let private useRootViewStyles = Styles.makeStyles(fun styles theme ->
       style.flexDirection.column
       style.flexGrow 1
       style.padding (theme.spacing 3)
-      style.height (length.percent 100)
+      Feliz.Interop.mkStyle "max-height" "calc(100% - 64px)"
     ]
     toolbar = styles.create [
       yield! theme.mixins.toolbar
