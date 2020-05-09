@@ -87,7 +87,7 @@ let writeAll (m: Model) (path: string) =
         (
             m.Records
             |> Seq.where (fun r -> r.Accepted = True3)
-            |> Seq.map (fun r -> lazy writeUtf8Async (writeRecord r) (dirName + "/" + r.CategoryName + ".txt"))
+            |> Seq.map (fun r -> lazy writeUtf8Async (writeRecord r) (dirName + "/" + r.CategoryName + "-" + (string r.Owner) + ".txt"))
             |> Seq.toList
         )
     )
