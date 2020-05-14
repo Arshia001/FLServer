@@ -8,7 +8,8 @@ namespace FLGrains.ServiceInterfaces
     {
         void SendMyTurnStarted(string token, string opponentName);
         void SendGameEnded(string token, string opponentName);
-
-        public DateTime GetScheduledNotificationTime(DateTime suggestedTime, bool mustBeAfterSuggestedTime);
+        
+        void SendDay4Reminder(string token);
+        void SendRoundWinRewardAvailableReminder(string token);
     }
 }

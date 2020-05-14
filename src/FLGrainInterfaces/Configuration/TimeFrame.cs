@@ -79,8 +79,6 @@ namespace FLGrainInterfaces.Configuration
             /// <summary>
             /// Returns a negative result if the specified time is before this interval, zero if it falls within, or positive otherwise.
             /// </summary>
-            /// <param name="time"></param>
-            /// <returns></returns>
             public TimeSpan GetDistanceTo(DateTime time)
             {
                 if (time < Start)
@@ -91,9 +89,9 @@ namespace FLGrainInterfaces.Configuration
                     return time - End;
             }
 
-            public DateTime GetRandomTimeInside(Random random)
+            public DateTime GetRandomTimeInside()
             {
-                var ticks = (long)((End - Start).Ticks * random.NextDouble());
+                var ticks = (long)((End - Start).Ticks * RandomHelper.GetDouble());
                 return Start.AddTicks(ticks);
             }
         }

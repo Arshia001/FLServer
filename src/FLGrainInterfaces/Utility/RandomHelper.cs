@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace FLGrains.Utility
+namespace FLGrainInterfaces
 {
     public static class RandomHelper
     {
@@ -38,5 +38,7 @@ namespace FLGrains.Utility
         public static int GetInt32(int max) => RandomNumberGenerator.GetInt32(max);
 
         public static int GetInt32(int min, int max) => RandomNumberGenerator.GetInt32(max - min) + min;
+
+        public static double GetDouble() => RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue;
     }
 }

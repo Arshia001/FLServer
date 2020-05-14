@@ -1,28 +1,49 @@
-﻿using FLGrainInterfaces;
+﻿using Cassandra;
+using FLGrainInterfaces;
 using FLGrainInterfaces.Configuration;
 using FLGrainInterfaces.Utility;
 using FLGrains.ServiceInterfaces;
 using FLGrains.Utility;
+using Google.Apis.Logging;
+using LightMessage.Common.Connection;
 using LightMessage.OrleansUtils.Grains;
+using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Concurrency;
 using Orleans.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace FLGrains
 {
+    static class PlayerReminderNames
+    {
+        public const string Day4Notification = "Day4";
+        public const string RoundWinRewardNotification = "RoundWinReward";
+
+        public static IEnumerable<string> All
+        {
+            get
+            {
+                yield return Day4Notification;
+                yield return RoundWinRewardNotification;
+            }
+        }
+    }
+
     //!! The StateWrapper allows us to know exactly when we need to persist. Now, do we need a timer for periodic persistance?
     // I think not, since we're likely to give player grains low lifetimes. If we don't, we should probably put the timer in.
-    class Player : Grain, IPlayer
+    class Player : Grain, IPlayer, IRemindable
     {
         readonly IConfigReader configReader;
         readonly IFcmNotificationService fcmNotificationService;
         readonly ISystemSettingsProvider systemSettings;
         readonly IEmailService emailService;
+        private readonly ILogger<Player> logger;
         readonly GrainStateWrapper<PlayerState> state;
 
         readonly VideoAdLimitTracker coinRewardAdTracker;
@@ -35,12 +56,14 @@ namespace FLGrains
             IFcmNotificationService fcmNotificationService,
             ISystemSettingsProvider systemSettings,
             IEmailService emailService,
+            ILogger<Player> logger,
             [PersistentState("State")] IPersistentState<PlayerState> state)
         {
             this.configReader = configReader;
             this.fcmNotificationService = fcmNotificationService;
             this.systemSettings = systemSettings;
             this.emailService = emailService;
+            this.logger = logger;
 
             this.state = new GrainStateWrapper<PlayerState>(state);
             this.state.Persist += State_Persist;
@@ -70,7 +93,11 @@ namespace FLGrains
             return base.OnActivateAsync();
         }
 
-        public override Task OnDeactivateAsync() => state.PerformLazyPersistIfPending();
+        public override async Task OnDeactivateAsync()
+        {
+            await RegisterOfflineReminders();
+            await state.PerformLazyPersistIfPending();
+        }
 
         public async Task<(OwnPlayerInfoDTO info, VideoAdLimitTrackerInfo coinRewardVideo, VideoAdLimitTrackerInfo getCategoryAnswersVideo,
             IEnumerable<CoinGiftInfo> coinGifts)> PerformStartupTasksAndGetInfo()
@@ -103,6 +130,8 @@ namespace FLGrains
 
                 return (false, state.CoinGifts);
             });
+
+            await UnregisterOfflineReminders();
 
             return (await GetOwnPlayerInfo(), coinRewardAdTracker.GetInfo(), getCategoryAnswersAdTracker.GetInfo(), gifts);
         }
@@ -149,7 +178,7 @@ namespace FLGrains
             state.UseState(async state =>
             {
                 var config = configReader.Config;
-                var timeTillNextReward = config.ConfigValues.RoundWinRewardInterval - (DateTime.Now - state.LastRoundWinRewardTakeTime);
+                var rewardStatus = GetRoundWinRewardStatus();
 
                 return new OwnPlayerInfoDTO
                 (
@@ -158,8 +187,8 @@ namespace FLGrains
                     level: state.Level,
                     xp: state.XP,
                     nextLevelXPThreshold: GetNextLevelRequiredXP(config),
-                    currentNumRoundsWonForReward: state.NumRoundsWonForReward,
-                    nextRoundWinRewardTimeRemaining: new TimeSpan(Math.Max(0L, timeTillNextReward.Ticks)),
+                    currentNumRoundsWonForReward: rewardStatus.numRoundsWon,
+                    nextRoundWinRewardTimeRemaining: rewardStatus.coolDownTimeRemaining,
                     score: state.Score,
                     rank: (uint)await LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).GetRank(this.GetPrimaryKey()),
                     gold: state.Gold,
@@ -434,8 +463,12 @@ namespace FLGrains
                     case CompetitionResult.Win:
                         AddStatImpl(1, Statistics.RoundsWon);
                         AddStatImpl(1, Statistics.GroupWon_Param, groupID);
-                        ++state.NumRoundsWonForReward;
-                        return systemEndPoint?.SendNumRoundsWonForRewardUpdated(this.GetPrimaryKey(), state.NumRoundsWonForReward) ?? Task.CompletedTask;
+                        if (!GetRoundWinRewardStatus().inCoolDown)
+                        {
+                            ++state.NumRoundsWonForReward;
+                            return systemEndPoint?.SendNumRoundsWonForRewardUpdated(this.GetPrimaryKey(), state.NumRoundsWonForReward) ?? Task.CompletedTask;
+                        }
+                        return Task.CompletedTask;
 
                     case CompetitionResult.Loss:
                         AddStatImpl(1, Statistics.RoundsLost);
@@ -563,16 +596,38 @@ namespace FLGrains
                 return result.Select(g => (GroupInfoDTO)g).ToList().AsEnumerable();
             });
 
-        public Task<(ulong totalGold, TimeSpan timeUntilNextReward)> TakeRewardForWinningRounds() =>
-            state.UseStateAndLazyPersist(state =>
+        (bool inCoolDown, TimeSpan coolDownTimeRemaining, bool enoughRoundsWon, uint numRoundsWon) GetRoundWinRewardStatus() =>
+            state.UseState(state =>
             {
                 var configValues = configReader.Config.ConfigValues;
 
-                if (DateTime.Now - state.LastRoundWinRewardTakeTime < configValues.RoundWinRewardInterval)
+                var elapsedSinceLastTake = DateTime.Now - state.LastRoundWinRewardTakeTime;
+                var remaining =
+                    elapsedSinceLastTake >= configValues.RoundWinRewardInterval ?
+                    TimeSpan.Zero :
+                    configValues.RoundWinRewardInterval - elapsedSinceLastTake;
+                var inCoolDown = remaining > TimeSpan.Zero;
+
+                return (
+                    inCoolDown,
+                    remaining,
+                    state.NumRoundsWonForReward >= configValues.NumRoundsToWinToGetReward,
+                    state.NumRoundsWonForReward
+                );
+            });
+
+        public Task<(ulong totalGold, TimeSpan timeUntilNextReward)> TakeRewardForWinningRounds() =>
+            state.UseStateAndPersist(state =>
+            {
+                var status = GetRoundWinRewardStatus();
+
+                if (status.inCoolDown)
                     throw new VerbatimException("Interval not elapsed yet");
 
-                if (state.NumRoundsWonForReward < configReader.Config.ConfigValues.NumRoundsToWinToGetReward)
+                if (!status.enoughRoundsWon)
                     throw new VerbatimException("Insufficient rounds won");
+
+                var configValues = configReader.Config.ConfigValues;
 
                 state.NumRoundsWonForReward = 0;
                 state.LastRoundWinRewardTakeTime = DateTime.Now;
@@ -585,14 +640,14 @@ namespace FLGrains
             });
 
         public Task<(bool success, ulong totalGold, TimeSpan duration)> ActivateInfinitePlay() =>
-            state.UseStateAndLazyPersist(state =>
+            state.UseStateAndMaybePersist(state =>
             {
                 if (IsInfinitePlayActive)
-                    return Task.FromResult((false, state.Gold, state.InfinitePlayEndTime - DateTime.Now));
+                    return (false, (false, state.Gold, state.InfinitePlayEndTime - DateTime.Now));
 
                 var config = configReader.Config.ConfigValues;
                 if (state.Gold < config.InfinitePlayPrice)
-                    return Task.FromResult((false, 0UL, TimeSpan.Zero));
+                    return (false, (false, 0UL, TimeSpan.Zero));
 
                 state.Gold -= config.InfinitePlayPrice;
 
@@ -601,7 +656,7 @@ namespace FLGrains
 
                 var duration = config.InfinitePlayTime;
                 state.InfinitePlayEndTime = DateTime.Now + duration;
-                return Task.FromResult((true, state.Gold, duration));
+                return (true, (true, state.Gold, duration));
             });
 
         public Task<(IEnumerable<string> words, ulong? totalGold)> GetAnswers(string categoryName) =>
@@ -708,29 +763,35 @@ namespace FLGrains
 
         bool CanSendNotification(PlayerState state) => state.NotificationsEnabled && !string.IsNullOrEmpty(state.FcmToken);
 
-        public Task SendMyTurnStartedNotification(Guid opponentID)
-        {
-            return state.UseState(async state =>
+        Task SendNotificationIfPossible(Func<string, Task> sendNotification) =>
+            state.UseState(state =>
             {
                 if (CanSendNotification(state) && state.FcmToken != null)
-                {
-                    var opName = await PlayerInfoHelper.GetName(GrainFactory, opponentID);
-                    fcmNotificationService.SendMyTurnStarted(state.FcmToken, opName);
-                }
+                    return sendNotification(state.FcmToken);
+
+                return Task.CompletedTask;
             });
-        }
+
+        void SendNotificationIfPossible(Action<string> sendNotification) =>
+            state.UseState(state =>
+            {
+                if (CanSendNotification(state) && state.FcmToken != null)
+                    sendNotification(state.FcmToken);
+            });
+
+        public Task SendMyTurnStartedNotification(Guid opponentID)
+            => SendNotificationIfPossible(async token =>
+            {
+                var opName = await PlayerInfoHelper.GetName(GrainFactory, opponentID);
+                fcmNotificationService.SendMyTurnStarted(token, opName);
+            });
 
         public Task SendGameEndedNotification(Guid opponentID)
-        {
-            return state.UseState(async state =>
+            => SendNotificationIfPossible(async token =>
             {
-                if (CanSendNotification(state) && state.FcmToken != null)
-                {
-                    var opName = await PlayerInfoHelper.GetName(GrainFactory, opponentID);
-                    fcmNotificationService.SendGameEnded(state.FcmToken, opName);
-                }
+                var opName = await PlayerInfoHelper.GetName(GrainFactory, opponentID);
+                fcmNotificationService.SendGameEnded(token, opName);
             });
-        }
 
         public Task SetTutorialProgress(ulong progress) => state.UseStateAndPersist(s => s.TutorialProgress = progress);
 
@@ -780,5 +841,63 @@ namespace FLGrains
             state.Gold += gift.Count;
             return (true, state.Gold);
         });
+
+        async Task UnregisterReminderIfExists(IEnumerable<IGrainReminder> reminders, string name)
+        {
+            var reminder = reminders.FirstOrDefault(r => r.ReminderName == name);
+            if (reminder != null)
+                await UnregisterReminder(reminder);
+        }
+
+        async Task UnregisterReminderIfExists(string name)
+        {
+            var reminder = await GetReminder(name);
+            if (reminder != null)
+                await UnregisterReminder(reminder);
+        }
+
+        async Task UnregisterOfflineReminders()
+        {
+            var reminders = await GetReminders();
+
+            await UnregisterReminderIfExists(reminders, PlayerReminderNames.Day4Notification);
+            await UnregisterReminderIfExists(reminders, PlayerReminderNames.RoundWinRewardNotification);
+        }
+
+        async Task RegisterOfflineReminders()
+        {
+            var timeFrames = configReader.Config.ConfigValues.NotificationTimeFrames!;
+
+            var day4Time = TimeFrame.GetClosestInterval(DateTime.Now.AddDays(4), timeFrames, false).GetRandomTimeInside();
+            await RegisterOrUpdateReminder(PlayerReminderNames.Day4Notification, day4Time - DateTime.Now, TimeSpan.FromMinutes(5));
+
+            var rewardStatus = GetRoundWinRewardStatus();
+            if (rewardStatus.inCoolDown)
+            {
+                var rewardTime = TimeFrame.GetClosestInterval(DateTime.Now + rewardStatus.coolDownTimeRemaining, timeFrames, false).GetRandomTimeInside();
+                await RegisterOrUpdateReminder(PlayerReminderNames.RoundWinRewardNotification, rewardTime - DateTime.Now, TimeSpan.FromMinutes(5));
+            }
+        }
+
+        public async Task ReceiveReminder(string reminderName, TickStatus status)
+        {
+            switch (reminderName)
+            {
+                case PlayerReminderNames.Day4Notification:
+                    await UnregisterReminderIfExists(reminderName);
+                    SendNotificationIfPossible(token => fcmNotificationService.SendDay4Reminder(token));
+                    break;
+
+                case PlayerReminderNames.RoundWinRewardNotification:
+                    await UnregisterReminderIfExists(reminderName);
+                    SendNotificationIfPossible(token => fcmNotificationService.SendRoundWinRewardAvailableReminder(token));
+                    break;
+
+                default:
+                    logger.LogWarning($"Unknown reminder name {reminderName} received in Player grain with ID {this.GetPrimaryKey()}");
+                    await UnregisterReminderIfExists(reminderName);
+                    break;
+            }
+        }
     }
 }

@@ -59,5 +59,11 @@ namespace FLGrains.Services
 
         public void SendMyTurnStarted(string token, string opponentName) =>
             Send(token, "نوبتت شروع شد", $"حریفت {opponentName} نوبتشو بازی کرد، نوبت تو شروع شده!", "turnend");
+
+        public void SendDay4Reminder(string token) =>
+            Send(token, "خیلی وقته بهمون سر نزدی!", "همه دارن سر امتیاز با هم می‌جنگن، تو هم بیا رتبه‌ت رو ببر بالا که ازشون عقب نمونی!", "day4");
+
+        public void SendRoundWinRewardAvailableReminder(string token) =>
+            Send(token, "چالش روزانه آماده شد", "جعبه چالش روزانه آماده شده. بیا بازی کن و جایزه‌ت رو بگیر!", "roundwinreward");
     }
 }
