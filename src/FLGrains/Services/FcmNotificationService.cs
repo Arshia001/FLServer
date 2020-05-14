@@ -1,7 +1,9 @@
 ﻿using FirebaseAdmin;
 using FirebaseAdmin.Messaging;
+using FLGrainInterfaces.Configuration;
 using FLGrains.ServiceInterfaces;
 using Google.Apis.Auth.OAuth2;
+using Google.Apis.Http;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -11,15 +13,18 @@ namespace FLGrains.Services
 {
     class FcmNotificationService : IFcmNotificationService
     {
+        private readonly IConfigReader configReader;
         private readonly ILogger<FcmNotificationService> logger;
 
-        public FcmNotificationService(ISystemSettingsProvider settingsProvider, ILogger<FcmNotificationService> logger)
+        public FcmNotificationService(ISystemSettingsProvider settingsProvider, IConfigReader configReader, ILogger<FcmNotificationService> logger)
         {
             var options = new AppOptions
             {
                 Credential = GoogleCredential.FromJson(settingsProvider.Settings.FcmServiceAccountKeys)
             };
             FirebaseApp.Create(options);
+
+            this.configReader = configReader;
             this.logger = logger;
         }
 

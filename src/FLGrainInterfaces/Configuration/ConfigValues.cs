@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FLGrainInterfaces.Configuration
 {
@@ -60,6 +61,13 @@ namespace FLGrainInterfaces.Configuration
         public VideoAdLimitConfig CoinRewardVideo { get; private set; }
         public VideoAdLimitConfig GetCategoryAnswersVideo { get; private set; }
 
+        IReadOnlyList<TimeFrame>? notificationTimeFrames;
+        public IReadOnlyList<TimeFrame>? NotificationTimeFrames
+        {
+            get => notificationTimeFrames;
+            private set => notificationTimeFrames = value.OrderBy(x => x).ToList();
+        }
+
         public static void Validate(ConfigValues data)
         {
             Validation.CheckNotEqual(data.ClientTimePerRound, TimeSpan.Zero, "client time per round");
@@ -91,6 +99,11 @@ namespace FLGrainInterfaces.Configuration
 
             Validation.CheckList(data.RevealWordPrices, "reveal word prices");
             Validation.CheckList(data.RoundTimeExtensionPrices, "round time extension price");
+            Validation.CheckList(data.NotificationTimeFrames, "notification time frame");
+
+            if (data.NotificationTimeFrames != null)
+                foreach (var (index, frame) in data.NotificationTimeFrames.Select((f, i) => (i, f)))
+                    frame.Validate($"notification time frame #{index}");
 
             data.CoinRewardVideo.Validate("coin reward video");
             data.GetCategoryAnswersVideo.Validate("get category answers video");
