@@ -116,7 +116,18 @@
     "GetCategoryAnswersVideo": {
       "Interval": "00:00:00",
       "NumberAllowedPerDay": 1
-    }
+    },
+
+    "NotificationTimeFrames": [
+      {
+        "StartTime": "08:00:00",
+        "EndTime": "11:00:00"
+      },
+      {
+        "StartTime": "17:00:00",
+        "EndTime": "21:00:00"
+      }
+    ]
   },
   "GoldPacks": [
     {

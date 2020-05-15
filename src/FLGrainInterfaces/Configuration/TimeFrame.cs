@@ -5,7 +5,7 @@ using System.Text;
 
 namespace FLGrainInterfaces.Configuration
 {
-    public class TimeFrame
+    public class TimeFrame : IComparable<TimeFrame>
     {
         static TimeSpan oneDay = TimeSpan.FromDays(1);
 
@@ -15,8 +15,8 @@ namespace FLGrainInterfaces.Configuration
             EndTime = endTime;
         }
 
-        public TimeSpan StartTime { get; private set; }
-        public TimeSpan EndTime { get; private set; }
+        public TimeSpan StartTime { get; }
+        public TimeSpan EndTime { get; }
 
         public Interval GetForDate(DateTime date) => GetForDateUnchecked(date.Date);
 
@@ -64,6 +64,8 @@ namespace FLGrainInterfaces.Configuration
 
             return bestMatch;
         }
+
+        public int CompareTo(TimeFrame other) => StartTime.CompareTo(other.StartTime);
 
         public class Interval
         {
