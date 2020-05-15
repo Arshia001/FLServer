@@ -49,6 +49,8 @@ namespace FLGrains
         readonly VideoAdLimitTracker coinRewardAdTracker;
         readonly VideoAdLimitTracker getCategoryAnswersAdTracker;
 
+        HashSet<Guid> activeOpponents = new HashSet<Guid>();
+
         ISystemEndPoint? systemEndPoint;
 
         public Player(
@@ -102,22 +104,32 @@ namespace FLGrains
         public async Task<(OwnPlayerInfoDTO info, VideoAdLimitTrackerInfo coinRewardVideo, VideoAdLimitTrackerInfo getCategoryAnswersVideo,
             IEnumerable<CoinGiftInfo> coinGifts)> PerformStartupTasksAndGetInfo()
         {
-            var gifts = await state.UseStateAndMaybePersist(state =>
+            var gifts = await state.UseStateAndMaybePersist(async state =>
             {
                 var config = configReader.Config.ConfigValues;
+                var myID = (this).GetPrimaryKey();
 
                 if (IsNewPlayer(state))
                 {
                     state.Gold = config.InitialGold;
                     state.Level = 1;
 
-                    var id = (this).GetPrimaryKey();
-                    LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).Set(id, 0).Ignore();
-                    LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.XP).Set(id, 0).Ignore();
+                    LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).Set(myID, 0).Ignore();
+                    LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.XP).Set(myID, 0).Ignore();
 
                     state.Name = "مهمان " + RandomHelper.GetInt32(100_000, 1_000_000).ToString();
 
                     return (true, state.CoinGifts);
+                }
+
+                foreach (var game in state.ActiveGames)
+                {
+                    var opponentID =
+                        (await GrainFactory.GetGrain<IGame>(game).GetPlayerIDs())
+                        .Where(id => id != myID)
+                        .FirstOrDefault();
+                    if (opponentID != Guid.Empty)
+                        activeOpponents.Add(opponentID);
                 }
 
                 if (state.PastGames.Count > config.MaxGameHistoryEntries)
@@ -404,28 +416,11 @@ namespace FLGrains
             return Task.CompletedTask;
         }
 
-        public Task<(bool canEnter, Guid? lastOpponentID)> CheckCanEnterGameAndGetLastOpponentID() =>
-            state.UseState(async state =>
+        public Task<(bool canEnter, Immutable<ISet<Guid>> activeOpponents)> CheckCanEnterGameAndGetActiveOpponents() =>
+            state.UseState(state =>
             {
                 var canEnter = IsInfinitePlayActive || state.ActiveGames.Count < configReader.Config.ConfigValues.MaxActiveGames;
-
-                Guid? lastOpponentID;
-                if (state.ActiveGames.Count == 0)
-                    lastOpponentID = null;
-                else
-                {
-                    var myID = this.GetPrimaryKey();
-
-                    // this could be Guid.Empty if the next game is waiting for the second player
-                    lastOpponentID =
-                        (await GrainFactory.GetGrain<IGame>(state.ActiveGames.Last()).GetPlayerIDs())
-                        .Where(id => id != myID)
-                        .Cast<Guid?>()
-                        .DefaultIfEmpty(null)
-                        .First();
-                }
-
-                return (canEnter, lastOpponentID);
+                return Task.FromResult((canEnter, activeOpponents.AsImmutable<ISet<Guid>>()));
             });
 
         public Task<byte> JoinGameAsFirstPlayer(IGame game) =>
@@ -441,8 +436,20 @@ namespace FLGrains
             {
                 var result = await game.AddSecondPlayer(GetPlayerInfoImpl());
                 if (result.opponentID != Guid.Empty)
+                {
+                    activeOpponents.Add(result.opponentID);
                     state.ActiveGames.Add(game.GetPrimaryKey());
+                }
                 return result;
+            });
+
+        public Task SecondPlayerJoinedGame(IGame game, Guid playerID) =>
+            state.UseState(state =>
+            {
+                if (state.ActiveGames.Contains(game.GetPrimaryKey()))
+                    activeOpponents.Add(playerID);
+
+                return Task.CompletedTask;
             });
 
         public Task OnRoundCompleted(IGame game, uint myScore)
@@ -499,15 +506,23 @@ namespace FLGrains
 
         Task<ulong> GetRank() => LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).GetRank(this.GetPrimaryKey());
 
-        public Task<(uint score, uint rank, uint level, uint xp, ulong gold)> OnGameResult(IGame game, CompetitionResult result, uint myScore, uint scoreGain, bool gameExpired) =>
+        public Task<(uint score, uint rank, uint level, uint xp, ulong gold)> 
+            OnGameResult(IGame game, CompetitionResult result, uint myScore, uint scoreGain, bool gameExpired, Guid opponentID) =>
             state.UseStateAndPersist(async state =>
             {
+                var gameID = game.GetPrimaryKey();
+
+                if (!state.ActiveGames.Contains(gameID))
+                    return (0u, 0u, 0u, 0u, 0ul);
+
+                activeOpponents.Remove(opponentID);
+
                 var config = configReader.Config.ConfigValues;
 
                 SetMaxStat(myScore, Statistics.BestGameScore);
 
-                state.ActiveGames.Remove(game.GetPrimaryKey());
-                state.PastGames.Add(game.GetPrimaryKey());
+                state.ActiveGames.Remove(gameID);
+                state.PastGames.Add(gameID);
 
                 var rank = 0UL;
                 var gold = 0UL;

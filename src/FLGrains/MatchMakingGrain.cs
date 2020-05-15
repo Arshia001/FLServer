@@ -5,6 +5,7 @@ using FLGrainInterfaces.Utility;
 using FLGrains.Utility;
 using Microsoft.Extensions.Logging;
 using Orleans;
+using Orleans.Concurrency;
 using Orleans.Runtime;
 using OrleansBondUtils;
 using System;
@@ -101,7 +102,8 @@ namespace FLGrains
 
         bool Within(uint a, uint b, uint delta) => Math.Abs((int)a - (int)b) <= delta;
 
-        public async Task<(Guid gameID, PlayerInfoDTO? opponentInfo, byte numRounds, bool myTurnFirst, TimeSpan? expiryTimeRemaining)> FindOrCreateGame(IPlayer player, Guid? lastOpponentID)
+        public async Task<(Guid gameID, PlayerInfoDTO? opponentInfo, byte numRounds, bool myTurnFirst, TimeSpan? expiryTimeRemaining)> 
+            FindOrCreateGame(IPlayer player, Immutable<ISet<Guid>> activeOpponents)
         {
             var config = configReader.Config;
             var (score, level) = await player.GetMatchMakingInfo();
@@ -114,7 +116,7 @@ namespace FLGrains
 
             while (true)
             {
-                var match = entries.FirstOrDefault(IsMatch(score, level, playerID, config, lastOpponentID, detailedLog));
+                var match = entries.FirstOrDefault(IsMatch(score, level, playerID, config, activeOpponents.Value, detailedLog));
 
                 if (match != null)
                 {
@@ -156,16 +158,16 @@ namespace FLGrains
             }
         }
 
-        Func<MatchMakingEntry, bool> IsMatch(uint score, uint level, Guid playerID, ReadOnlyConfigData config, Guid? lastOpponentID, bool detailedLog) =>
+        Func<MatchMakingEntry, bool> IsMatch(uint score, uint level, Guid playerID, ReadOnlyConfigData config, ISet<Guid> activeOpponents, bool detailedLog) =>
             e =>
             {
                 if (detailedLog)
                     logger.LogInformation($"Testing {e.FirstPlayerID} with level {e.Level} and score {e.Score}");
 
-                if (lastOpponentID.HasValue && e.FirstPlayerID == lastOpponentID.Value)
+                if (activeOpponents != null && activeOpponents.Contains(e.FirstPlayerID))
                 {
                     if (detailedLog)
-                        logger.LogInformation($"Same opponent as last for this player, won't match: {lastOpponentID}");
+                        logger.LogInformation($"Player already has an active game against this opponent, won't match: {e.FirstPlayerID}");
                     return false;
                 }
 

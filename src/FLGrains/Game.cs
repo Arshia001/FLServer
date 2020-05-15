@@ -350,8 +350,8 @@ namespace FLGrains
 
                     var scoreGain = ScoreGainCalculator.CalculateGain(initScore0, initScore1, CompetitionResultHelper.Get(wins0, wins1), config);
 
-                    var (score0, rank0, level0, xp0, gold0) = await player0.OnGameResult(me, CompetitionResultHelper.Get(wins0, wins1), wins0, scoreGain, false);
-                    var (score1, rank1, level1, xp1, gold1) = await player1.OnGameResult(me, CompetitionResultHelper.Get(wins1, wins0), wins1, scoreGain, false);
+                    var (score0, rank0, level0, xp0, gold0) = await player0.OnGameResult(me, CompetitionResultHelper.Get(wins0, wins1), wins0, scoreGain, false, state.PlayerIDs[1]);
+                    var (score1, rank1, level1, xp1, gold1) = await player1.OnGameResult(me, CompetitionResultHelper.Get(wins1, wins0), wins1, scoreGain, false, state.PlayerIDs[0]);
 
                     if (!await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(state.PlayerIDs[0], myID, wins0, wins1, score0, rank0, level0, xp0, gold0))
                         await player0.SendGameEndedNotification(state.PlayerIDs[1]);
@@ -424,8 +424,8 @@ namespace FLGrains
 
                 var scoreGain = ScoreGainCalculator.CalculateGain(initScore0, initScore1, expiredFor == 0 ? CompetitionResult.Loss : CompetitionResult.Win, config);
 
-                var (score0, rank0, level0, xp0, gold0) = await player0.OnGameResult(me, expiredFor == 0 ? CompetitionResult.Loss : CompetitionResult.Win, GameLogic.GetNumRoundsWon(0), scoreGain, true);
-                var (score1, rank1, level1, xp1, gold1) = await player1.OnGameResult(me, expiredFor == 0 ? CompetitionResult.Win : CompetitionResult.Loss, GameLogic.GetNumRoundsWon(1), scoreGain, true);
+                var (score0, rank0, level0, xp0, gold0) = await player0.OnGameResult(me, expiredFor == 0 ? CompetitionResult.Loss : CompetitionResult.Win, GameLogic.GetNumRoundsWon(0), scoreGain, true, state.PlayerIDs[1]);
+                var (score1, rank1, level1, xp1, gold1) = await player1.OnGameResult(me, expiredFor == 0 ? CompetitionResult.Win : CompetitionResult.Loss, GameLogic.GetNumRoundsWon(1), scoreGain, true, state.PlayerIDs[0]);
 
                 // No push notifications here...
                 await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameExpired(state.PlayerIDs[0], myID, expiredFor == 1, score0, rank0, level0, xp0, gold0);

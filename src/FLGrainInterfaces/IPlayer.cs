@@ -164,12 +164,14 @@ namespace FLGrainInterfaces
 
         Task<Immutable<IReadOnlyList<IGame>>> GetGames();
         Task ClearFinishedGames();
-        Task<(bool canEnter, Guid? lastOpponentID)> CheckCanEnterGameAndGetLastOpponentID();
+        Task<(bool canEnter, Immutable<ISet<Guid>> activeOpponents)> CheckCanEnterGameAndGetActiveOpponents();
         Task<byte> JoinGameAsFirstPlayer(IGame game);
         Task<(Guid opponentID, byte numRounds, TimeSpan? expiryTimeRemaining)> JoinGameAsSecondPlayer(IGame game);
+        Task SecondPlayerJoinedGame(IGame game, Guid playerID);
         Task OnRoundCompleted(IGame game, uint myScore);
         Task OnRoundResult(IGame game, CompetitionResult result, ushort groupID);
-        Task<(uint score, uint rank, uint level, uint xp, ulong gold)> OnGameResult(IGame game, CompetitionResult result, uint myScore, uint scoreGain, bool gameExpired);
+        Task<(uint score, uint rank, uint level, uint xp, ulong gold)> 
+            OnGameResult(IGame game, CompetitionResult result, uint myScore, uint scoreGain, bool gameExpired, Guid opponentID);
 
         Task<(bool success, ulong totalGold, TimeSpan duration)> ActivateInfinitePlay();
 
