@@ -57,13 +57,15 @@ enum Statistics
 	GroupChangeUsed,
 	MoneySpentRevealAnswers,
 	RevealAnswersUsed,
-	MoneySpentInfinitePlay,
-	InfinitePlayUsed,
+	UNUSED_MoneySpentInfinitePlay,
+	UNUSED_InfinitePlayUsed,
 	GameLostDueToExpiry,
 	RoundsCompleted,
 	VideoAdsWatched,
 	CoinRewardVideoAdsWatched,
-	GetCategoryAnswersVideoAdsWatched
+	GetCategoryAnswersVideoAdsWatched,
+	MoneySpentUpgradeActiveGameLimit,
+	UpgradeActiveGameLimitUsed
 }
 
 enum LeaderBoardSubject
@@ -167,7 +169,7 @@ contract OwnPlayerInfoDTO
 	Gold: u64;
 	CurrentNumRoundsWonForReward: u32;
 	NextRoundWinRewardTimeRemaining: timespan;
-	InfinitePlayTimeRemaining: timespan?;
+	UpgradedActiveGameLimitTimeRemaining: timespan?;
 	StatisticsValues: StatisticValueDTO[];
 	IsRegistered: bool;
 	NotificationsEnabled: bool;
@@ -220,10 +222,11 @@ contract ConfigValuesDTO castfrom(FLGrainInterfaces.Configuration.ConfigValues s
 	RevealWordPrices: u32[];
 	GetAnswersPrice: u32;
 	MaxActiveGames: u32;
-	InfinitePlayPrice: u32;
+	UpgradedActiveGameLimitPrice: u32;
+	MaxActiveGamesWhenUpgraded: u32;
 	NumTimeExtensionsPerRound: u32;
 	RefreshGroupsAllowedPerRound: u8;
-	InfinitePlayTime: timespan;
+	UpgradedActiveGameLimitTime: timespan;
 	NumRoundsPerGame: u8;
 	NumGroupChoices: u8;
 	ClientTimePerRound: timespan;
@@ -309,7 +312,7 @@ endpoint System sys
 		}
 	}
 
-	request ActivateInfinitePlay inf via Player(clientid).ActivateInfinitePlay()
+	request ActivateUpgradedActiveGameLimit upgl via Player(clientid).ActivateUpgradedActiveGameLimit()
 	{
 		{ }
 		->

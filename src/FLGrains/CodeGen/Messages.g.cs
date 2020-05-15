@@ -29,11 +29,11 @@ namespace FLGrains
             return Success(LightMessage.Common.Messages.Param.UInt(result.totalGold), LightMessage.Common.Messages.Param.TimeSpan(result.timeUntilNextReward));
         }
 
-        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("inf")]
-        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_ActivateInfinitePlay(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("upgl")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_ActivateUpgradedActiveGameLimit(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
-            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).ActivateInfinitePlay();
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).ActivateUpgradedActiveGameLimit();
             return Success(LightMessage.Common.Messages.Param.Boolean(result.success), LightMessage.Common.Messages.Param.UInt(result.totalGold), LightMessage.Common.Messages.Param.TimeSpan(result.duration));
         }
 

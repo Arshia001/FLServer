@@ -23,8 +23,9 @@ namespace FLGrainInterfaces.Configuration
         public TimeSpan GameInactivityTimeout { get; private set; }
 
         public uint MaxActiveGames { get; private set; }
-        public uint InfinitePlayPrice { get; private set; }
-        public TimeSpan InfinitePlayTime { get; private set; }
+        public uint UpgradedActiveGameLimitPrice { get; private set; }
+        public TimeSpan UpgradedActiveGameLimitTime { get; private set; }
+        public uint MaxActiveGamesWhenUpgraded { get; private set; }
 
         public float WordScoreThreshold2 { get; private set; }
         public float WordScoreThreshold3 { get; private set; }
@@ -75,8 +76,9 @@ namespace FLGrainInterfaces.Configuration
             Validation.CheckNotEqual(data.DrawXPGain, 0u, "draw XP gain");
             Validation.CheckNotEqual(data.ExtraTimePerRound, TimeSpan.Zero, "extra time per round");
             Validation.CheckNotEqual(data.GameInactivityTimeout, TimeSpan.Zero, "game inactivity timeout");
-            Validation.CheckNotEqual(data.InfinitePlayPrice, 0u, "infinite play price");
-            Validation.CheckNotEqual(data.InfinitePlayTime, TimeSpan.Zero, "infinite play time");
+            Validation.CheckNotEqual(data.UpgradedActiveGameLimitPrice, 0u, "max active games when upgraded");
+            Validation.CheckNotEqual(data.MaxActiveGamesWhenUpgraded, 0u, "upgraded active game limit price");
+            Validation.CheckNotEqual(data.UpgradedActiveGameLimitTime, TimeSpan.Zero, "upgraded active game limit time");
             Validation.CheckNotEqual(data.LoserScoreLossRatio, 0, "loser score loss ratio");
             Validation.CheckNotEqual(data.MatchmakingLevelDifference, 0u, "matchmaking level difference");
             Validation.CheckNotEqual(data.MatchmakingScoreDifference, 0u, "matchmaking score difference");

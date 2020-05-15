@@ -91,7 +91,7 @@ namespace FLGrainInterfaces
         public List<Guid> PastGames { get; private set; } = new List<Guid>();
 
         [Id(9)]
-        public DateTime InfinitePlayEndTime { get; set; }
+        public DateTime UpgradedActiveGameLimitEndTime { get; set; }
 
         [Id(10)]
         public HashSet<string> OwnedCategoryAnswers { get; private set; } = new HashSet<string>();
@@ -173,7 +173,7 @@ namespace FLGrainInterfaces
         Task<(uint score, uint rank, uint level, uint xp, ulong gold)> 
             OnGameResult(IGame game, CompetitionResult result, uint myScore, uint scoreGain, bool gameExpired, Guid opponentID);
 
-        Task<(bool success, ulong totalGold, TimeSpan duration)> ActivateInfinitePlay();
+        Task<(bool success, ulong totalGold, TimeSpan duration)> ActivateUpgradedActiveGameLimit();
 
         Task<ulong?> IncreaseRoundTime(Guid gameID, uint price);
         Task<ulong?> RevealWord(Guid gameID, uint price);

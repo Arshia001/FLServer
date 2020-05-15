@@ -169,9 +169,9 @@ namespace FLGrains
 
         Task<string> IPlayer.GetName() => state.UseState(state => Task.FromResult(state.Name));
 
-        bool IsInfinitePlayActive => state.UseState(state => state.InfinitePlayEndTime > DateTime.Now);
+        bool IsUpgradedActiveGameLimitActive => state.UseState(state => state.UpgradedActiveGameLimitEndTime > DateTime.Now);
 
-        TimeSpan InfinitePlayTimeRemaining => state.UseState(state => state.InfinitePlayEndTime - DateTime.Now);
+        TimeSpan UpgradedActiveGameLimitTimeRemaining => state.UseState(state => state.UpgradedActiveGameLimitEndTime - DateTime.Now);
 
         static bool ShouldReplicateStatToClient(Statistics stat) =>
             stat switch
@@ -204,7 +204,7 @@ namespace FLGrains
                     score: state.Score,
                     rank: (uint)await LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).GetRank(this.GetPrimaryKey()),
                     gold: state.Gold,
-                    infinitePlayTimeRemaining: IsInfinitePlayActive ? InfinitePlayTimeRemaining : default(TimeSpan?),
+                    upgradedActiveGameLimitTimeRemaining: IsUpgradedActiveGameLimitActive ? UpgradedActiveGameLimitTimeRemaining : default(TimeSpan?),
                     statisticsValues: state.StatisticsValues.Where(kv => ShouldReplicateStatToClient(kv.Key.Statistic))
                         .Select(kv => new StatisticValueDTO(kv.Key.Statistic, kv.Key.Parameter, kv.Value)),
                     isRegistered: IsRegistered(),
@@ -419,7 +419,11 @@ namespace FLGrains
         public Task<(bool canEnter, Immutable<ISet<Guid>> activeOpponents)> CheckCanEnterGameAndGetActiveOpponents() =>
             state.UseState(state =>
             {
-                var canEnter = IsInfinitePlayActive || state.ActiveGames.Count < configReader.Config.ConfigValues.MaxActiveGames;
+                var canEnter = state.ActiveGames.Count < (
+                    IsUpgradedActiveGameLimitActive ? 
+                    configReader.Config.ConfigValues.MaxActiveGamesWhenUpgraded : 
+                    configReader.Config.ConfigValues.MaxActiveGames
+                );
                 return Task.FromResult((canEnter, activeOpponents.AsImmutable<ISet<Guid>>()));
             });
 
@@ -506,7 +510,7 @@ namespace FLGrains
 
         Task<ulong> GetRank() => LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).GetRank(this.GetPrimaryKey());
 
-        public Task<(uint score, uint rank, uint level, uint xp, ulong gold)> 
+        public Task<(uint score, uint rank, uint level, uint xp, ulong gold)>
             OnGameResult(IGame game, CompetitionResult result, uint myScore, uint scoreGain, bool gameExpired, Guid opponentID) =>
             state.UseStateAndPersist(async state =>
             {
@@ -654,23 +658,23 @@ namespace FLGrains
                 return Task.FromResult((state.Gold, configValues.RoundWinRewardInterval));
             });
 
-        public Task<(bool success, ulong totalGold, TimeSpan duration)> ActivateInfinitePlay() =>
+        public Task<(bool success, ulong totalGold, TimeSpan duration)> ActivateUpgradedActiveGameLimit() =>
             state.UseStateAndMaybePersist(state =>
             {
-                if (IsInfinitePlayActive)
-                    return (false, (false, state.Gold, state.InfinitePlayEndTime - DateTime.Now));
+                if (IsUpgradedActiveGameLimitActive)
+                    return (false, (false, state.Gold, state.UpgradedActiveGameLimitEndTime - DateTime.Now));
 
                 var config = configReader.Config.ConfigValues;
-                if (state.Gold < config.InfinitePlayPrice)
+                if (state.Gold < config.UpgradedActiveGameLimitPrice)
                     return (false, (false, 0UL, TimeSpan.Zero));
 
-                state.Gold -= config.InfinitePlayPrice;
+                state.Gold -= config.UpgradedActiveGameLimitPrice;
 
-                AddStatImpl(config.InfinitePlayPrice, Statistics.MoneySpentInfinitePlay);
-                AddStatImpl(1, Statistics.InfinitePlayUsed);
+                AddStatImpl(config.UpgradedActiveGameLimitPrice, Statistics.MoneySpentUpgradeActiveGameLimit);
+                AddStatImpl(1, Statistics.UpgradeActiveGameLimitUsed);
 
-                var duration = config.InfinitePlayTime;
-                state.InfinitePlayEndTime = DateTime.Now + duration;
+                var duration = config.UpgradedActiveGameLimitTime;
+                state.UpgradedActiveGameLimitEndTime = DateTime.Now + duration;
                 return (true, (true, state.Gold, duration));
             });
 
