@@ -908,7 +908,7 @@ namespace FLGrains
                     await RegisterOrUpdateReminder(PlayerReminderNames.RoundWinRewardNotification, rewardTime - DateTime.Now, TimeSpan.FromMinutes(5));
                 }
 
-                if (state.CoinRewardVideoNotificationsEnabled)
+                if (state.CoinRewardVideoNotificationsEnabled == true)
                 {
                     var coolDown = coinRewardAdTracker.GetCoolDownTimeRemaining();
                     if (coolDown > TimeSpan.Zero)

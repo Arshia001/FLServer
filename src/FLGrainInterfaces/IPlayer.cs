@@ -136,7 +136,7 @@ namespace FLGrainInterfaces
         public List<CoinGiftInfo> CoinGifts { get; set; } = new List<CoinGiftInfo>();
 
         [Id(27)]
-        public bool CoinRewardVideoNotificationsEnabled { get; set; } = false;
+        public bool? CoinRewardVideoNotificationsEnabled { get; set; } = null;
     }
 
     [BondSerializationTag("@p")]

@@ -174,7 +174,7 @@ contract OwnPlayerInfoDTO
 	IsRegistered: bool;
 	NotificationsEnabled: bool;
 	TutorialProgress: u64;
-	CoinRewardVideoNotificationsEnabled: bool;
+	CoinRewardVideoNotificationsEnabled: bool?;
 }
 
 contract WordScorePairDTO castfrom(FLGameLogic.WordScorePair)
