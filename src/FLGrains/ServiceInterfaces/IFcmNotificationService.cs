@@ -11,5 +11,6 @@ namespace FLGrains.ServiceInterfaces
         
         void SendDay4Reminder(string token);
         void SendRoundWinRewardAvailableReminder(string token);
+        void SendCoinRewardVideoReadyReminder(string token);
     }
 }

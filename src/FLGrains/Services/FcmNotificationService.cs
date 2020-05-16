@@ -65,5 +65,8 @@ namespace FLGrains.Services
 
         public void SendRoundWinRewardAvailableReminder(string token) =>
             Send(token, "چالش روزانه آماده شد", "جعبه چالش روزانه آماده شده. بیا بازی کن و جایزه‌ت رو بگیر!", "roundwinreward");
+
+        public void SendCoinRewardVideoReadyReminder(string token) =>
+            Send(token, "هدیه آماده شد", "هدیه‌ت آماده شده، بیا تو بازی تا دریافتش کنی!", "coinrewardvideo");
     }
 }

@@ -134,6 +134,9 @@ namespace FLGrainInterfaces
 
         [Id(26)]
         public List<CoinGiftInfo> CoinGifts { get; set; } = new List<CoinGiftInfo>();
+
+        [Id(27)]
+        public bool CoinRewardVideoNotificationsEnabled { get; set; } = false;
     }
 
     [BondSerializationTag("@p")]
@@ -191,6 +194,7 @@ namespace FLGrainInterfaces
 
         Task SetFcmToken(string token);
         Task SetNotificationsEnabled(bool enable);
+        Task SetCoinRewardVideoNotificationsEnabled(bool enable);
         Task SendMyTurnStartedNotification(Guid opponentID);
         Task SendGameEndedNotification(Guid opponentID);
 

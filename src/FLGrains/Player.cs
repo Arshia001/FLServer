@@ -20,10 +20,12 @@ using System.Threading.Tasks;
 
 namespace FLGrains
 {
+    //!! Reminders for notifications could be separated out into another grain
     static class PlayerReminderNames
     {
         public const string Day4Notification = "Day4";
         public const string RoundWinRewardNotification = "RoundWinReward";
+        public const string CoinRewardVideoNotification = "GiftVideo";
 
         public static IEnumerable<string> All
         {
@@ -31,6 +33,7 @@ namespace FLGrains
             {
                 yield return Day4Notification;
                 yield return RoundWinRewardNotification;
+                yield return CoinRewardVideoNotification;
             }
         }
     }
@@ -209,6 +212,7 @@ namespace FLGrains
                         .Select(kv => new StatisticValueDTO(kv.Key.Statistic, kv.Key.Parameter, kv.Value)),
                     isRegistered: IsRegistered(),
                     notificationsEnabled: state.NotificationsEnabled,
+                    coinRewardVideoNotificationsEnabled: state.CoinRewardVideoNotificationsEnabled,
                     tutorialProgress: state.TutorialProgress
                 );
             });
@@ -420,8 +424,8 @@ namespace FLGrains
             state.UseState(state =>
             {
                 var canEnter = state.ActiveGames.Count < (
-                    IsUpgradedActiveGameLimitActive ? 
-                    configReader.Config.ConfigValues.MaxActiveGamesWhenUpgraded : 
+                    IsUpgradedActiveGameLimitActive ?
+                    configReader.Config.ConfigValues.MaxActiveGamesWhenUpgraded :
                     configReader.Config.ConfigValues.MaxActiveGames
                 );
                 return Task.FromResult((canEnter, activeOpponents.AsImmutable<ISet<Guid>>()));
@@ -780,6 +784,8 @@ namespace FLGrains
 
         public Task SetNotificationsEnabled(bool enable) => state.UseStateAndPersist(state => { state.NotificationsEnabled = enable; });
 
+        public Task SetCoinRewardVideoNotificationsEnabled(bool enable) => state.UseStateAndPersist(state => { state.CoinRewardVideoNotificationsEnabled = enable; });
+
         bool CanSendNotification(PlayerState state) => state.NotificationsEnabled && !string.IsNullOrEmpty(state.FcmToken);
 
         Task SendNotificationIfPossible(Func<string, Task> sendNotification) =>
@@ -794,8 +800,8 @@ namespace FLGrains
         void SendNotificationIfPossible(Action<string> sendNotification) =>
             state.UseState(state =>
             {
-                if (CanSendNotification(state) && state.FcmToken != null)
-                    sendNotification(state.FcmToken);
+                if (CanSendNotification(state))
+                    sendNotification(state.FcmToken!);
             });
 
         public Task SendMyTurnStartedNotification(Guid opponentID)
@@ -881,22 +887,34 @@ namespace FLGrains
 
             await UnregisterReminderIfExists(reminders, PlayerReminderNames.Day4Notification);
             await UnregisterReminderIfExists(reminders, PlayerReminderNames.RoundWinRewardNotification);
+            await UnregisterReminderIfExists(reminders, PlayerReminderNames.CoinRewardVideoNotification);
         }
 
-        async Task RegisterOfflineReminders()
-        {
-            var timeFrames = configReader.Config.ConfigValues.NotificationTimeFrames!;
-
-            var day4Time = TimeFrame.GetClosestInterval(DateTime.Now.AddDays(4), timeFrames, false).GetRandomTimeInside();
-            await RegisterOrUpdateReminder(PlayerReminderNames.Day4Notification, day4Time - DateTime.Now, TimeSpan.FromMinutes(5));
-
-            var rewardStatus = GetRoundWinRewardStatus();
-            if (rewardStatus.inCoolDown)
+        Task RegisterOfflineReminders() =>
+            state.UseState(async state =>
             {
-                var rewardTime = TimeFrame.GetClosestInterval(DateTime.Now + rewardStatus.coolDownTimeRemaining, timeFrames, false).GetRandomTimeInside();
-                await RegisterOrUpdateReminder(PlayerReminderNames.RoundWinRewardNotification, rewardTime - DateTime.Now, TimeSpan.FromMinutes(5));
-            }
-        }
+                if (!CanSendNotification(state))
+                    return;
+
+                var timeFrames = configReader.Config.ConfigValues.NotificationTimeFrames!;
+
+                var day4Time = TimeFrame.GetClosestInterval(DateTime.Now.AddDays(4), timeFrames, false).GetRandomTimeInside();
+                await RegisterOrUpdateReminder(PlayerReminderNames.Day4Notification, day4Time - DateTime.Now, TimeSpan.FromMinutes(5));
+
+                var rewardStatus = GetRoundWinRewardStatus();
+                if (rewardStatus.inCoolDown)
+                {
+                    var rewardTime = TimeFrame.GetClosestInterval(DateTime.Now + rewardStatus.coolDownTimeRemaining, timeFrames, false).GetRandomTimeInside();
+                    await RegisterOrUpdateReminder(PlayerReminderNames.RoundWinRewardNotification, rewardTime - DateTime.Now, TimeSpan.FromMinutes(5));
+                }
+
+                if (state.CoinRewardVideoNotificationsEnabled)
+                {
+                    var coolDown = coinRewardAdTracker.GetCoolDownTimeRemaining();
+                    if (coolDown > TimeSpan.Zero)
+                        await RegisterOrUpdateReminder(PlayerReminderNames.CoinRewardVideoNotification, coolDown, TimeSpan.FromMinutes(2));
+                }
+            });
 
         public async Task ReceiveReminder(string reminderName, TickStatus status)
         {
@@ -910,6 +928,11 @@ namespace FLGrains
                 case PlayerReminderNames.RoundWinRewardNotification:
                     await UnregisterReminderIfExists(reminderName);
                     SendNotificationIfPossible(token => fcmNotificationService.SendRoundWinRewardAvailableReminder(token));
+                    break;
+
+                case PlayerReminderNames.CoinRewardVideoNotification:
+                    await UnregisterReminderIfExists(reminderName);
+                    SendNotificationIfPossible(token => fcmNotificationService.SendCoinRewardVideoReadyReminder(token));
                     break;
 
                 default:

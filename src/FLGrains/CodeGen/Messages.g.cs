@@ -63,6 +63,14 @@ namespace FLGrains
             return NoResult();
         }
 
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("crvne")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_SetCoinRewardVideoNotificationsEnabled(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            await GrainFactory.GetGrain<IPlayer>(input.ClientID).SetCoinRewardVideoNotificationsEnabled(array[0].AsBoolean.Value);
+            return NoResult();
+        }
+
         protected abstract System.Threading.Tasks.Task<System.Guid?> Login(System.Guid clientID, string email, string password);
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("lg")]

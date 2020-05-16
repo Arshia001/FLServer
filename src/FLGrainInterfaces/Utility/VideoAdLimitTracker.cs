@@ -84,5 +84,21 @@ namespace FLGrainInterfaces.Utility
 
             return true;
         }
+
+        public TimeSpan GetCoolDownTimeRemaining()
+        {
+            var now = DateTime.Now;
+            var config = getConfig();
+
+            if (config.Interval.HasValue &&
+                config.Interval > TimeSpan.Zero &&
+                lastWatchedTime.HasValue)
+            {
+                var elapsed = now - lastWatchedTime.Value;
+                return elapsed >= config.Interval.Value ? TimeSpan.Zero : config.Interval.Value - elapsed;
+            }
+            else
+                return TimeSpan.Zero;
+        }
     }
 }
