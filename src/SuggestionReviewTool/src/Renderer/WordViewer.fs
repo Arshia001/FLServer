@@ -7,6 +7,7 @@ open Feliz.MaterialUI
 open Common
 open Elmish
 open Fable.MaterialUI
+open Fable.Core
 
 type SuggestedWord = {
     Word: string
@@ -41,6 +42,8 @@ type Model = {
     SelectedRecordIndex: int option
 }
 
+type WriteAllResult = Done | Error_FolderExists
+
 let read (text: string) =
     let readWords (s: string) = s.Split ',' |> Seq.map (fun w -> { Word = readString w; Accepted = false })
 
@@ -73,24 +76,43 @@ let writeGifts { Records = records; GiftPerSuggestion = gift } =
     )
     |> String.concat "\n"
 
-let writeRecord { Words = words } =
-    words
-    |> Seq.filter (fun w -> w.Accepted)
-    |> Seq.map (fun w -> w.Word)
-    |> String.concat "\n"
+let writeRecord (words: string seq) = words |> String.concat "\n"
+
+let mergeCategories (s: SuggestedWordsRecord seq) =
+    s
+    |> Seq.fold (fun dic s ->
+        let words =
+            s.Words
+            |> Seq.filter (fun w -> w.Accepted)
+            |> Seq.map (fun w -> w.Word)
+            |> Set.ofSeq
+        let newWords =
+            match Map.tryFind s.CategoryName dic with
+            | Some l -> Set.union l words
+            | None -> words
+        Map.add s.CategoryName newWords dic
+    ) Map.empty
 
 let writeAll (m: Model) (path: string) =
-    let dirName = trimExtension path + " (Update List)"
-    executePromises (
-        (lazy writeUtf8Async (writeGifts m) path) ::
-        (lazy createDirectory dirName) ::
-        (
-            m.Records
-            |> Seq.where (fun r -> r.Accepted = True3)
-            |> Seq.map (fun r -> lazy writeUtf8Async (writeRecord r) (dirName + "/" + r.CategoryName + "-" + (string r.Owner) + ".txt"))
-            |> Seq.toList
-        )
-    )
+    promise {
+        let dirName = trimExtension path + " (Update List)"
+        let! folderExists = exists dirName
+        if folderExists then return Ok Error_FolderExists
+        else
+            let! result =
+                Promise.sequential (
+                    (lazy writeUtf8Async (writeGifts m) path) ::
+                    (lazy createDirectory dirName) ::
+                    (
+                        m.Records
+                        |> Seq.where (fun r -> r.Accepted = True3)
+                        |> mergeCategories
+                        |> Seq.map (fun r -> lazy writeUtf8Async (writeRecord r.Value) (dirName + "/" + r.Key + ".txt"))
+                        |> Seq.toList
+                    )
+                )
+            return result |> Result.map (fun () -> Done)
+    }
 
 let init () = {
     Records = ResizeArray ()
@@ -147,11 +169,11 @@ let update msg m =
         if m.Records |> Seq.exists (fun r -> r.Accepted = Unknown3) then
             m, Cmd.ofMsg (openDialogOneButton "Cannot save when some suggestions haven't been accepted or rejected yet")
         else
-            let promise =
-                save "Word review results" [| "pwwr" |] (writeAll m)
+            let promise = save "Word review results" [| "pwwr" |] (writeAll m)
             m, Cmd.OfPromise.perform (fun () -> promise) ()
                 <| function
-                | Ok SaveResult.Saved -> SaveDone
+                | Ok (SaveResult.Saved Done) -> SaveDone
+                | Ok (SaveResult.Saved Error_FolderExists) -> openDialogOneButton "An update list folder already exists at the chosen path; manually delete the folder or save to a different path."
                 | Ok SaveResult.Canceled -> Nop
                 | Error exn -> ActionFailed {| ActionName = "Save"; Reason = exn.message |}
 
