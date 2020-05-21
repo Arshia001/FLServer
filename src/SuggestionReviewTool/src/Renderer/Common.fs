@@ -7,6 +7,8 @@ open Node.Base
 
 type Boolean3 = True3 | False3 | Unknown3
 
+let constOf x = fun _ -> x
+
 [<RequireQualifiedAccess>]
 type SaveResult<'a> = Saved of 'a | Canceled
 
@@ -131,4 +133,4 @@ let load filterName filterExt =
             return result |> Result.map LoadResult.Loaded
     }
 
-let readString (s: string) = s.Trim('"').Replace("\\\"", "\"")
+let readString (s: string) = s.Trim('"').Replace("\\\"", "\"").Replace("\\n", "\r\n")

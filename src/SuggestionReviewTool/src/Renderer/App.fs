@@ -14,12 +14,14 @@ open Fable.MaterialUI.MaterialDesignIcons
 type Page =
   | Home
   | WordViewer
+  | CategoryViewer
   static member All =
-    [ WordViewer ]
+    [ WordViewer; CategoryViewer ]
 
 let pageTitle = function
   | Home -> "Home"
   | WordViewer -> "Review suggested words"
+  | CategoryViewer -> "Review suggested categories"
 
 type ThemeMode =
   | Light
@@ -29,15 +31,18 @@ type Msg =
   | Navigate of Page
   | SetSystemThemeMode of ThemeMode
   | WordViewerMsg of WordViewer.Msg
+  | CategoryViewerMsg of CategoryViewer.Msg
 
 type Model =
   { Page: Page
     SystemThemeMode: ThemeMode
-    WordViewer: WordViewer.Model }
+    WordViewer: WordViewer.Model
+    CategoryViewer: CategoryViewer.Model }
 
 let resetPageStates m =
   { m with
-      WordViewer = WordViewer.init () }
+      WordViewer = WordViewer.init ()
+      CategoryViewer = CategoryViewer.init () }
 
 let update msg m =
   match msg with
@@ -50,7 +55,9 @@ let update msg m =
   | WordViewerMsg msg' ->
       let m', cmd = WordViewer.update msg' m.WordViewer
       { m with WordViewer = m' }, Cmd.map WordViewerMsg cmd
-
+  | CategoryViewerMsg msg' ->
+      let m', cmd = CategoryViewer.update msg' m.CategoryViewer
+      { m with CategoryViewer = m' }, Cmd.map CategoryViewerMsg cmd
 
 module Theme =
   let light = Styles.createMuiTheme([
@@ -84,6 +91,7 @@ let private pageView model dispatch =
   match model.Page with
   | Home -> Mui.typography "Choose desired functionality from side menu."
   | WordViewer -> WordViewer.WordViewerPage (model.WordViewer, WordViewerMsg >> dispatch)
+  | CategoryViewer -> CategoryViewer.CategoryViewerPage (model.CategoryViewer, CategoryViewerMsg >> dispatch)
 
 
 let private useToolbarTyles = Styles.makeStyles(fun styles theme ->
@@ -97,6 +105,7 @@ let private useToolbarTyles = Styles.makeStyles(fun styles theme ->
 let private getPageCommands model dispatch =
     match model.Page with
     | WordViewer -> WordViewer.AppBarCommands model.WordViewer (WordViewerMsg >> dispatch) |> List.toSeq
+    | CategoryViewer -> CategoryViewer.AppBarCommands model.CategoryViewer (CategoryViewerMsg >> dispatch) |> List.toSeq
     | _ -> Seq.empty
 
 let Toolbar = FunctionComponent.Of((fun (model, dispatch) ->
@@ -204,7 +213,8 @@ let init () =
   let m =
     { Page = Home
       SystemThemeMode = Light
-      WordViewer = WordViewer.init () }
+      WordViewer = WordViewer.init ()
+      CategoryViewer = CategoryViewer.init () }
   m, Cmd.ofSub updateSystemTheme
 
 let view model dispatch =

@@ -1,4 +1,4 @@
-﻿module WordViewer
+﻿module CategoryViewer
 
 open System
 open Fable.React
@@ -9,24 +9,21 @@ open Elmish
 open Fable.MaterialUI
 open Fable.Core
 
-type SuggestedWord = {
-    Word: string
-    Accepted: bool
-}
-
-type SuggestedWordsRecord = {
+type SuggestedCategoryRecord = {
     Owner: Guid
     CategoryName: string
-    Words: ResizeArray<SuggestedWord>
+    Words: string
+    WordCount: int
     Accepted: Boolean3
 }
 
 type Msg =
-    | FlipWord of int * int
+    | SetWordCount of {| categoryIndex: int; count: int |}
     | AcceptRecord of int
     | RejectRecord of int
     | SetSelectedRecord of int
-    | SetSuggestionGift of int
+    | SetSuggestionGiftPerWord of int
+    | SetSuggestionGiftPerCategory of int
     | RequestLoad
     | LoadDone of string
     | RequestSave
@@ -36,17 +33,14 @@ type Msg =
     | Nop
 
 type Model = {
-    Records: ResizeArray<SuggestedWordsRecord>
-    GiftPerSuggestion: int
+    Records: ResizeArray<SuggestedCategoryRecord>
+    GiftPerWord: int
+    GiftPerCategory: int
     DialogModel: AlertDialog.Model<Msg>
     SelectedRecordIndex: int option
 }
 
-type WriteAllResult = Done | Error_FolderExists
-
 let read (text: string) =
-    let readWords (s: string) = s.Split ',' |> Seq.map (fun w -> { Word = readString w; Accepted = false })
-
     text.Split '\n'
     |> Seq.choose (fun line ->
         let line = line.Trim '\r'
@@ -57,66 +51,41 @@ let read (text: string) =
             Some {
                 Owner = Guid.Parse split.[0]
                 CategoryName = readString split.[1]
-                Words = readWords split.[2] |> ResizeArray
+                Words = readString split.[2]
+                WordCount = 0
                 Accepted = Unknown3
             }
     )
     |> ResizeArray
 
-let writeGifts { Records = records; GiftPerSuggestion = gift } =
+let writeGifts { Records = records; GiftPerWord = wordGift; GiftPerCategory = catGift } =
     records
     |> Seq.filter (fun r -> r.Accepted = True3)
     |> Seq.map (fun r ->
-        let acceptedWords = r.Words |> Seq.filter (fun w -> w.Accepted) |> Seq.map (fun w -> w.Word)
-        sprintf "%s,%i,%s,%s"
+        sprintf "%s,%i,%s"
             (string r.Owner)
-            ((acceptedWords |> Seq.length) * gift)
+            (r.WordCount * wordGift + catGift)
             r.CategoryName
-            (String.concat "," acceptedWords)
     )
     |> String.concat "\n"
 
-let writeRecord (words: string seq) = words |> String.concat "\n"
-
-let mergeCategories (s: SuggestedWordsRecord seq) =
-    s
-    |> Seq.fold (fun dic s ->
-        let words =
-            s.Words
-            |> Seq.filter (fun w -> w.Accepted)
-            |> Seq.map (fun w -> w.Word)
-            |> Set.ofSeq
-        let newWords =
-            match Map.tryFind s.CategoryName dic with
-            | Some l -> Set.union l words
-            | None -> words
-        Map.add s.CategoryName newWords dic
-    ) Map.empty
-
 let writeAll (m: Model) (path: string) =
-    promise {
-        let dirName = trimExtension path + " (Update List)"
-        let! folderExists = exists dirName
-        if folderExists then return Ok Error_FolderExists
-        else
-            let! result =
-                Promise.sequential (
-                    (lazy writeUtf8Async (writeGifts m) path) ::
-                    (lazy createDirectory dirName) ::
-                    (
-                        m.Records
-                        |> Seq.where (fun r -> r.Accepted = True3)
-                        |> mergeCategories
-                        |> Seq.map (fun r -> lazy writeUtf8Async (writeRecord r.Value) (dirName + "/" + r.Key + ".txt"))
-                        |> Seq.toList
-                    )
-                )
-            return result |> Result.map (fun () -> Done)
-    }
+    let dirName = trimExtension path + " (Category List)"
+    Promise.sequential (
+        (lazy writeUtf8Async (writeGifts m) path) ::
+        (lazy createDirectory dirName) ::
+        (
+            m.Records
+            |> Seq.where (fun r -> r.Accepted = True3)
+            |> Seq.map (fun r -> lazy writeUtf8Async r.Words (dirName + "/" + r.CategoryName + " - " + r.Owner.ToString() + ".txt"))
+            |> Seq.toList
+        )
+    )
 
 let init () = {
     Records = ResizeArray ()
-    GiftPerSuggestion = 10
+    GiftPerWord = 10
+    GiftPerCategory = 100
     DialogModel = AlertDialog.init ()
     SelectedRecordIndex = None
 }
@@ -133,31 +102,30 @@ let update msg m =
 
     | Nop -> m, Cmd.none
 
-    | FlipWord (r, w) ->
-        let word = m.Records.[r].Words.[w]
-        m.Records.[r].Words.[w] <- { word with Accepted = not word.Accepted }
+    | SetWordCount w ->
+        let record = m.Records.[w.categoryIndex]
+        m.Records.[w.categoryIndex] <- { record with WordCount = w.count }
         m, Cmd.none
 
     | AcceptRecord idx ->
-        if m.Records.[idx].Words |> Seq.exists (fun w -> w.Accepted) then
+        if m.Records.[idx].WordCount > 0 then
             m.Records.[idx] <- { m.Records.[idx] with Accepted = True3 }
             selectNextRecord m, Cmd.none
         else
-            m, Cmd.ofMsg (openDialogOneButton "At least one word must be accepted to accept suggestion")
+            m, Cmd.ofMsg (openDialogOneButton "Word count must be entered and be greater than zero before accepting a suggestion")
 
     | RejectRecord idx ->
-        if m.Records.[idx].Words |> Seq.exists (fun w -> w.Accepted) |> not then
-            m.Records.[idx] <- { m.Records.[idx] with Accepted = False3 }
-            selectNextRecord m, Cmd.none
-        else
-            m, Cmd.ofMsg (openDialogOneButton "Cannot reject suggestion when there is an accepted word")
+        m.Records.[idx] <- { m.Records.[idx] with Accepted = False3 }
+        selectNextRecord m, Cmd.none
 
     | SetSelectedRecord idx -> { m with SelectedRecordIndex = Some idx }, Cmd.none
 
-    | SetSuggestionGift amount -> { m with GiftPerSuggestion = amount }, Cmd.none
+    | SetSuggestionGiftPerWord amount -> { m with GiftPerWord = amount }, Cmd.none
+
+    | SetSuggestionGiftPerCategory amount -> { m with GiftPerCategory = amount }, Cmd.none
 
     | RequestLoad ->
-        m, Cmd.OfPromise.perform (fun () -> load "Word suggestion files" [| "pwsw" |]) ()
+        m, Cmd.OfPromise.perform (fun () -> load "Category suggestion files" [| "pwsc" |]) ()
             <| function
             | Ok (LoadResult.Loaded txt) -> LoadDone txt
             | Ok LoadResult.Canceled -> Nop
@@ -169,11 +137,10 @@ let update msg m =
         if m.Records |> Seq.exists (fun r -> r.Accepted = Unknown3) then
             m, Cmd.ofMsg (openDialogOneButton "Cannot save when some suggestions haven't been accepted or rejected yet")
         else
-            let promise = save "Word review results" [| "pwwr" |] (writeAll m)
+            let promise = save "Category review results" [| "pwcr" |] (writeAll m)
             m, Cmd.OfPromise.perform (fun () -> promise) ()
                 <| function
-                | Ok (SaveResult.Saved Done) -> SaveDone
-                | Ok (SaveResult.Saved Error_FolderExists) -> openDialogOneButton "An update list folder already exists at the chosen path; manually delete the folder or save to a different path."
+                | Ok (SaveResult.Saved ()) -> SaveDone
                 | Ok SaveResult.Canceled -> Nop
                 | Error exn -> ActionFailed {| ActionName = "Save"; Reason = exn.message |}
 
@@ -257,33 +224,15 @@ let recordViewer model dispatch =
                     length.percent 100 |> style.height
                 ]
                 prop.children [
-                    Mui.list [
+                    Html.pre [
                         prop.style [
                             Feliz.Interop.mkStyle "max-height" "calc(100% - 72px)"
                             Feliz.Interop.mkStyle "height" "calc(100% - 72px)"
+                            style.padding 10
+                            style.fontFamily "inherit"
                             style.overflow.auto
                         ]
-                        list.children (
-                            model.Records.[i].Words
-                            |> Seq.indexed
-                            |> Seq.map (fun (wi, w) ->
-                                Mui.listItem [
-                                    listItem.button true
-                                    prop.onClick (fun _ -> dispatch <| FlipWord (i, wi))
-                                    listItem.children [
-                                        Mui.listItemIcon [
-                                            listItemIcon.children <|
-                                                match w.Accepted with
-                                                | true -> MaterialDesignIcons.checkIcon []
-                                                | false -> MaterialDesignIcons.closeIcon []
-                                        ]
-                                        Mui.listItemText [
-                                            listItemText.children w.Word
-                                        ]
-                                    ]
-                                ]
-                            )
-                        )
+                        prop.text (model.Records.[i].Words)
                     ]
                     Html.div [
                         prop.style [
@@ -295,14 +244,49 @@ let recordViewer model dispatch =
                         ]
                         prop.children [
                             Mui.textField [
+                                prop.style [
+                                    style.width 150
+                                ]
                                 textField.variant.outlined
-                                textField.label "Reward per suggestion"
-                                textField.value model.GiftPerSuggestion
+                                textField.label "WORD COUNT"
+                                textField.value model.Records.[i].WordCount
                                 textField.type' "number"
                                 textField.onChange (fun s ->
                                     match s, Int32.TryParse s with
-                                    | _, (true, i) -> dispatch <| SetSuggestionGift i
-                                    | "", _ -> dispatch <| SetSuggestionGift 0
+                                    | _, (true, cnt) -> dispatch <| SetWordCount {| categoryIndex = i; count = cnt |}
+                                    | "", _ -> dispatch <| SetWordCount {| categoryIndex = i; count = 0 |}
+                                    | _ -> ()
+                                )
+                            ]
+                            Mui.textField [
+                                prop.style [
+                                    style.width 100
+                                    style.marginLeft 10
+                                ]
+                                textField.variant.outlined
+                                textField.label "Reward per word"
+                                textField.value model.GiftPerWord
+                                textField.type' "number"
+                                textField.onChange (fun s ->
+                                    match s, Int32.TryParse s with
+                                    | _, (true, i) -> dispatch <| SetSuggestionGiftPerWord i
+                                    | "", _ -> dispatch <| SetSuggestionGiftPerWord 0
+                                    | _ -> ()
+                                )
+                            ]
+                            Mui.textField [
+                                prop.style [
+                                    style.width 100
+                                    style.marginLeft 10
+                                ]
+                                textField.variant.outlined
+                                textField.label "Reward per category"
+                                textField.value model.GiftPerCategory
+                                textField.type' "number"
+                                textField.onChange (fun s ->
+                                    match s, Int32.TryParse s with
+                                    | _, (true, i) -> dispatch <| SetSuggestionGiftPerCategory i
+                                    | "", _ -> dispatch <| SetSuggestionGiftPerCategory 0
                                     | _ -> ()
                                 )
                             ]
@@ -349,7 +333,7 @@ let private useStyles = Styles.makeStyles(fun styles _theme ->
     |}
 )
 
-let WordViewerPage : FunctionComponent<Model * (Msg -> unit)> = FunctionComponent.Of((fun (model, dispatch) ->
+let CategoryViewerPage : FunctionComponent<Model * (Msg -> unit)> = FunctionComponent.Of((fun (model, dispatch) ->
     let c = useStyles ()
     Html.div [
         prop.className c.root
@@ -386,4 +370,4 @@ let WordViewerPage : FunctionComponent<Model * (Msg -> unit)> = FunctionComponen
             AlertDialog.AlertDialog (model.DialogModel, dispatch, DialogAction)
         ]
     ]
-), "WordViewerPage")
+), "CategoryViewerPage")

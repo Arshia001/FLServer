@@ -9,6 +9,7 @@
     <Compile Include="Common.fs" />
     <Compile Include="Dialog.fs" />
     <Compile Include="WordViewer.fs" />
+    <Compile Include="CategoryViewer.fs" />
     <Compile Include="App.fs" />
     <Compile Include="Entry.fs" />
   </ItemGroup>
