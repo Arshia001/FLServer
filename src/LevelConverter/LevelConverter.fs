@@ -20,7 +20,9 @@ let containsPersianLetters w = w |> Seq.exists (fun c -> c >= 'ئ')
 
 let canonicalizeWord (w: string) =
     if containsPersianLetters w && w.IndexOfAny latinNumbers >= 0 then 
-        failwithf "Word with Persian letters contains latin numbers: %s" w
+        failwithf "Word with Persian letters contains Latin numbers: %s" w
+    elif w.IndexOf '|' >= 0 then
+        failwithf "Word cannot contain correction separator character | : %s" w
 
     w
         .Trim()
