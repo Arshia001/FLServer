@@ -120,12 +120,13 @@ namespace FLGrains
         {
             var gifts = await state.UseStateAndMaybePersist(async state =>
             {
-                var config = configReader.Config.ConfigValues;
-                var myID = (this).GetPrimaryKey();
+                var config = configReader.Config;
+                var configValues = config.ConfigValues;
+                var myID = this.GetPrimaryKey();
 
                 if (IsNewPlayer(state))
                 {
-                    state.Gold = config.InitialGold;
+                    state.Gold = configValues.InitialGold;
                     state.Level = 1;
 
                     LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).Set(myID, 0).Ignore();
@@ -148,9 +149,9 @@ namespace FLGrains
                         activeOpponents.Add(opponentID);
                 }
 
-                if (state.PastGames.Count > config.MaxGameHistoryEntries)
+                if (state.PastGames.Count > configValues.MaxGameHistoryEntries)
                 {
-                    while (state.PastGames.Count > config.MaxGameHistoryEntries)
+                    while (state.PastGames.Count > configValues.MaxGameHistoryEntries)
                         state.PastGames.RemoveAt(0);
 
                     return (true, state.CoinGifts);

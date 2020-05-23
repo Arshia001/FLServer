@@ -57,7 +57,7 @@ namespace FLGrainInterfaces.Configuration
 
         public Dictionary<AvatarPartType, Dictionary<ushort, AvatarPartConfig>> AvatarParts { get; }
 
-        public InitialAvatarConfig InitialAvatar => data.InitialAvatar;
+        public InitialAvatarConfig InitialAvatar => data.InitialAvatar!;
 
         public int Version => data.Version;
 

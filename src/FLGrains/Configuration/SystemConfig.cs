@@ -41,7 +41,6 @@ namespace FLGrains.Configuration
             }
         }
 
-
         ConfigData? data;
         readonly ISystemSettingsProvider systemSettingsProvider;
         readonly ILogger logger;
@@ -56,8 +55,7 @@ namespace FLGrains.Configuration
         {
             DelayDeactivation(TimeSpan.MaxValue);
 
-            if (!await InitializeConfigFromFile())
-                await InternalUpdateConfigFromDatabase();
+            await InternalUpdateConfigFromDatabase();
 
             await base.OnActivateAsync();
         }
@@ -167,31 +165,6 @@ namespace FLGrains.Configuration
             }
 
             return result;
-        }
-
-        async Task<bool> InitializeConfigFromFile()
-        {
-            const string ConfigFileName = "initial-config.json";
-
-            if (!File.Exists(ConfigFileName))
-                return false;
-
-            var connectionString = systemSettingsProvider.Settings.Values.ConnectionString;
-            var session = await CassandraSessionFactory.CreateSession(connectionString);
-            var queries = await Queries.CreateInstance(session);
-
-            var jsonData = await File.ReadAllTextAsync(ConfigFileName);
-            var newData = ParseConfigData(jsonData);
-            (newData.Groups, newData.Categories, newData.RenamedCategories, newData.LatestClientVersion, newData.LastCompatibleClientVersion) = 
-                await ReadNonJsonConfigDataFromDatabase(session, queries);
-
-            await SetNewData(newData, session, queries);
-
-            await WriteConfigToDatabase(jsonData, session, queries);
-
-            logger.LogWarning("Configuration data updated from initial-config.json, now you should delete the file");
-
-            return true;
         }
 
         private async Task<(List<GroupConfig>, List<CategoryConfig>, List<RenamedCategoryConfig>, uint latestClientVersion, uint lastCompatibleClientVersion)>
