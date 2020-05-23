@@ -176,7 +176,7 @@ namespace FLGrains
 
                 await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentJoined(state.PlayerIDs[0], (this).GetPrimaryKey(), playerTwo, timeRemaining);
 
-                return (state.PlayerIDs[0], (byte)gameLogic.NumRounds, timeRemaining);
+                return (state.PlayerIDs[0], (byte)GameLogic.NumRounds, timeRemaining);
             });
 
         TimeSpan? GetExpiryTimeRemaining() => GameLogic.ExpiryTime == null ? default(TimeSpan?) : GameLogic.ExpiryTime.Value - DateTime.Now;
@@ -247,7 +247,7 @@ namespace FLGrains
 
             var (mustChooseCategory, category, roundIndex, roundTime) = StartRound(index);
             if (!mustChooseCategory)
-                return (category ?? throw new Exception("Don't have a category"), await GrainFactory.GetGrain<IPlayer>(id).HaveAnswersForCategory(category), roundTime.Value);
+                return (category ?? throw new Exception("Don't have a category"), await GrainFactory.GetGrain<IPlayer>(id).HaveAnswersForCategory(category), roundTime!.Value);
 
             state.UseState(state =>
             {
@@ -286,7 +286,7 @@ namespace FLGrains
                 state.GroupChoices = null;
             });
 
-            return (category ?? throw new Exception("Don't have a category"), await GrainFactory.GetGrain<IPlayer>(id).HaveAnswersForCategory(category), roundTime.Value);
+            return (category ?? throw new Exception("Don't have a category"), await GrainFactory.GetGrain<IPlayer>(id).HaveAnswersForCategory(category), roundTime!.Value);
         }
 
         Task OnTurnEnded(object state)
