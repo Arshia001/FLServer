@@ -166,5 +166,93 @@
       "Title": "یه کوه سکه",
       "Tag": "BestValue"
     }
-  ]
+  ],
+  "InitialAvatar": {
+    "HeadShape": 0,
+    "SkinColor": 0,
+    "Eyes": 0,
+    "Mouth": 0
+  },
+  "AvatarConfig": {
+    "HeadShapes": [
+      {
+        "ID": 0,
+        "Price": 0
+      },
+      {
+        "ID": 1,
+        "Price": 10
+      }
+    ],
+    "SkinColors": [
+      {
+        "ID": 0,
+        "Price": 0
+      },
+      {
+        "ID": 1,
+        "Price": 10
+      }
+    ],
+    "Hairs": [
+      {
+        "ID": 0,
+        "Price": 0
+      },
+      {
+        "ID": 1,
+        "Price": 10
+      }
+    ],
+    "HairColors": [
+      {
+        "ID": 0,
+        "Price": 0
+      },
+      {
+        "ID": 1,
+        "Price": 10
+      }
+    ],
+    "Eyes": [
+      {
+        "ID": 0,
+        "Price": 0
+      },
+      {
+        "ID": 1,
+        "Price": 10
+      }
+    ],
+    "Mouths": [
+      {
+        "ID": 0,
+        "Price": 0
+      },
+      {
+        "ID": 1,
+        "Price": 10
+      }
+    ],
+    "BeardColors": [
+      {
+        "ID": 0,
+        "Price": 0
+      },
+      {
+        "ID": 1,
+        "Price": 10
+      }
+    ],
+    "Glasses": [
+      {
+        "ID": 0,
+        "Price": 0
+      },
+      {
+        "ID": 1,
+        "Price": 10
+      }
+    ]
+  }
 }

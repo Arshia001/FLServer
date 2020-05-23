@@ -129,10 +129,33 @@ enum CoinGiftSubject
 	SuggestedCategories
 }
 
+enum AvatarPartType
+{
+	HeadShape,
+	SkinColor,
+	Hair,
+	HairColor,
+	Eyes,
+	Mouth,
+	BeardColor,
+	Glasses
+}
+
+contract AvatarPartDTO castfrom(FLGrainInterfaces.Utility.AvatarPart server)
+{
+	PartType: AvatarPartType;
+	ID: u16;
+}
+
+contract AvatarDTO
+{
+	Parts: AvatarPartDTO[];
+}
+
 contract PlayerLeaderBoardInfoDTO
 {
 	Name: string;
-	//!! avatar
+	Avatar: AvatarDTO;
 }
 
 contract LeaderBoardEntryDTO
@@ -147,7 +170,7 @@ contract PlayerInfoDTO
 	ID: guid;
 	Name: string;
 	Level: u32;
-	//!! avatar
+	Avatar: AvatarDTO;
 }
 
 contract StatisticValueDTO
@@ -175,6 +198,8 @@ contract OwnPlayerInfoDTO
 	NotificationsEnabled: bool;
 	TutorialProgress: u64;
 	CoinRewardVideoNotificationsEnabled: bool?;
+	Avatar: AvatarDTO;
+	OwnedAvatarParts: AvatarPartDTO[];
 }
 
 contract WordScorePairDTO castfrom(FLGameLogic.WordScorePair)
@@ -272,6 +297,12 @@ contract CoinGiftInfoDTO castfrom(FLGrainInterfaces.CoinGiftInfo server oneway)
 	ExtraData4: string?;
 }
 
+contract GroupInfoDTO castfrom (FLGrainInterfaces.Configuration.GroupConfig server oneway)
+{
+	Name: string;
+	ID: u16;
+}
+
 endpoint System sys 
 {
 	notification NumRoundsWonForRewardUpdated rwu
@@ -291,7 +322,7 @@ endpoint System sys
 
 	request GetStartupInfo st
 	{
-		{ }
+		{}
 		->
 		{
 			playerInfo: OwnPlayerInfoDTO;
@@ -305,7 +336,7 @@ endpoint System sys
 
 	request TakeRewardForWinningRounds trwr via Player(clientid).TakeRewardForWinningRounds()
 	{
-		{ }
+		{}
 		->
 		{
 			totalGold: u64;
@@ -315,7 +346,7 @@ endpoint System sys
 
 	request ActivateUpgradedActiveGameLimit upgl via Player(clientid).ActivateUpgradedActiveGameLimit()
 	{
-		{ }
+		{}
 		->
 		{
 			success: bool;
@@ -378,6 +409,10 @@ endpoint System sys
 		}
 	}
 
+	request BuyAvatarPart bap via Player(clientid).BuyAvatarPart(part) { { part: AvatarPartDTO; } -> { success: bool; totalGold: u64; } }
+
+	request ActivateAvatarPart aap via Player(clientid).ActivateAvatarPart(part) { { part: AvatarPartDTO; } -> {} }
+
 	request SetUsername unm via Player(clientid).SetUsername(username) { { username: string; } -> { result: bool; } }
 
 	request SetEmail eml via Player(clientid).SetEmail(email) { { email: string; } -> { result: SetEmailResult; } }
@@ -388,7 +423,7 @@ endpoint System sys
 
 	request RegisterFcmToken fcm via Player(clientid).SetFcmToken(token) { { token: string; } -> noresponse }
 
-	request ClearFinishedGames cfg via Player(clientid).ClearFinishedGames() { { } -> noresponse }
+	request ClearFinishedGames cfg via Player(clientid).ClearFinishedGames() { {} -> noresponse }
 
 	request SetTutorialProgress tutp via Player(clientid).SetTutorialProgress(progress) { { progress: u64; } -> {} }
 
@@ -405,7 +440,7 @@ endpoint Suggestion sg
 			name: string;
 			words: string;
 		}
-		-> { }
+		-> {}
 	}
 
 	request SuggestWord wsug
@@ -414,14 +449,8 @@ endpoint Suggestion sg
 			categoryName: string;
 			words: string[];
 		}
-		-> { }
+		-> {}
 	}
-}
-
-contract GroupInfoDTO castfrom (FLGrainInterfaces.Configuration.GroupConfig server oneway)
-{
-	Name: string;
-	ID: u16;
 }
 
 endpoint Game gm
@@ -466,7 +495,7 @@ endpoint Game gm
 
 	request NewGame new
 	{
-		{ }
+		{}
 		->
 		{
 			gameID: guid;
@@ -580,7 +609,7 @@ endpoint Game gm
 
 	request GetAllGames all
 	{
-		{ }
+		{}
 		->
 		{
 			games: SimplifiedGameInfoDTO[];

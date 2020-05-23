@@ -89,6 +89,22 @@ namespace FLGrains
             return Success(LightMessage.Common.Messages.Param.UEnum(result));
         }
 
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("bap")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_BuyAvatarPart(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).BuyAvatarPart(AvatarPartDTO.FromParam(array[0]));
+            return Success(LightMessage.Common.Messages.Param.Boolean(result.success), LightMessage.Common.Messages.Param.UInt(result.totalGold));
+        }
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("aap")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_ActivateAvatarPart(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            await GrainFactory.GetGrain<IPlayer>(input.ClientID).ActivateAvatarPart(AvatarPartDTO.FromParam(array[0]));
+            return Success();
+        }
+
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("unm")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_SetUsername(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {

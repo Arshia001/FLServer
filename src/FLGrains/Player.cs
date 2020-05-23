@@ -8,11 +8,13 @@ using Google.Apis.Logging;
 using LightMessage.Common.Connection;
 using LightMessage.OrleansUtils.Grains;
 using Microsoft.Extensions.Logging;
+using MimeKit.Cryptography;
 using Orleans;
 using Orleans.Concurrency;
 using Orleans.Runtime;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -52,6 +54,8 @@ namespace FLGrains
         readonly VideoAdLimitTracker coinRewardAdTracker;
         readonly VideoAdLimitTracker getCategoryAnswersAdTracker;
 
+        AvatarManager? avatarManager;
+
         HashSet<Guid> activeOpponents = new HashSet<Guid>();
 
         ISystemEndPoint? systemEndPoint;
@@ -81,6 +85,8 @@ namespace FLGrains
         {
             e.State.CoinRewardVideoTrackerState = coinRewardAdTracker.Serialize();
             e.State.GetCategoryAnswersVideoTrackerState = getCategoryAnswersAdTracker.Serialize();
+
+            e.State.AvatarManagerState = avatarManager!.Serialize();
         }
 
         public override Task OnActivateAsync()
@@ -93,6 +99,11 @@ namespace FLGrains
                     coinRewardAdTracker.Deserialize(state.CoinRewardVideoTrackerState);
                 if (state.GetCategoryAnswersVideoTrackerState != null)
                     getCategoryAnswersAdTracker.Deserialize(state.GetCategoryAnswersVideoTrackerState);
+
+                if (state.AvatarManagerState != null)
+                    avatarManager = AvatarManager.Deserialize(state.AvatarManagerState);
+                else
+                    avatarManager = AvatarManager.InitializeNew();
             });
 
             return base.OnActivateAsync();
@@ -122,6 +133,8 @@ namespace FLGrains
 
                     state.Name = "مهمان " + RandomHelper.GetInt32(100_000, 1_000_000).ToString();
 
+                    InitializeAvatar(config);
+
                     return (true, state.CoinGifts);
                 }
 
@@ -149,6 +162,26 @@ namespace FLGrains
             await UnregisterOfflineReminders();
 
             return (await GetOwnPlayerInfo(), coinRewardAdTracker.GetInfo(), getCategoryAnswersAdTracker.GetInfo(), gifts);
+        }
+
+        void InitializeAvatar(ReadOnlyConfigData config)
+        {
+            if (config.InitialAvatar.HeadShape != null)
+                avatarManager!.ForceActivatePart(new AvatarPart(AvatarPartType.HeadShape, config.InitialAvatar.HeadShape.Value));
+            if (config.InitialAvatar.SkinColor != null)
+                avatarManager!.ForceActivatePart(new AvatarPart(AvatarPartType.SkinColor, config.InitialAvatar.SkinColor.Value));
+            if (config.InitialAvatar.Hair != null)
+                avatarManager!.ForceActivatePart(new AvatarPart(AvatarPartType.Hair, config.InitialAvatar.Hair.Value));
+            if (config.InitialAvatar.HairColor != null)
+                avatarManager!.ForceActivatePart(new AvatarPart(AvatarPartType.HairColor, config.InitialAvatar.HairColor.Value));
+            if (config.InitialAvatar.Eyes != null)
+                avatarManager!.ForceActivatePart(new AvatarPart(AvatarPartType.Eyes, config.InitialAvatar.Eyes.Value));
+            if (config.InitialAvatar.Mouth != null)
+                avatarManager!.ForceActivatePart(new AvatarPart(AvatarPartType.Mouth, config.InitialAvatar.Mouth.Value));
+            if (config.InitialAvatar.BeardColor != null)
+                avatarManager!.ForceActivatePart(new AvatarPart(AvatarPartType.BeardColor, config.InitialAvatar.BeardColor.Value));
+            if (config.InitialAvatar.Glasses != null)
+                avatarManager!.ForceActivatePart(new AvatarPart(AvatarPartType.Glasses, config.InitialAvatar.Glasses.Value));
         }
 
         static bool IsNewPlayer(PlayerState state) => state.Level == 0;
@@ -213,19 +246,27 @@ namespace FLGrains
                     isRegistered: IsRegistered(),
                     notificationsEnabled: state.NotificationsEnabled,
                     coinRewardVideoNotificationsEnabled: state.CoinRewardVideoNotificationsEnabled,
-                    tutorialProgress: state.TutorialProgress
+                    tutorialProgress: state.TutorialProgress,
+                    avatar: avatarManager!.GetAvatar(),
+                    ownedAvatarParts: avatarManager!.GetOwnedPartsAsDTO()
                 );
             });
 
         bool IsRegistered() => state.UseState(state => state.Email != null && state.PasswordHash != null);
 
-        public Task<PlayerLeaderBoardInfoDTO> GetLeaderBoardInfo() => state.UseState(state => Task.FromResult(new PlayerLeaderBoardInfoDTO(state.Name)));
+        public Task<PlayerLeaderBoardInfoDTO> GetLeaderBoardInfo() =>
+            state.UseState(state =>
+                Task.FromResult(new PlayerLeaderBoardInfoDTO(state.Name, avatarManager!.GetAvatar()))
+            );
 
         public Task<(uint score, uint level)> GetMatchMakingInfo() => state.UseState(state => Task.FromResult((state.Score, state.Level)));
 
         public Task<uint> GetScore() => state.UseState(state => Task.FromResult(state.Score));
 
-        PlayerInfoDTO GetPlayerInfoImpl() => state.UseState(state => new PlayerInfoDTO(id: this.GetPrimaryKey(), name: state.Name, level: state.Level));
+        PlayerInfoDTO GetPlayerInfoImpl() =>
+            state.UseState(state =>
+                new PlayerInfoDTO(id: this.GetPrimaryKey(), name: state.Name, level: state.Level, avatar: avatarManager!.GetAvatar())
+            );
 
         LevelConfig GetLevelConfig(ReadOnlyConfigData config) =>
             state.UseState(state =>
@@ -331,6 +372,51 @@ namespace FLGrains
                 return SetPasswordResult.NotRegistered;
 
             return await UpdatePasswordImpl(newPassword) ? SetPasswordResult.Success : SetPasswordResult.PasswordNotComplexEnough;
+        }
+
+        public Task<(bool success, ulong totalGold)> BuyAvatarPart(AvatarPartDTO part) =>
+            state.UseStateAndMaybePersist(state =>
+            {
+                var partConfig = GetPartConfig(part, configReader.Config);
+
+                if (partConfig.Price == 0)
+                    throw new VerbatimException("Cannot buy free parts");
+
+                if (state.Gold < partConfig.Price)
+                    throw new VerbatimException("Not enough gold");
+
+                if (!avatarManager!.AddOwnedPart(part))
+                    return (false, (false, 0ul));
+
+                state.Gold -= partConfig.Price;
+                return (true, (true, state.Gold));
+            });
+
+        private static AvatarPartConfig GetPartConfig(AvatarPartDTO part, ReadOnlyConfigData config)
+        {
+            if (!config.AvatarParts.TryGetValue(part.PartType, out var dic) ||
+                !dic.TryGetValue(part.ID, out var partConfig))
+                throw new VerbatimException("No such part found");
+
+            return partConfig;
+        }
+
+        public Task ActivateAvatarPart(AvatarPartDTO partDTO)
+        {
+            var part = (AvatarPart)partDTO;
+
+            var partConfig = GetPartConfig(partDTO, configReader.Config);
+
+            if (avatarManager!.ActivatePart(part))
+                return Task.CompletedTask;
+
+            if (partConfig.Price == 0)
+            {
+                avatarManager!.ForceActivatePart(part);
+                return Task.CompletedTask;
+            }
+
+            throw new VerbatimException("Part is not free and is not owned by player");
         }
 
         bool ValidatePasswordImpl(string password) => state.UseState(state => CryptographyHelper.HashPassword(state.PasswordSalt, password).SequenceEqual(state.PasswordHash));

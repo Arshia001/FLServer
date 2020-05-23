@@ -29,6 +29,10 @@ namespace FLGrainInterfaces.Configuration
 
         public ConfigValues? ConfigValues { get; set; }
 
+        public AvatarConfig? AvatarConfig { get; set; }
+        
+        public InitialAvatarConfig? InitialAvatar { get; set; }
+
         [JsonIgnore]
         public int Version { get; set; }
 

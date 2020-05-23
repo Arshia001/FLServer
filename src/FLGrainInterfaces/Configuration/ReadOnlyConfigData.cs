@@ -30,6 +30,8 @@ namespace FLGrainInterfaces.Configuration
             MaxEditDistanceToCorrentByLetterCount = Enumerable.Range(0, 100)
                 .Select(i => data.EditDistanceConfig?.GetMaxDistanceToCorrectByLetterCount(i) ?? throw new Exception("MaxDistanceToCorrectByLetterCount not specified"))
                 .ToList();
+
+            AvatarParts = data.AvatarConfig!.GetIndexedData();
         }
 
         public IReadOnlyList<GroupConfig> Groups => data.Groups ?? throw new Exception("Groups not specified in config");
@@ -52,6 +54,10 @@ namespace FLGrainInterfaces.Configuration
         public uint LatestClientVersion => data.LatestClientVersion;
 
         public uint LastCompatibleClientVersion => data.LastCompatibleClientVersion;
+
+        public Dictionary<AvatarPartType, Dictionary<ushort, AvatarPartConfig>> AvatarParts { get; }
+
+        public InitialAvatarConfig InitialAvatar => data.InitialAvatar;
 
         public int Version => data.Version;
 
@@ -98,6 +104,15 @@ namespace FLGrainInterfaces.Configuration
 
             if (data.ConfigValues == null)
                 Validation.FailWith("No config values");
+
+            if (data.AvatarConfig == null)
+                Validation.FailWith("No avatar config");
+
+            if (data.InitialAvatar == null)
+                Validation.FailWith("No initial avatar");
+
+            data.AvatarConfig.Validate();
+            data.InitialAvatar.Validate();
 
             try
             {

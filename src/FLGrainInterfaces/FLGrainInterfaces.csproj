@@ -6,11 +6,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="ServiceInterfaces\**" />
-    <EmbeddedResource Remove="ServiceInterfaces\**" />
-    <None Remove="ServiceInterfaces\**" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\..\jint-2.11.10\Jint\Jint.csproj" />
     <ProjectReference Include="..\..\..\LightMessage-Core\LightMessage.OrleansUtils.GrainInterfaces\LightMessage.OrleansUtils.GrainInterfaces.csproj" />
     <ProjectReference Include="..\..\..\OrleansLibraries-Core\OrleansBondUtils\OrleansBondUtils.csproj" />

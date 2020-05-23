@@ -7,6 +7,7 @@ using OrleansBondUtils;
 using OrleansIndexingGrainInterfaces;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -137,6 +138,9 @@ namespace FLGrainInterfaces
 
         [Id(27)]
         public bool? CoinRewardVideoNotificationsEnabled { get; set; } = null;
+
+        [Id(28)]
+        public AvatarManagerState? AvatarManagerState { get; set; }
     }
 
     [BondSerializationTag("@p")]
@@ -159,6 +163,9 @@ namespace FLGrainInterfaces
         Task<SetPasswordResult> UpdatePassword(string newPassword);
         Task<bool> ValidatePassword(string password);
         Task SendPasswordRecoveryLink();
+
+        Task<(bool success, ulong totalGold)> BuyAvatarPart(AvatarPartDTO part);
+        Task ActivateAvatarPart(AvatarPartDTO part);
 
         Task<bool> ValidatePasswordRecoveryToken(string token);
         Task<UpdatePasswordViaRecoveryTokenResult> UpdatePasswordViaRecoveryToken(string token, string newPassword);
