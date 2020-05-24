@@ -278,6 +278,14 @@ namespace FLGrains
 
         ulong GiveGold(uint delta) => state.UseStateAndLazyPersist(s => s.Gold += delta);
 
+        ulong TakeGold(uint delta) => state.UseStateAndLazyPersist(s => {
+            if (s.Gold >= delta)
+                s.Gold -= delta;
+            else
+                s.Gold = 0;
+            return s.Gold;
+        });
+
         (uint level, uint xp) AddXP(uint delta) =>
             state.UseStateAndLazyPersist(state =>
             {
@@ -646,15 +654,23 @@ namespace FLGrains
 
                         break;
 
-                    case CompetitionResult.Loss:
+                    case CompetitionResult.Loss when !gameExpired:
                         rank = await AddScore(-(int)(scoreGain * config.LoserScoreLossRatio));
                         (level, xp) = AddXP(config.LoserXPGain);
                         gold = GiveGold(config.LoserGoldGain);
 
                         AddStatImpl(1, Statistics.GamesLost);
-                        if (gameExpired)
-                            AddStatImpl(1, Statistics.GameLostDueToExpiry);
                         AddStatImpl(config.LoserGoldGain, Statistics.RewardMoneyEarned);
+
+                        break;
+
+                    case CompetitionResult.Loss when gameExpired:
+                        rank = await AddScore(-(int)config.GameExpiryScorePenalty!.Value);
+                        (level, xp) = AddXP(0);
+                        gold = TakeGold(config.GameExpiryGoldPenalty!.Value);
+
+                        AddStatImpl(1, Statistics.GamesLost);
+                        AddStatImpl(1, Statistics.GameLostDueToExpiry);
 
                         break;
                 }

@@ -21,6 +21,8 @@ namespace FLGrainInterfaces.Configuration
         public uint GetAnswersPrice { get; private set; }
 
         public TimeSpan GameInactivityTimeout { get; private set; }
+        public uint? GameExpiryGoldPenalty { get; private set; }
+        public uint? GameExpiryScorePenalty { get; private set; }
 
         public uint MaxActiveGames { get; private set; }
         public uint UpgradedActiveGameLimitPrice { get; private set; }
@@ -76,6 +78,8 @@ namespace FLGrainInterfaces.Configuration
             Validation.CheckNotEqual(data.DrawXPGain, 0u, "draw XP gain");
             Validation.CheckNotEqual(data.ExtraTimePerRound, TimeSpan.Zero, "extra time per round");
             Validation.CheckNotEqual(data.GameInactivityTimeout, TimeSpan.Zero, "game inactivity timeout");
+            Validation.CheckNotEqual(data.GameExpiryGoldPenalty, null, "game expiry gold penalty");
+            Validation.CheckNotEqual(data.GameExpiryScorePenalty, null, "game expiry score penalty");
             Validation.CheckNotEqual(data.UpgradedActiveGameLimitPrice, 0u, "max active games when upgraded");
             Validation.CheckNotEqual(data.MaxActiveGamesWhenUpgraded, 0u, "upgraded active game limit price");
             Validation.CheckNotEqual(data.UpgradedActiveGameLimitTime, TimeSpan.Zero, "upgraded active game limit time");

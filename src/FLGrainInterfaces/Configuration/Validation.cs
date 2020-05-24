@@ -18,10 +18,10 @@ namespace FLGrainInterfaces.Configuration
         public static void CheckNotEqual<T>(T t, T test, string name)
         {
             if (
-                (t == null && test == null) || 
+                (t == null && test == null) ||
                 (t != null && test != null && t.Equals(test))
                 )
-                FailWith($"{name} shouldn't be {test}");
+                FailWith($"{name} shouldn't be {(test == null ? "null" : test.ToString())}");
         }
     }
 }
