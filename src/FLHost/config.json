@@ -54,11 +54,7 @@
     "RoundTimeExtension": "00:00:20",
     "NumTimeExtensionsPerRound": 1,
     "RoundTimeExtensionPrices": [
-      40,
-      70,
-      150,
-      200,
-      250
+      60
     ],
 
     "RevealWordPrices": [
