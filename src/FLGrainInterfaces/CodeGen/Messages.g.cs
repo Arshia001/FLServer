@@ -203,6 +203,31 @@ namespace FLGrainInterfaces
     }
 
     [Orleans.Concurrency.Immutable]
+    public class AvatarPartConfigDTO
+    {
+        public AvatarPartConfigDTO(AvatarPartType partType, ushort id, uint price)
+        {
+            this.PartType = partType;
+            this.ID = id;
+            this.Price = price;
+        }
+
+        public AvatarPartType PartType { get; }
+        public ushort ID { get; }
+        public uint Price { get; }
+
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.UEnum(PartType), LightMessage.Common.Messages.Param.UInt(ID), LightMessage.Common.Messages.Param.UInt(Price));
+
+        public static AvatarPartConfigDTO FromParam(LightMessage.Common.Messages.Param param)
+        {
+            if (param.IsNull)
+                return null;
+            var array = param.AsArray;
+            return new AvatarPartConfigDTO(array[0].AsUEnum<AvatarPartType>().Value, (ushort)array[1].AsUInt.Value, (uint)array[2].AsUInt.Value);
+        }
+    }
+
+    [Orleans.Concurrency.Immutable]
     public class PlayerLeaderBoardInfoDTO
     {
         public PlayerLeaderBoardInfoDTO(string name, AvatarDTO avatar)

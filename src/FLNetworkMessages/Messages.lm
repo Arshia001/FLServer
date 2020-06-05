@@ -152,6 +152,13 @@ contract AvatarDTO
 	Parts: AvatarPartDTO[];
 }
 
+contract AvatarPartConfigDTO
+{
+	PartType: AvatarPartType;
+	ID: u16;
+	Price: u32;
+}
+
 contract PlayerLeaderBoardInfoDTO
 {
 	Name: string;
@@ -331,6 +338,7 @@ endpoint System sys
 			coinRewardVideo: VideoAdTrackerInfoDTO;
 			getCategoryAnswersVideo: VideoAdTrackerInfoDTO;
 			coinGifts: CoinGiftInfoDTO[];
+			avatarParts: AvatarPartConfigDTO[];
 		}
 	}
 

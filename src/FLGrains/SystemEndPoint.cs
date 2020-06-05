@@ -30,7 +30,8 @@ namespace FLGrains
         }
 
         protected override async Task<(OwnPlayerInfoDTO playerInfo, ConfigValuesDTO configData, IEnumerable<GoldPackConfigDTO> goldPacks,
-            VideoAdTrackerInfoDTO coinRewardVideo, VideoAdTrackerInfoDTO getCategoryAnswersVideo, IEnumerable<CoinGiftInfoDTO> coinGifts)> 
+            VideoAdTrackerInfoDTO coinRewardVideo, VideoAdTrackerInfoDTO getCategoryAnswersVideo, IEnumerable<CoinGiftInfoDTO> coinGifts,
+            IEnumerable<AvatarPartConfigDTO> avatarParts)> 
             GetStartupInfo(Guid clientID)
         {
             static VideoAdTrackerInfoDTO GetTrackerInfoDTO(VideoAdLimitTrackerInfo state, VideoAdLimitConfig config) =>
@@ -49,7 +50,8 @@ namespace FLGrains
                 config.GoldPacks.Values.Select(g => (GoldPackConfigDTO)g),
                 GetTrackerInfoDTO(coinRewardVideo, config.ConfigValues.CoinRewardVideo),
                 GetTrackerInfoDTO(getCategoryAnswersVideo, config.ConfigValues.GetCategoryAnswersVideo),
-                gifts.Select(g => (CoinGiftInfoDTO)g)
+                gifts.Select(g => (CoinGiftInfoDTO)g),
+                config.AvatarParts.SelectMany(kv => kv.Value.Select(a => new AvatarPartConfigDTO(a.Value.Type, a.Value.ID, a.Value.Price)))
                 );
         }
 
