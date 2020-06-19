@@ -169,18 +169,12 @@ namespace FLGrains
         {
             if (config.InitialAvatar.HeadShape != null)
                 avatarManager!.ForceActivatePart(new AvatarPart(AvatarPartType.HeadShape, config.InitialAvatar.HeadShape.Value));
-            if (config.InitialAvatar.SkinColor != null)
-                avatarManager!.ForceActivatePart(new AvatarPart(AvatarPartType.SkinColor, config.InitialAvatar.SkinColor.Value));
             if (config.InitialAvatar.Hair != null)
                 avatarManager!.ForceActivatePart(new AvatarPart(AvatarPartType.Hair, config.InitialAvatar.Hair.Value));
-            if (config.InitialAvatar.HairColor != null)
-                avatarManager!.ForceActivatePart(new AvatarPart(AvatarPartType.HairColor, config.InitialAvatar.HairColor.Value));
             if (config.InitialAvatar.Eyes != null)
                 avatarManager!.ForceActivatePart(new AvatarPart(AvatarPartType.Eyes, config.InitialAvatar.Eyes.Value));
             if (config.InitialAvatar.Mouth != null)
                 avatarManager!.ForceActivatePart(new AvatarPart(AvatarPartType.Mouth, config.InitialAvatar.Mouth.Value));
-            if (config.InitialAvatar.BeardColor != null)
-                avatarManager!.ForceActivatePart(new AvatarPart(AvatarPartType.BeardColor, config.InitialAvatar.BeardColor.Value));
             if (config.InitialAvatar.Glasses != null)
                 avatarManager!.ForceActivatePart(new AvatarPart(AvatarPartType.Glasses, config.InitialAvatar.Glasses.Value));
         }

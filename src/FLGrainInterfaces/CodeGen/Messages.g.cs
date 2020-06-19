@@ -146,12 +146,9 @@ namespace FLGrainInterfaces
     public enum AvatarPartType
     {
         HeadShape,
-        SkinColor,
         Hair,
-        HairColor,
         Eyes,
         Mouth,
-        BeardColor,
         Glasses
     }
 
