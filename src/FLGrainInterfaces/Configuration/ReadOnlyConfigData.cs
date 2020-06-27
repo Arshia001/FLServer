@@ -112,7 +112,7 @@ namespace FLGrainInterfaces.Configuration
                 Validation.FailWith("No initial avatar");
 
             data.AvatarConfig.Validate();
-            data.InitialAvatar.Validate();
+            data.InitialAvatar.Validate(data.AvatarConfig);
 
             try
             {
