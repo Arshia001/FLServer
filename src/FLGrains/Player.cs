@@ -272,7 +272,8 @@ namespace FLGrains
 
         ulong GiveGold(uint delta) => state.UseStateAndLazyPersist(s => s.Gold += delta);
 
-        ulong TakeGold(uint delta) => state.UseStateAndLazyPersist(s => {
+        ulong TakeGold(uint delta) => state.UseStateAndLazyPersist(s =>
+        {
             if (s.Gold >= delta)
                 s.Gold -= delta;
             else
@@ -377,21 +378,32 @@ namespace FLGrains
             return await UpdatePasswordImpl(newPassword) ? SetPasswordResult.Success : SetPasswordResult.PasswordNotComplexEnough;
         }
 
-        public Task<(bool success, ulong totalGold)> BuyAvatarPart(AvatarPartDTO part) =>
+        public Task<(bool success, ulong totalGold)> BuyAvatarParts(IReadOnlyList<AvatarPartDTO> parts) =>
             state.UseStateAndMaybePersist(state =>
             {
-                var partConfig = GetPartConfig(part, configReader.Config);
+                var config = configReader.Config;
+                var partConfigs =
+                    parts
+                    .Where(p => !avatarManager!.HasPart(p))
+                    .Select(p => GetPartConfig(p, config))
+                    .ToList();
 
-                if (partConfig.Price == 0)
-                    throw new VerbatimException("Cannot buy free parts");
-
-                if (state.Gold < partConfig.Price)
-                    throw new VerbatimException("Not enough gold");
-
-                if (!avatarManager!.AddOwnedPart(part))
+                if (partConfigs.Count == 0)
                     return (false, (false, 0ul));
 
-                state.Gold -= partConfig.Price;
+                if (partConfigs.Any(p => p.Price == 0))
+                    throw new VerbatimException("Cannot buy free parts");
+
+                var price = (ulong)partConfigs.Sum(p => p.Price);
+
+                if (state.Gold < price)
+                    throw new VerbatimException("Not enough gold");
+
+                foreach (var part in parts)
+                    // This shouldn't fail, since we check for pre-owned parts above
+                    avatarManager!.AddOwnedPart(part);
+
+                state.Gold -= price;
                 return (true, (true, state.Gold));
             });
 
@@ -404,23 +416,39 @@ namespace FLGrains
             return partConfig;
         }
 
-        public Task ActivateAvatarPart(AvatarPartDTO partDTO)
+        public Task ActivateAvatar(AvatarDTO avatar) => state.UseStateAndPersist(_ =>
         {
-            var part = (AvatarPart)partDTO;
+            var config = configReader.Config;
 
-            var partConfig = GetPartConfig(partDTO, configReader.Config);
+            var parts = avatar.Parts.Select(p => ((AvatarPart)p, GetPartConfig(p, config))).ToList();
 
-            if (avatarManager!.ActivatePart(part))
-                return Task.CompletedTask;
+            var previous = avatarManager!.GetActiveParts();
 
-            if (partConfig.Price == 0)
+            var failed = false;
+            foreach (var (p, conf) in parts)
             {
-                avatarManager!.ForceActivatePart(part);
-                return Task.CompletedTask;
+                if (avatarManager!.ActivatePart(p))
+                    continue;
+
+                if (conf.Price == 0)
+                {
+                    avatarManager!.ForceActivatePart(p);
+                    continue;
+                }
+
+                failed = true;
+                break;
             }
 
-            throw new VerbatimException("Part is not free and is not owned by player");
-        }
+            if (failed)
+            {
+                foreach (var p in previous)
+                    avatarManager!.ForceActivatePart(new AvatarPart(p.Key, p.Value));
+
+                // When we throw, the persistance routine will be skipped
+                throw new VerbatimException("A part is not free and is not owned by player");
+            }
+        });
 
         bool ValidatePasswordImpl(string password) => state.UseState(state => CryptographyHelper.HashPassword(state.PasswordSalt, password).SequenceEqual(state.PasswordHash));
 

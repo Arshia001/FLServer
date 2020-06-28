@@ -414,9 +414,9 @@ endpoint System sys
 		}
 	}
 
-	request BuyAvatarPart bap via Player(clientid).BuyAvatarPart(part) { { part: AvatarPartDTO; } -> { success: bool; totalGold: u64; } }
+	request BuyAvatarParts bap via Player(clientid).BuyAvatarParts(parts) { { parts: AvatarPartDTO[]; } -> { success: bool; totalGold: u64; } }
 
-	request ActivateAvatarPart aap via Player(clientid).ActivateAvatarPart(part) { { part: AvatarPartDTO; } -> {} }
+	request ActivateAvatar aav via Player(clientid).ActivateAvatar(avatar) { { avatar: AvatarDTO; } -> {} }
 
 	request SetUsername unm via Player(clientid).SetUsername(username) { { username: string; } -> { result: bool; } }
 

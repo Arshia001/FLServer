@@ -164,8 +164,8 @@ namespace FLGrainInterfaces
         Task<bool> ValidatePassword(string password);
         Task SendPasswordRecoveryLink();
 
-        Task<(bool success, ulong totalGold)> BuyAvatarPart(AvatarPartDTO part);
-        Task ActivateAvatarPart(AvatarPartDTO part);
+        Task<(bool success, ulong totalGold)> BuyAvatarParts(IReadOnlyList<AvatarPartDTO> part);
+        Task ActivateAvatar(AvatarDTO avatar);
 
         Task<bool> ValidatePasswordRecoveryToken(string token);
         Task<UpdatePasswordViaRecoveryTokenResult> UpdatePasswordViaRecoveryToken(string token, string newPassword);

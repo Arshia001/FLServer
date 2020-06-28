@@ -90,18 +90,18 @@ namespace FLGrains
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("bap")]
-        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_BuyAvatarPart(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_BuyAvatarParts(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
-            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).BuyAvatarPart(AvatarPartDTO.FromParam(array[0]));
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).BuyAvatarParts(array[0].AsArray.Select(a => AvatarPartDTO.FromParam(a)).ToList());
             return Success(LightMessage.Common.Messages.Param.Boolean(result.success), LightMessage.Common.Messages.Param.UInt(result.totalGold));
         }
 
-        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("aap")]
-        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_ActivateAvatarPart(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("aav")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_ActivateAvatar(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
-            await GrainFactory.GetGrain<IPlayer>(input.ClientID).ActivateAvatarPart(AvatarPartDTO.FromParam(array[0]));
+            await GrainFactory.GetGrain<IPlayer>(input.ClientID).ActivateAvatar(AvatarDTO.FromParam(array[0]));
             return Success();
         }
 
