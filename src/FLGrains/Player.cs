@@ -139,6 +139,9 @@ namespace FLGrains
                     return (true, state.CoinGifts);
                 }
 
+                if (avatarManager!.GetActiveParts().Count == 0)
+                    InitializeAvatar(config);
+
                 foreach (var game in state.ActiveGames)
                 {
                     var opponentID =
