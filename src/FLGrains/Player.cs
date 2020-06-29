@@ -139,8 +139,7 @@ namespace FLGrains
                     return (true, state.CoinGifts);
                 }
 
-                if (avatarManager!.GetActiveParts().Count == 0)
-                    InitializeAvatar(config);
+                InitializeAvatarIfNeeded(config);
 
                 foreach (var game in state.ActiveGames)
                 {
@@ -166,6 +165,17 @@ namespace FLGrains
             await UnregisterOfflineReminders();
 
             return (await GetOwnPlayerInfo(), coinRewardAdTracker.GetInfo(), getCategoryAnswersAdTracker.GetInfo(), gifts);
+        }
+
+        private bool InitializeAvatarIfNeeded(ReadOnlyConfigData config)
+        {
+            if (avatarManager!.GetActiveParts().Count == 0)
+            {
+                InitializeAvatar(config);
+                return true;
+            }
+
+            return false;
         }
 
         void InitializeAvatar(ReadOnlyConfigData config)
@@ -253,9 +263,11 @@ namespace FLGrains
         bool IsRegistered() => state.UseState(state => state.Email != null && state.PasswordHash != null);
 
         public Task<PlayerLeaderBoardInfoDTO> GetLeaderBoardInfo() =>
-            state.UseState(state =>
-                Task.FromResult(new PlayerLeaderBoardInfoDTO(state.Name, avatarManager!.GetAvatar()))
-            );
+            state.UseStateAndMaybePersist(state =>
+            {
+                var needToSave = InitializeAvatarIfNeeded(configReader.Config);
+                return (needToSave, new PlayerLeaderBoardInfoDTO(state.Name, avatarManager!.GetAvatar()));
+            });
 
         public Task<(uint score, uint level)> GetMatchMakingInfo() => state.UseState(state => Task.FromResult((state.Score, state.Level)));
 
