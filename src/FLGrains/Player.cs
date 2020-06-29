@@ -209,7 +209,10 @@ namespace FLGrains
             return Task.CompletedTask;
         }
 
-        public Task<PlayerInfoDTO> GetPlayerInfo() => Task.FromResult(GetPlayerInfoImpl());
+        public Task<PlayerInfoDTO> GetPlayerInfo() =>
+            state.UseState(async state => 
+                new PlayerInfoDTO(id: this.GetPrimaryKey(), name: state.Name, level: state.Level, avatar: await GetAvatar())
+            );
 
         Task<string> IPlayer.GetName() => state.UseState(state => Task.FromResult(state.Name));
 
@@ -229,6 +232,13 @@ namespace FLGrains
 
                 _ => false
             };
+
+        Task<AvatarDTO> GetAvatar() =>
+            state.UseStateAndMaybePersist(state =>
+            {
+                var needToSave = InitializeAvatarIfNeeded(configReader.Config);
+                return (needToSave, avatarManager!.GetAvatar());
+            });
 
         public Task<OwnPlayerInfoDTO> GetOwnPlayerInfo() =>
             state.UseState(async state =>
@@ -255,7 +265,7 @@ namespace FLGrains
                     notificationsEnabled: state.NotificationsEnabled,
                     coinRewardVideoNotificationsEnabled: state.CoinRewardVideoNotificationsEnabled,
                     tutorialProgress: state.TutorialProgress,
-                    avatar: avatarManager!.GetAvatar(),
+                    avatar: await GetAvatar(),
                     ownedAvatarParts: avatarManager!.GetOwnedPartsAsDTO()
                 );
             });
@@ -263,20 +273,13 @@ namespace FLGrains
         bool IsRegistered() => state.UseState(state => state.Email != null && state.PasswordHash != null);
 
         public Task<PlayerLeaderBoardInfoDTO> GetLeaderBoardInfo() =>
-            state.UseStateAndMaybePersist(state =>
-            {
-                var needToSave = InitializeAvatarIfNeeded(configReader.Config);
-                return (needToSave, new PlayerLeaderBoardInfoDTO(state.Name, avatarManager!.GetAvatar()));
-            });
+            state.UseState(async state =>
+                new PlayerLeaderBoardInfoDTO(state.Name, await GetAvatar())
+            );
 
         public Task<(uint score, uint level)> GetMatchMakingInfo() => state.UseState(state => Task.FromResult((state.Score, state.Level)));
 
         public Task<uint> GetScore() => state.UseState(state => Task.FromResult(state.Score));
-
-        PlayerInfoDTO GetPlayerInfoImpl() =>
-            state.UseState(state =>
-                new PlayerInfoDTO(id: this.GetPrimaryKey(), name: state.Name, level: state.Level, avatar: avatarManager!.GetAvatar())
-            );
 
         LevelConfig GetLevelConfig(ReadOnlyConfigData config) =>
             state.UseState(state =>
@@ -574,7 +577,7 @@ namespace FLGrains
         public Task<(Guid opponentID, byte numRounds, TimeSpan? expiryTimeRemaining)> JoinGameAsSecondPlayer(IGame game) =>
             state.UseStateAndPersist(async state =>
             {
-                var result = await game.AddSecondPlayer(GetPlayerInfoImpl());
+                var result = await game.AddSecondPlayer(await GetPlayerInfo());
                 if (result.opponentID != Guid.Empty)
                 {
                     activeOpponents.Add(result.opponentID);
@@ -878,13 +881,13 @@ namespace FLGrains
             });
 
         public Task<(PlayerInfoDTO info, bool[] haveCategoryAnswers)> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories) =>
-            state.UseState(state =>
+            state.UseState(async state =>
             {
                 var ownedCategories = new bool[categories.Count];
                 for (int i = 0; i < categories.Count; ++i)
                     ownedCategories[i] = state.OwnedCategoryAnswers.Contains(categories[i]);
 
-                return Task.FromResult((GetPlayerInfoImpl(), ownedCategories));
+                return (await GetPlayerInfo(), ownedCategories);
             });
 
         public Task<bool> HaveAnswersForCategory(string category) => state.UseState(state => Task.FromResult(state.OwnedCategoryAnswers.Contains(category)));
