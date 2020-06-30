@@ -412,6 +412,9 @@ namespace FLGrains
                 if (partConfigs.Any(p => p.Price == 0))
                     throw new VerbatimException("Cannot buy free parts");
 
+                if (partConfigs.Any(p => p.MinimumLevel > state.Level))
+                    throw new VerbatimException("Cannot buy part due to unmet level requirements");
+
                 var price = (ulong)partConfigs.Sum(p => p.Price);
 
                 if (state.Gold < price)

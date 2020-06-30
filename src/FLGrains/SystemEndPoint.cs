@@ -51,7 +51,7 @@ namespace FLGrains
                 GetTrackerInfoDTO(coinRewardVideo, config.ConfigValues.CoinRewardVideo),
                 GetTrackerInfoDTO(getCategoryAnswersVideo, config.ConfigValues.GetCategoryAnswersVideo),
                 gifts.Select(g => (CoinGiftInfoDTO)g),
-                config.AvatarParts.SelectMany(kv => kv.Value.Select(a => new AvatarPartConfigDTO(a.Value.Type, a.Value.ID, a.Value.Price)))
+                config.AvatarParts.SelectMany(kv => kv.Value.Select(a => new AvatarPartConfigDTO(a.Value.Type, a.Value.ID, a.Value.Price, a.Value.MinimumLevel)))
                 );
         }
 

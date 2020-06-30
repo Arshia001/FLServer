@@ -154,6 +154,7 @@ contract AvatarPartConfigDTO
 	PartType: AvatarPartType;
 	ID: u16;
 	Price: u32;
+	MinimumLevel: u16;
 }
 
 contract PlayerLeaderBoardInfoDTO
