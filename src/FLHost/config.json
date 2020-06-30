@@ -169,57 +169,5 @@
     "HeadShape": 1,
     "Eyes": 1,
     "Mouth": 2
-  },
-  "AvatarConfig": {
-    "HeadShapes": [
-      {
-        "ID": 1,
-        "Price": 0
-      },
-      {
-        "ID": 2,
-        "Price": 10
-      }
-    ],
-    "Hairs": [
-      {
-        "ID": 1,
-        "Price": 0
-      },
-      {
-        "ID": 2,
-        "Price": 10
-      }
-    ],
-    "Eyes": [
-      {
-        "ID": 1,
-        "Price": 0
-      },
-      {
-        "ID": 2,
-        "Price": 10
-      }
-    ],
-    "Mouths": [
-      {
-        "ID": 1,
-        "Price": 0
-      },
-      {
-        "ID": 2,
-        "Price": 10
-      }
-    ],
-    "Glasses": [
-      {
-        "ID": 1,
-        "Price": 0
-      },
-      {
-        "ID": 2,
-        "Price": 10
-      }
-    ]
   }
 }

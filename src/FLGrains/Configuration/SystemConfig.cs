@@ -67,7 +67,9 @@ namespace FLGrains.Configuration
 
         private ConfigData GetData() => data ?? throw new Exception("Config data not initialized yet");
 
-        static ConfigData ParseConfigData(string data) => JsonConvert.DeserializeObject<ConfigData>(data, PrivateAccessorContractResolver.SerializerSettings);
+        static T ParseJson<T>(string data) => JsonConvert.DeserializeObject<T>(data, PrivateAccessorContractResolver.SerializerSettings);
+
+        static ConfigData ParseConfigData(string data) => ParseJson<ConfigData>(data);
 
         static async Task<string> ReadDatabaseConfigEntry(ISession session, Queries queries, string key)
         {
@@ -167,7 +169,7 @@ namespace FLGrains.Configuration
             return result;
         }
 
-        private async Task<(List<GroupConfig>, List<CategoryConfig>, List<RenamedCategoryConfig>, uint latestClientVersion, uint lastCompatibleClientVersion)>
+        private async Task<(List<GroupConfig>, List<CategoryConfig>, List<RenamedCategoryConfig>, uint latestClientVersion, uint lastCompatibleClientVersion, AvatarConfig avatarConfig)>
             ReadNonJsonConfigDataFromDatabase(ISession session, Queries queries)
         {
             var groups = await ReadGroupsFromDatabase(session, queries);
@@ -176,7 +178,8 @@ namespace FLGrains.Configuration
                 await ReadCategoriesFromDatabase(session, queries, groups),
                 await ReadRenamedCategoriesFromDatabase(session, queries),
                 await ReadClientVersionFromDatabase(session, queries, "latest-version"),
-                await ReadClientVersionFromDatabase(session, queries, "last-compatible-version")
+                await ReadClientVersionFromDatabase(session, queries, "last-compatible-version"),
+                await ReadAvatarFromDatabase(session, queries)
             );
         }
 
@@ -191,6 +194,14 @@ namespace FLGrains.Configuration
             return result;
         }
 
+        async Task<AvatarConfig> ReadAvatarFromDatabase(ISession session, Queries queries)
+        {
+            var value = await ReadDatabaseConfigEntry(session, queries, "avatar") ??
+                throw new Exception($"Avatar key 'avatar' not specified in database configuration table");
+
+            return ParseJson<AvatarConfig>(value);
+        }
+
         async Task InternalUpdateConfigFromDatabase()
         {
             var connectionString = systemSettingsProvider.Settings.Values.ConnectionString;
@@ -198,7 +209,8 @@ namespace FLGrains.Configuration
             var queries = await Queries.CreateInstance(session);
 
             var newData = await ReadConfigDataFromDatabase(session, queries);
-            (newData.Groups, newData.Categories, newData.RenamedCategories, newData.LatestClientVersion, newData.LastCompatibleClientVersion) = await ReadNonJsonConfigDataFromDatabase(session, queries);
+            (newData.Groups, newData.Categories, newData.RenamedCategories, newData.LatestClientVersion, newData.LastCompatibleClientVersion, newData.AvatarConfig) = 
+                await ReadNonJsonConfigDataFromDatabase(session, queries);
 
             await SetNewData(newData, session, queries);
         }
@@ -250,6 +262,26 @@ namespace FLGrains.Configuration
             newData.RenamedCategories = data.RenamedCategories;
             newData.LatestClientVersion = data.LatestClientVersion;
             newData.LastCompatibleClientVersion = data.LastCompatibleClientVersion;
+            newData.AvatarConfig = data.AvatarConfig;
+
+            ReadOnlyConfigData.Validate(newData);
+
+            await WriteConfigToDatabase(jsonConfig, session, queries);
+
+            await SetNewData(newData, session, queries, false);
+
+            await PushUpdateToAllSilos();
+        }
+
+        public async Task UploadAvatarConfig(string jsonConfig)
+        {
+            var connectionString = systemSettingsProvider.Settings.Values.ConnectionString;
+            var session = await CassandraSessionFactory.CreateSession(connectionString);
+            var queries = await Queries.CreateInstance(session);
+
+            var data = GetData();
+            var newData = (ConfigData)data.Clone();
+            newData.AvatarConfig = ParseJson<AvatarConfig>(jsonConfig);
 
             ReadOnlyConfigData.Validate(newData);
 

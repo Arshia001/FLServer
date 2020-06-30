@@ -21,6 +21,9 @@ namespace FLGrainInterfaces.Configuration
         [JsonIgnore]
         public uint LastCompatibleClientVersion { get; set; }
 
+        [JsonIgnore]
+        public AvatarConfig? AvatarConfig { get; set; }
+
         public List<LevelConfig>? PlayerLevels { get; set; }
 
         public List<GoldPackConfig>? GoldPacks { get; set; }
@@ -29,8 +32,6 @@ namespace FLGrainInterfaces.Configuration
 
         public ConfigValues? ConfigValues { get; set; }
 
-        public AvatarConfig? AvatarConfig { get; set; }
-        
         public InitialAvatarConfig? InitialAvatar { get; set; }
 
         [JsonIgnore]

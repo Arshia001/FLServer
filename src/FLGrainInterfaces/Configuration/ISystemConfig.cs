@@ -13,5 +13,6 @@ namespace FLGrainInterfaces.Configuration
         Task<Immutable<ConfigData>> GetConfig();
 
         Task UploadConfig(string jsonConfig);
+        Task UploadAvatarConfig(string jsonConfig);
     }
 }
