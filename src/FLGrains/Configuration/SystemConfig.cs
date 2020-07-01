@@ -273,6 +273,9 @@ namespace FLGrains.Configuration
             await PushUpdateToAllSilos();
         }
 
+        static Task WriteConfigToDatabase(string jsonConfig, ISession session, Queries queries)
+            => WriteDatabaseConfigEntry(session, queries, "config", jsonConfig);
+
         public async Task UploadAvatarConfig(string jsonConfig)
         {
             var connectionString = systemSettingsProvider.Settings.Values.ConnectionString;
@@ -285,14 +288,14 @@ namespace FLGrains.Configuration
 
             ReadOnlyConfigData.Validate(newData);
 
-            await WriteConfigToDatabase(jsonConfig, session, queries);
+            await WriteAvatarConfigToDatabase(jsonConfig, session, queries);
 
             await SetNewData(newData, session, queries, false);
 
             await PushUpdateToAllSilos();
         }
 
-        static Task WriteConfigToDatabase(string jsonConfig, ISession session, Queries queries)
-            => WriteDatabaseConfigEntry(session, queries, "config", jsonConfig);
+        static Task WriteAvatarConfigToDatabase(string jsonConfig, ISession session, Queries queries)
+            => WriteDatabaseConfigEntry(session, queries, "avatar", jsonConfig);
     }
 }

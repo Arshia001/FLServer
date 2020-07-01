@@ -664,11 +664,14 @@ namespace FLGrains
                     await GrainFactory.GetGrain<IMatchMakingGrain>(0).AddGame(this.AsReference<IGame>(), GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]));
                 }
 
+                var otherPlayerInfo = state.PlayerIDs[1 - index] == Guid.Empty ? null : await PlayerInfoHelper.GetInfo(GrainFactory, state.PlayerIDs[1 - index]);
+
                 return new SimplifiedGameInfoDTO
                 (
                     gameID: this.GetPrimaryKey(),
                     gameState: gameState,
-                    otherPlayerName: state.PlayerIDs[1 - index] == Guid.Empty ? null : (await PlayerInfoHelper.GetInfo(GrainFactory, state.PlayerIDs[1 - index])).Name,
+                    otherPlayerName: otherPlayerInfo?.Name,
+                    otherPlayerAvatar: otherPlayerInfo?.Avatar,
                     myTurn: GameLogic.Turn == index,
                     myScore: GameLogic.GetNumRoundsWon(index),
                     theirScore: GameLogic.GetNumRoundsWon(1 - index),

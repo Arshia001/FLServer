@@ -455,11 +455,12 @@ namespace FLGrainInterfaces
     [Orleans.Concurrency.Immutable]
     public class SimplifiedGameInfoDTO
     {
-        public SimplifiedGameInfoDTO(System.Guid gameID, GameState gameState, string? otherPlayerName, bool myTurn, byte myScore, byte theirScore, bool winnerOfExpiredGame, System.TimeSpan? expiryTimeRemaining)
+        public SimplifiedGameInfoDTO(System.Guid gameID, GameState gameState, string? otherPlayerName, AvatarDTO? otherPlayerAvatar, bool myTurn, byte myScore, byte theirScore, bool winnerOfExpiredGame, System.TimeSpan? expiryTimeRemaining)
         {
             this.GameID = gameID;
             this.GameState = gameState;
             this.OtherPlayerName = otherPlayerName;
+            this.OtherPlayerAvatar = otherPlayerAvatar;
             this.MyTurn = myTurn;
             this.MyScore = myScore;
             this.TheirScore = theirScore;
@@ -470,20 +471,21 @@ namespace FLGrainInterfaces
         public System.Guid GameID { get; }
         public GameState GameState { get; }
         public string? OtherPlayerName { get; }
+        public AvatarDTO? OtherPlayerAvatar { get; }
         public bool MyTurn { get; }
         public byte MyScore { get; }
         public byte TheirScore { get; }
         public bool WinnerOfExpiredGame { get; }
         public System.TimeSpan? ExpiryTimeRemaining { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.Guid(GameID), LightMessage.Common.Messages.Param.UEnum(GameState), LightMessage.Common.Messages.Param.String(OtherPlayerName), LightMessage.Common.Messages.Param.Boolean(MyTurn), LightMessage.Common.Messages.Param.UInt(MyScore), LightMessage.Common.Messages.Param.UInt(TheirScore), LightMessage.Common.Messages.Param.Boolean(WinnerOfExpiredGame), LightMessage.Common.Messages.Param.TimeSpan(ExpiryTimeRemaining));
+        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.Guid(GameID), LightMessage.Common.Messages.Param.UEnum(GameState), LightMessage.Common.Messages.Param.String(OtherPlayerName), OtherPlayerAvatar?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.Boolean(MyTurn), LightMessage.Common.Messages.Param.UInt(MyScore), LightMessage.Common.Messages.Param.UInt(TheirScore), LightMessage.Common.Messages.Param.Boolean(WinnerOfExpiredGame), LightMessage.Common.Messages.Param.TimeSpan(ExpiryTimeRemaining));
 
         public static SimplifiedGameInfoDTO FromParam(LightMessage.Common.Messages.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new SimplifiedGameInfoDTO(array[0].AsGuid.Value, array[1].AsUEnum<GameState>().Value, array[2].AsString, array[3].AsBoolean.Value, (byte)array[4].AsUInt.Value, (byte)array[5].AsUInt.Value, array[6].AsBoolean.Value, array[7].AsTimeSpan);
+            return new SimplifiedGameInfoDTO(array[0].AsGuid.Value, array[1].AsUEnum<GameState>().Value, array[2].AsString, AvatarDTO.FromParam(array[3]), array[4].AsBoolean.Value, (byte)array[5].AsUInt.Value, (byte)array[6].AsUInt.Value, array[7].AsBoolean.Value, array[8].AsTimeSpan);
         }
     }
 

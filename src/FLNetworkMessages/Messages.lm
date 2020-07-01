@@ -235,6 +235,7 @@ contract SimplifiedGameInfoDTO
     GameID: guid;
     GameState: GameState;
     OtherPlayerName: string?;
+	OtherPlayerAvatar: AvatarDTO?;
     MyTurn: bool;
     MyScore: u8;
     TheirScore: u8;
