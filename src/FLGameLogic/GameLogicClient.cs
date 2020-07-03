@@ -126,5 +126,12 @@ namespace FLGameLogic
 
             return false;
         }
+
+        public void Expire(int expiredFor)
+        {
+            this.expiredFor = expiredFor;
+            expired = true;
+            ExpiryTime = DateTime.Now + TimeSpan.FromSeconds(-1);
+        }
     }
 }
