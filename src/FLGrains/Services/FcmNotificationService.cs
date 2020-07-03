@@ -69,6 +69,6 @@ namespace FLGrains.Services
             Send(token, "چالش روزانه آماده شد", "جعبه چالش روزانه آماده شده. بیا بازی کن و جایزه‌ت رو بگیر!", "roundwinreward", "roundwinreward");
 
         public void SendCoinRewardVideoReadyReminder(string token) =>
-            Send(token, "هدیه آماده شد", "هدیه‌ت آماده شده، بیا تو بازی تا دریافتش کنی!", "coinrewardvideo", "coinrewardvideo");
+            Send(token, "هدیه آماده شد", "هدیه‌ی بعدی آماده‌ست، بیا تو بازی تا دریافتش کنی!", "coinrewardvideo", "coinrewardvideo");
     }
 }

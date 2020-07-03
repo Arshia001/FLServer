@@ -60,6 +60,8 @@ namespace FLGrains
 
         ISystemEndPoint? systemEndPoint;
 
+        bool playerLoggedInDuringThisActivation = false;
+
         public Player(
             IConfigReader configReader,
             IFcmNotificationService fcmNotificationService,
@@ -161,6 +163,8 @@ namespace FLGrains
 
                 return (false, state.CoinGifts);
             });
+
+            playerLoggedInDuringThisActivation = true;
 
             await UnregisterOfflineReminders();
 
@@ -1039,7 +1043,8 @@ namespace FLGrains
         Task RegisterOfflineReminders() =>
             state.UseState(async state =>
             {
-                if (!CanSendNotification(state))
+                // If the player didn't log in, any previously registered reminders are still registered and perfectly valid
+                if (!playerLoggedInDuringThisActivation || !CanSendNotification(state))
                     return;
 
                 var timeFrames = configReader.Config.ConfigValues.NotificationTimeFrames!;
