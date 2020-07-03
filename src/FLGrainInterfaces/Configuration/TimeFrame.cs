@@ -43,7 +43,7 @@ namespace FLGrainInterfaces.Configuration
                 Validation.FailWith($"{nameInError} -> End time must be between 00:00:00 and 23:59:59");
         }
 
-        public static Interval GetClosestInterval(DateTime time, IEnumerable<TimeFrame> sortedTimeFrames, bool mustBeAfterGivenTime)
+        public static Interval GetClosestInterval(DateTime time, IEnumerable<TimeFrame> sortedTimeFrames, IEnumerable<DateTime> mustBeAfter)
         {
             var date = time.Date;
 
@@ -52,17 +52,19 @@ namespace FLGrainInterfaces.Configuration
                 .Append(sortedTimeFrames.First().GetForDate(date.AddDays(1))) // First time frame of next day
                 .Append(sortedTimeFrames.Last().GetForDate(date.AddDays(-1))); // Last time frame of last day
 
-            var withDistances = intervals.Select(i => (interval: i, distance: i.GetDistanceTo(time)));
+            foreach (var t in mustBeAfter)
+                intervals = intervals.Where(x => x.GetDistanceFrom(t) >= TimeSpan.Zero);
 
-            if (mustBeAfterGivenTime)
-                withDistances = withDistances.Where(x => x.distance >= TimeSpan.Zero);
+            var withDistances = intervals.Select(i => (interval: i, distance: i.GetDistanceFrom(time)));
 
             var bestMatch = withDistances.MinBy(i => i.distance.Abs()).interval;
 
-            if (mustBeAfterGivenTime && bestMatch.Start < time)
-                return new Interval(time, bestMatch.End);
+            var latestStart = mustBeAfter.Append(bestMatch.Start).Max();
 
-            return bestMatch;
+            if (latestStart == bestMatch.Start)
+                return bestMatch;
+            else
+                return new Interval(latestStart, bestMatch.End);
         }
 
         public int CompareTo(TimeFrame other) => StartTime.CompareTo(other.StartTime);
@@ -79,16 +81,16 @@ namespace FLGrainInterfaces.Configuration
             public DateTime End { get; }
 
             /// <summary>
-            /// Returns a negative result if the specified time is before this interval, zero if it falls within, or positive otherwise.
+            /// Returns a negative result if the specified time is after this interval, zero if it falls within, or positive otherwise.
             /// </summary>
-            public TimeSpan GetDistanceTo(DateTime time)
+            public TimeSpan GetDistanceFrom(DateTime time)
             {
                 if (time < Start)
-                    return time - Start;
+                    return Start - time;
                 else if (time <= End)
                     return TimeSpan.Zero;
                 else
-                    return time - End;
+                    return End - time;
             }
 
             public DateTime GetRandomTimeInside()

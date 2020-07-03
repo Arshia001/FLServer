@@ -148,6 +148,7 @@ namespace FLGrainInterfaces
     {
         Task<(OwnPlayerInfoDTO info, VideoAdLimitTrackerInfo coinRewardVideo, VideoAdLimitTrackerInfo getCategoryAnswersVideo,
             IEnumerable<CoinGiftInfo> coinGifts)> PerformStartupTasksAndGetInfo();
+        Task PlayerDisconnected();
 
         Task<string> GetName();
         Task<PlayerInfoDTO> GetPlayerInfo();

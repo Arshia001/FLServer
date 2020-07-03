@@ -113,8 +113,14 @@ namespace FLGrains
 
         public override async Task OnDeactivateAsync()
         {
-            await RegisterOfflineReminders();
-            await state.PerformLazyPersistIfPending();
+            try
+            {
+                await state.PerformLazyPersistIfPending();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Failed to persist state during {nameof(OnDeactivateAsync)}");
+            }
         }
 
         public async Task<(OwnPlayerInfoDTO info, VideoAdLimitTrackerInfo coinRewardVideo, VideoAdLimitTrackerInfo getCategoryAnswersVideo,
@@ -169,6 +175,20 @@ namespace FLGrains
             await UnregisterOfflineReminders();
 
             return (await GetOwnPlayerInfo(), coinRewardAdTracker.GetInfo(), getCategoryAnswersAdTracker.GetInfo(), gifts);
+        }
+
+        public async Task PlayerDisconnected()
+        {
+            // Reminders can't be registered during silo shutdown.
+            // Also, player grains may be deactivated while the player is connected, due to inactivity.
+            // Lastly, if a player is connected and we take the server down, in a hurry he'll likely connect
+            // to another server and the reminders can be registered there.
+            // Due to above reasons, this is the best compromise short of registering reminders when the 
+            // player connects, which has its own set of problems (e.g. acting on invalid data that may change
+            // until the player disconnects).
+            await RegisterOfflineReminders();
+
+            await state.PerformLazyPersistIfPending();
         }
 
         private bool InitializeAvatarIfNeeded(ReadOnlyConfigData config)
@@ -1049,13 +1069,13 @@ namespace FLGrains
 
                 var timeFrames = configReader.Config.ConfigValues.NotificationTimeFrames!;
 
-                var day4Time = TimeFrame.GetClosestInterval(DateTime.Now.AddDays(4), timeFrames, false).GetRandomTimeInside();
+                var day4Time = TimeFrame.GetClosestInterval(DateTime.Now.AddDays(4), timeFrames, new[] { DateTime.Now }).GetRandomTimeInside();
                 await RegisterOrUpdateReminder(PlayerReminderNames.Day4Notification, day4Time - DateTime.Now, TimeSpan.FromMinutes(5));
 
                 var rewardStatus = GetRoundWinRewardStatus();
                 if (rewardStatus.inCoolDown)
                 {
-                    var rewardTime = TimeFrame.GetClosestInterval(DateTime.Now + rewardStatus.coolDownTimeRemaining, timeFrames, false).GetRandomTimeInside();
+                    var rewardTime = TimeFrame.GetClosestInterval(DateTime.Now + rewardStatus.coolDownTimeRemaining, timeFrames, new[] { DateTime.Now + rewardStatus.coolDownTimeRemaining }).GetRandomTimeInside();
                     await RegisterOrUpdateReminder(PlayerReminderNames.RoundWinRewardNotification, rewardTime - DateTime.Now, TimeSpan.FromMinutes(5));
                 }
 

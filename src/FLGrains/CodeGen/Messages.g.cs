@@ -334,10 +334,10 @@ namespace FLGrains
 
         ClientAuthCallbackDelegate onClientAuthCallback;
 
-        public System.Threading.Tasks.Task Start(Orleans.IGrainFactory grainFactory, System.Net.IPEndPoint ipEndPoint, ClientAuthCallbackDelegate onClientAuthCallback, LightMessage.Common.Util.ILogProvider logProvider = null)
+        public System.Threading.Tasks.Task Start(Orleans.IGrainFactory grainFactory, System.Net.IPEndPoint ipEndPoint, ClientAuthCallbackDelegate onClientAuthCallback, System.Func<System.Guid, System.Threading.Tasks.Task> onClientDisconnected, LightMessage.Common.Util.ILogProvider logProvider = null)
         {
             this.onClientAuthCallback = onClientAuthCallback;
-            return host.Start(grainFactory, ipEndPoint, OnClientAuthRequest, logProvider);
+            return host.Start(grainFactory, ipEndPoint, OnClientAuthRequest, onClientDisconnected, logProvider);
         }
 
         public void Stop() => host.Stop();

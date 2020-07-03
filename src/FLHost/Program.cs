@@ -46,6 +46,7 @@ namespace FLHost
                             o.ListenIPAddress = IPAddress.Any;
                             o.ListenPort = 7510;
                             o.ClientAuthCallback = OnAuth;
+                            o.ClientDisconnectedCallback = OnDisconnect;
                         })
                         .AddSingleton<ILogProvider>(new ConsoleLogProvider(LightMessage.Common.Util.LogLevel.Info))
                         .AddSingleton<LightMessageHostedService>()
@@ -129,5 +130,8 @@ namespace FLHost
 
         static Task<Guid?> OnAuth(HandShakeMode mode, Guid? clientID, string? email, string? password) =>
             client?.GetGrain<IClientAuthenticator>(0).Authenticate(mode, clientID, email, password) ?? Task.FromResult(default(Guid?));
+
+        static Task OnDisconnect(Guid clientID) =>
+            client?.GetGrain<IPlayer>(clientID).PlayerDisconnected() ?? Task.CompletedTask;
     }
 }
