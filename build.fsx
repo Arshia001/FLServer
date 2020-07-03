@@ -104,6 +104,7 @@ Target.create "Publish" <|
         File.delete <| Path.combine hostOutPath "system-settings.json"
         File.delete <| Path.combine hostOutPath "config.json"
         File.delete <| Path.combine hostOutPath "firebase-adminsdk-accountkeys.json"
+        File.delete <| Path.combine hostOutPath "firebase-adminsdk-accountkeys-dev.json"
         
         let serviceStatusOutPath = Path.combine publishDir "flservicestatus"
         runDotNetPublish platform serviceStatusPath serviceStatusOutPath

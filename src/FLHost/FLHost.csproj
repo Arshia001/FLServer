@@ -11,12 +11,9 @@
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="config.json" />
-    <None Remove="firebase-adminsdk-accountkeys.json" />
     <None Remove="ForgotPasswordTemplate.cshtml" />
     <None Remove="InitializeFLDatabase.cql" />
     <None Remove="NginxConfig" />
-    <None Remove="system-settings.json" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="ForgotPasswordTemplate.cshtml">
@@ -25,17 +22,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="InitializeFLDatabase.cql">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="config.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="system-settings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="firebase-adminsdk-accountkeys.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -47,6 +33,17 @@
     <ProjectReference Include="..\..\..\OrleansLibraries-Core\OrleansIndexingGrains\OrleansIndexingGrains.csproj" />
     <ProjectReference Include="..\FLGrainInterfaces\FLGrainInterfaces.csproj" />
     <ProjectReference Include="..\FLGrains\FLGrains.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="config.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="firebase-adminsdk-accountkeys.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="system-settings.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
