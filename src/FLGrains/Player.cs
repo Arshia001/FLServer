@@ -771,7 +771,7 @@ namespace FLGrains
                 return Task.FromResult((ulong?)state.Gold);
             });
 
-        public Task<IEnumerable<GroupInfoDTO>?> RefreshGroups(Guid gameID) =>
+        public Task<(IEnumerable<GroupInfoDTO>? groups, ulong totalGold)> RefreshGroups(Guid gameID) =>
             state.UseStateAndLazyPersist(async state =>
             {
                 var price = configReader.Config.ConfigValues.PriceToRefreshGroups;
@@ -780,13 +780,13 @@ namespace FLGrains
 
                 var result = await GrainFactory.GetGrain<IGame>(gameID).RefreshGroups(this.GetPrimaryKey());
                 if (result == null)
-                    return null;
+                    return (null, 0ul);
 
                 AddStatImpl(price, Statistics.MoneySpentGroupChange);
                 AddStatImpl(1, Statistics.GroupChangeUsed);
 
                 state.Gold -= price;
-                return result.Select(g => (GroupInfoDTO)g).ToList().AsEnumerable();
+                return (result.Select(g => (GroupInfoDTO)g).ToList().AsEnumerable().AsNullable(), state.Gold);
             });
 
         (bool inCoolDown, TimeSpan coolDownTimeRemaining, bool enoughRoundsWon, uint numRoundsWon) GetRoundWinRewardStatus() =>

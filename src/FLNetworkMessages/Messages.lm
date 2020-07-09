@@ -550,6 +550,7 @@ endpoint Game gm
 		->
 		{
 			groups: GroupInfoDTO[]?;
+			totalGold: u64;
 		}
 	}
 

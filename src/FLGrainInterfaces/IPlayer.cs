@@ -194,7 +194,7 @@ namespace FLGrainInterfaces
         Task<bool> HaveAnswersForCategory(string category);
         Task<IReadOnlyList<bool>> HaveAnswersForCategories(IReadOnlyList<string> categories);
 
-        Task<IEnumerable<GroupInfoDTO>?> RefreshGroups(Guid gameID);
+        Task<(IEnumerable<GroupInfoDTO>? groups, ulong totalGold)> RefreshGroups(Guid gameID);
 
         Task<(ulong totalGold, TimeSpan timeUntilNextReward)> TakeRewardForWinningRounds();
 
