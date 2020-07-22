@@ -1,0 +1,12 @@
+[submodule "Words"]
+	path = Words
+	url = https://arshia001.visualstudio.com/FL/_git/Words
+[submodule "libs/jint"]
+	path = libs/jint
+	url = https://arshia001.visualstudio.com/SupportingLibraries/_git/Jint
+[submodule "libs/orleanslibraries"]
+	path = libs/orleanslibraries
+	url = https://arshia001.visualstudio.com/SupportingLibraries/_git/OrleansLibraries
+[submodule "libs/lightmessage"]
+	path = libs/lightmessage
+	url = https://arshia001.visualstudio.com/SupportingLibraries/_git/LightMessage
