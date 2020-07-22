@@ -6,10 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\jint-2.11.10\Jint\Jint.csproj" />
-    <ProjectReference Include="..\..\..\LightMessage-Core\LightMessage.OrleansUtils.GrainInterfaces\LightMessage.OrleansUtils.GrainInterfaces.csproj" />
-    <ProjectReference Include="..\..\..\OrleansLibraries-Core\OrleansBondUtils\OrleansBondUtils.csproj" />
-    <ProjectReference Include="..\..\..\OrleansLibraries-Core\OrleansIndexingGrainInterfaces\OrleansIndexingGrainInterfaces.csproj" />
+    <ProjectReference Include="..\..\libs\jint\Jint\Jint.csproj" />
+    <ProjectReference Include="..\..\libs\lightmessage\LightMessage.OrleansUtils.GrainInterfaces\LightMessage.OrleansUtils.GrainInterfaces.csproj" />
+    <ProjectReference Include="..\..\libs\orleanslibraries\OrleansBondUtils\OrleansBondUtils.csproj" />
+    <ProjectReference Include="..\..\libs\orleanslibraries\OrleansIndexingGrainInterfaces\OrleansIndexingGrainInterfaces.csproj" />
     <ProjectReference Include="..\FLGameLogicServer\FLGameLogicServer.csproj" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />

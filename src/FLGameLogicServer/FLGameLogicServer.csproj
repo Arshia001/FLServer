@@ -6,7 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\FLGameLogic\FLGameLogic.csproj" />
-    <ProjectReference Include="..\..\..\OrleansLibraries-Core\OrleansBondUtils\OrleansBondUtils.csproj" />
+    <ProjectReference Include="..\..\libs\orleanslibraries\OrleansBondUtils\OrleansBondUtils.csproj" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

@@ -22,35 +22,35 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{9089A3
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{72D4B17A-D1CA-48E3-9DF5-87BED006B0D3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bond", "..\OrleansLibraries-Core\ThirdParty\bond-8.0.0\cs\src\core\Bond.csproj", "{43CBBA9B-C4BC-4E64-8733-7B72562D2E91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bond", "libs\orleanslibraries\ThirdParty\bond-8.0.0\cs\src\core\Bond.csproj", "{43CBBA9B-C4BC-4E64-8733-7B72562D2E91}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IO", "..\OrleansLibraries-Core\ThirdParty\bond-8.0.0\cs\src\io\IO.csproj", "{2E6E238C-9017-445C-9611-66DA780609BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IO", "libs\orleanslibraries\ThirdParty\bond-8.0.0\cs\src\io\IO.csproj", "{2E6E238C-9017-445C-9611-66DA780609BE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "reflection", "..\OrleansLibraries-Core\ThirdParty\bond-8.0.0\cs\src\reflection\reflection.csproj", "{40452223-3A34-4841-9A69-E0B6640B4108}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "reflection", "libs\orleanslibraries\ThirdParty\bond-8.0.0\cs\src\reflection\reflection.csproj", "{40452223-3A34-4841-9A69-E0B6640B4108}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Attributes", "..\OrleansLibraries-Core\ThirdParty\bond-8.0.0\cs\src\attributes\Attributes.csproj", "{92915BD9-8AB1-4E4D-A2AC-95BBF4F82D89}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Attributes", "libs\orleanslibraries\ThirdParty\bond-8.0.0\cs\src\attributes\Attributes.csproj", "{92915BD9-8AB1-4E4D-A2AC-95BBF4F82D89}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrleansBondUtils", "..\OrleansLibraries-Core\OrleansBondUtils\OrleansBondUtils.csproj", "{6A557F00-BBDE-4F47-91BC-2995844AFC79}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrleansBondUtils", "libs\orleanslibraries\OrleansBondUtils\OrleansBondUtils.csproj", "{6A557F00-BBDE-4F47-91BC-2995844AFC79}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrleansBondUtils.CassandraInterop", "..\OrleansLibraries-Core\OrleansBondUtils.CassandraInterop\OrleansBondUtils.CassandraInterop.csproj", "{2A0366A7-E423-401C-A44A-194DEAF31F6D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrleansBondUtils.CassandraInterop", "libs\orleanslibraries\OrleansBondUtils.CassandraInterop\OrleansBondUtils.CassandraInterop.csproj", "{2A0366A7-E423-401C-A44A-194DEAF31F6D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrleansCassandraUtils", "..\OrleansLibraries-Core\OrleansCassandraUtils\OrleansCassandraUtils.csproj", "{F13A6A3A-B8CE-4DB2-83B8-2A1445838F3B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrleansCassandraUtils", "libs\orleanslibraries\OrleansCassandraUtils\OrleansCassandraUtils.csproj", "{F13A6A3A-B8CE-4DB2-83B8-2A1445838F3B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrleansIndexingGrainInterfaces", "..\OrleansLibraries-Core\OrleansIndexingGrainInterfaces\OrleansIndexingGrainInterfaces.csproj", "{8243BA61-A6F5-4CC6-B407-C29C32DCCD8D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrleansIndexingGrainInterfaces", "libs\orleanslibraries\OrleansIndexingGrainInterfaces\OrleansIndexingGrainInterfaces.csproj", "{8243BA61-A6F5-4CC6-B407-C29C32DCCD8D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrleansIndexingGrains", "..\OrleansLibraries-Core\OrleansIndexingGrains\OrleansIndexingGrains.csproj", "{2BE78B63-AEC3-48BC-9678-368C4D12FB47}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrleansIndexingGrains", "libs\orleanslibraries\OrleansIndexingGrains\OrleansIndexingGrains.csproj", "{2BE78B63-AEC3-48BC-9678-368C4D12FB47}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightMessage.Common", "..\LightMessage-Core\LightMessage.Common\LightMessage.Common.csproj", "{EA7A3421-CE8E-4260-95F9-A27E86AF802F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightMessage.Common", "libs\lightmessage\LightMessage.Common\LightMessage.Common.csproj", "{EA7A3421-CE8E-4260-95F9-A27E86AF802F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightMessage.Client", "..\LightMessage-Core\LightMessage.Client\LightMessage.Client.csproj", "{FD7EE2B5-1B8E-44D5-9A59-FFE5AEF5B1C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightMessage.Client", "libs\lightmessage\LightMessage.Client\LightMessage.Client.csproj", "{FD7EE2B5-1B8E-44D5-9A59-FFE5AEF5B1C5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightMessage.Host", "..\LightMessage-Core\LightMessage.Host\LightMessage.Host.csproj", "{0D965194-6475-4386-9195-13702D065A0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightMessage.Host", "libs\lightmessage\LightMessage.Host\LightMessage.Host.csproj", "{0D965194-6475-4386-9195-13702D065A0F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightMessage.OrleansUtils.GrainInterfaces", "..\LightMessage-Core\LightMessage.OrleansUtils.GrainInterfaces\LightMessage.OrleansUtils.GrainInterfaces.csproj", "{52C6C067-31EB-4745-A6A8-2E7E1A809014}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightMessage.OrleansUtils.GrainInterfaces", "libs\lightmessage\LightMessage.OrleansUtils.GrainInterfaces\LightMessage.OrleansUtils.GrainInterfaces.csproj", "{52C6C067-31EB-4745-A6A8-2E7E1A809014}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightMessage.OrleansUtils.Grains", "..\LightMessage-Core\LightMessage.OrleansUtils.Grains\LightMessage.OrleansUtils.Grains.csproj", "{6F5780AF-6A05-491D-BE6A-1621813F9A93}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightMessage.OrleansUtils.Grains", "libs\lightmessage\LightMessage.OrleansUtils.Grains\LightMessage.OrleansUtils.Grains.csproj", "{6F5780AF-6A05-491D-BE6A-1621813F9A93}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightMessage.OrleansUtils.Host", "..\LightMessage-Core\LightMessage.OrleansUtils.Host\LightMessage.OrleansUtils.Host.csproj", "{22A5A75D-8515-4EBD-998D-8611304CF41F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightMessage.OrleansUtils.Host", "libs\lightmessage\LightMessage.OrleansUtils.Host\LightMessage.OrleansUtils.Host.csproj", "{22A5A75D-8515-4EBD-998D-8611304CF41F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FLGrainInterfaces", "src\FLGrainInterfaces\FLGrainInterfaces.csproj", "{744E913B-D451-476D-B989-7AD82CAB42ED}"
 EndProject
@@ -70,11 +70,11 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "LevelConverter", "src\Level
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Jint", "Jint", "{E65BB1CB-824D-4C3C-BE4E-ACF16F10ED4F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jint", "..\jint-2.11.10\Jint\Jint.csproj", "{04802B23-1E85-434B-B8BB-368699484CE8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jint", "libs\jint\Jint\Jint.csproj", "{04802B23-1E85-434B-B8BB-368699484CE8}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "LightMessage.Compiler", "..\LightMessage-Core\LightMessage.Compiler\LightMessage.Compiler.fsproj", "{B8A6E24D-A355-4100-A252-01959D22B72F}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "LightMessage.Compiler", "libs\lightmessage\LightMessage.Compiler\LightMessage.Compiler.fsproj", "{B8A6E24D-A355-4100-A252-01959D22B72F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightMessage.Unity", "..\LightMessage-Core\LightMessage.Unity\LightMessage.Unity.csproj", "{6E016B8D-6E0B-496C-9EA1-E1AA584C5C15}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightMessage.Unity", "libs\lightmessage\LightMessage.Unity\LightMessage.Unity.csproj", "{6E016B8D-6E0B-496C-9EA1-E1AA584C5C15}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FLServiceStatus", "src\FLServiceStatus\FLServiceStatus.fsproj", "{3D1EC675-CB54-46CB-9F0B-1188E4912F19}"
 EndProject

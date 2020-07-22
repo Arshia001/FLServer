@@ -23,7 +23,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\OrleansLibraries-Core\OrleansCassandraUtils\OrleansCassandraUtils.csproj" />
+    <ProjectReference Include="..\..\..\..\libs\orleanslibraries\OrleansCassandraUtils\OrleansCassandraUtils.csproj" />
     <ProjectReference Include="..\..\..\FLGrainInterfaces\FLGrainInterfaces.csproj" />
   </ItemGroup>
   <Import Project="..\..\..\..\.paket\Paket.Restore.targets" />

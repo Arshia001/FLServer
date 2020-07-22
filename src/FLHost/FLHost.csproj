@@ -34,11 +34,11 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\LightMessage-Core\LightMessage.OrleansUtils.Host\LightMessage.OrleansUtils.Host.csproj" />
-    <ProjectReference Include="..\..\..\OrleansLibraries-Core\OrleansBondUtils.CassandraInterop\OrleansBondUtils.CassandraInterop.csproj" />
-    <ProjectReference Include="..\..\..\OrleansLibraries-Core\OrleansBondUtils\OrleansBondUtils.csproj" />
-    <ProjectReference Include="..\..\..\OrleansLibraries-Core\OrleansCassandraUtils\OrleansCassandraUtils.csproj" />
-    <ProjectReference Include="..\..\..\OrleansLibraries-Core\OrleansIndexingGrains\OrleansIndexingGrains.csproj" />
+    <ProjectReference Include="..\..\libs\lightmessage\LightMessage.OrleansUtils.Host\LightMessage.OrleansUtils.Host.csproj" />
+    <ProjectReference Include="..\..\libs\orleanslibraries\OrleansBondUtils.CassandraInterop\OrleansBondUtils.CassandraInterop.csproj" />
+    <ProjectReference Include="..\..\libs\orleanslibraries\OrleansBondUtils\OrleansBondUtils.csproj" />
+    <ProjectReference Include="..\..\libs\orleanslibraries\OrleansCassandraUtils\OrleansCassandraUtils.csproj" />
+    <ProjectReference Include="..\..\libs\orleanslibraries\OrleansIndexingGrains\OrleansIndexingGrains.csproj" />
     <ProjectReference Include="..\FLGrainInterfaces\FLGrainInterfaces.csproj" />
     <ProjectReference Include="..\FLGrains\FLGrains.csproj" />
   </ItemGroup>

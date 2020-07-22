@@ -5,8 +5,8 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\LightMessage-Core\LightMessage.Client\LightMessage.Client.csproj" />
-    <ProjectReference Include="..\..\..\OrleansLibraries-Core\OrleansCassandraUtils\OrleansCassandraUtils.csproj" />
+    <ProjectReference Include="..\..\libs\lightmessage\LightMessage.Client\LightMessage.Client.csproj" />
+    <ProjectReference Include="..\..\libs\orleanslibraries\OrleansCassandraUtils\OrleansCassandraUtils.csproj" />
     <ProjectReference Include="..\FLGrainInterfaces\FLGrainInterfaces.csproj" />
     <ProjectReference Include="..\FLGrains\FLGrains.csproj" />
   </ItemGroup>

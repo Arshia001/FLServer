@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\LightMessage-Core\LightMessage.OrleansUtils.Grains\LightMessage.OrleansUtils.Grains.csproj" />
-    <ProjectReference Include="..\..\..\LightMessage-Core\LightMessage.OrleansUtils.Host\LightMessage.OrleansUtils.Host.csproj" />
+    <ProjectReference Include="..\..\libs\lightmessage\LightMessage.OrleansUtils.Grains\LightMessage.OrleansUtils.Grains.csproj" />
+    <ProjectReference Include="..\..\libs\lightmessage\LightMessage.OrleansUtils.Host\LightMessage.OrleansUtils.Host.csproj" />
     <ProjectReference Include="..\FLGameLogic\FLGameLogic.csproj" />
     <ProjectReference Include="..\FLGrainInterfaces\FLGrainInterfaces.csproj" />
   </ItemGroup>
