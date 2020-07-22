@@ -7,6 +7,22 @@ if ERRORLEVEL 1 (
     GOTO Quit
 )
 
+echo Checking nodejs version...
+node --version
+
+if ERRORLEVEL 1 (
+    echo node was not found in PATH. Install Node.js and try again.
+    GOTO Quit
+)
+
+echo Checking yarn version...
+node --version
+
+if ERRORLEVEL 1 (
+    echo yarn was not found in PATH. Install it and try again.
+    GOTO Quit
+)
+
 echo Downloading tools...
 dotnet tool restore
 

@@ -27,6 +27,7 @@ let passwordRecoveryPath = Path.getFullName "./src/FLRecoveryEmail"
 let networkMessagesPath = Path.getFullName "./src/FLNetworkMessages"
 let managementToolPath = Path.getFullName "./src/ManagementTool"
 
+let toolsDir = Path.getFullName "./tools"
 let publishDir = Path.getFullName "./publish"
 
 let ensureTool tool = 
@@ -56,6 +57,16 @@ Target.create "Clean" <|
     fun _ ->
         Shell.cleanDir publishDir
         runFakeTarget "Clean" passwordRecoveryPath
+
+Target.create "BuildLMCompiler" <|
+    fun _ ->
+        let outDir = Path.combine toolsDir "lm-compiler"
+        Shell.cleanDir outDir
+
+        let path = Path.getFullName "./libs/lightmessage/LightMessage.Compiler"
+
+        let args = sprintf "publish -o \"%s\" -c release --no-self-contained -f %s" outDir publishFramework
+        runDotNet args path
 
 Target.create "BuildMessages" <| fun _ -> runTool cmd "/c RunLMCodeGen.bat" networkMessagesPath
 
@@ -141,6 +152,7 @@ Target.create "Publish" <|
 open Fake.Core.TargetOperators
 
 "Clean"
+    ==> "BuildLMCompiler"
     ==> "BuildMessages"
     ==> "BuildHost"
     ==> "RunHost"
@@ -157,6 +169,7 @@ open Fake.Core.TargetOperators
     ==> "Run"
 
 "Clean"
+    ==> "BuildLMCompiler"
     ==> "BuildMessages"
     ==> "Publish"
 
