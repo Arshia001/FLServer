@@ -16,7 +16,7 @@ if ERRORLEVEL 1 (
 )
 
 echo Checking yarn version...
-node --version
+yarn --version
 
 if ERRORLEVEL 1 (
     echo yarn was not found in PATH. Install it and try again.
