@@ -235,7 +235,7 @@
     {
       "ID": 2,
       "MinimumLevel": 1,
-      "Price": 90
+      "Price": 150
     },
     {
       "ID": 3,
@@ -250,7 +250,7 @@
     {
       "ID": 5,
       "MinimumLevel": 3,
-      "Price": 700
+      "Price": 1000
     },
     {
       "ID": 6,
@@ -265,12 +265,12 @@
     {
       "ID": 8,
       "MinimumLevel": 1,
-      "Price": 200
+      "Price": 300
     },
     {
       "ID": 9,
       "MinimumLevel": 1,
-      "Price": 500
+      "Price": 700
     },
     {
       "ID": 10,

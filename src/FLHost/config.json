@@ -43,10 +43,10 @@
   "ConfigValues": {
     "NumRoundsPerGame": 5,
 
-    "GetAnswersPrice": 300,
+    "GetAnswersPrice": 150,
 
     "NumGroupChoices": 3,
-    "PriceToRefreshGroups": 150,
+    "PriceToRefreshGroups": 80,
 
     "ClientTimePerRound": "00:00:40",
     "ExtraTimePerRound": "00:00:10",
@@ -100,7 +100,7 @@
 
     "RefreshGroupsAllowedPerRound": 1,
 
-    "InitialGold": 200,
+    "InitialGold": 100,
 
     "LeaderBoardTopScoreCount": 100,
     "LeaderBoardAroundScoreCount": 10,
