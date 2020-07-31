@@ -23,6 +23,8 @@ namespace FLGameLogic
         bool expired;
         int expiredFor;
 
+        DateTime? expiryTime;
+
         public IReadOnlyList<string> Categories => categories;
 
         public override int NumRounds => Categories.Count;
@@ -31,7 +33,7 @@ namespace FLGameLogic
 
         public override int ExpiredFor => expiredFor;
 
-        public DateTime? ExpiryTime { get; set; }
+        public DateTime? ExpiryTime => Finished ? null : expiryTime;
 
         private GameLogicClient(int firstTurn) : base(firstTurn) { }
 
@@ -61,6 +63,8 @@ namespace FLGameLogic
 
             return true;
         }
+
+        internal void SetExpiryTime(DateTime? expiry) => expiryTime = expiry;
 
         public bool RegisterTurnTakenWithUnknownPlays(int player, uint round)
         {
@@ -92,7 +96,7 @@ namespace FLGameLogic
 
             this.expired = expired;
             this.expiredFor = expiredFor;
-            ExpiryTime = expiryTimeRemaining.HasValue ? DateTime.Now + expiryTimeRemaining.Value : default(DateTime?);
+            expiryTime = expiryTimeRemaining.HasValue ? DateTime.Now + expiryTimeRemaining.Value : default(DateTime?);
 
             base.RestoreGameState(wordsPlayed, turnEndTimes);
         }
@@ -131,7 +135,7 @@ namespace FLGameLogic
         {
             this.expiredFor = expiredFor;
             expired = true;
-            ExpiryTime = DateTime.Now + TimeSpan.FromSeconds(-1);
+            expiryTime = DateTime.Now + TimeSpan.FromSeconds(-1);
         }
     }
 }
