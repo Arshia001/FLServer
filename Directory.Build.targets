@@ -1,5 +1,5 @@
 <Project>
     <PropertyGroup>
-        <OrleansPackageVersion>3.1.2</OrleansPackageVersion>
+        <OrleansPackageVersion>3.2.2</OrleansPackageVersion>
     </PropertyGroup>
 </Project>
