@@ -35,7 +35,7 @@ namespace FLGameLogicServer
 
         public HashSet<string> CategoryNames => new HashSet<string>(Categories.Where(c => c != null).Select(c => c.CategoryName));
 
-        public override bool Expired => ExpiryTime.HasValue && DateTime.Now >= ExpiryTime.Value;
+        public override bool Expired => !Finished && ExpiryTime.HasValue && DateTime.Now >= ExpiryTime.Value;
 
         public override int ExpiredFor => Turn;
 
