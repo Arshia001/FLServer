@@ -9,6 +9,7 @@
     <Compile Include="Common.fs" />
     <Compile Include="DeleteStorageCommand.fs" />
     <Compile Include="UpdateConfigCommand.fs" />
+    <Compile Include="ReadConfigCommand.fs" />
     <Compile Include="SetDownForMaintenanceCommand.fs" />
     <Compile Include="SetUpFromMaintenanceCommand.fs" />
     <Compile Include="RenameCategoryCommand.fs" />

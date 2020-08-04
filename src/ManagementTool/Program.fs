@@ -5,7 +5,8 @@ open CommandLine
 
 let parse = 
     Parser.Default.ParseArguments<
-        UpdateConfig, 
+        UpdateConfig,
+        ReadConfig,
         DownForMaintenance, 
         UpFromMaintenance, 
         RenameCategory,
@@ -27,6 +28,7 @@ let main argv =
         | :? Parsed<obj> as p ->
             match p.Value with
             | :? UpdateConfig as cmd -> runUpdateConfig cmd
+            | :? ReadConfig as cmd -> runReadConfig cmd
             | :? DownForMaintenance as cmd -> runDownForMaintenance cmd
             | :? UpFromMaintenance as cmd -> runUpFromMaintenance cmd
             | :? RenameCategory as cmd -> runRenameCategory cmd
