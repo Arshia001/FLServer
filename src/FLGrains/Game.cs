@@ -1,5 +1,4 @@
 ﻿using Bond;
-using Bond.Tag;
 using FLGameLogic;
 using FLGameLogicServer;
 using FLGrainInterfaces;
@@ -14,7 +13,6 @@ using OrleansBondUtils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FLGrains
@@ -50,10 +48,18 @@ namespace FLGrains
         public int[] WordsRevealedForThisRound { get; set; } = new[] { 0, 0 };
     }
 
+    static class GameReminderNames
+    {
+        public const string EndTurn = "e";
+        public const string BotPlay = "bp";
+    }
+
     //?? Now, we only need a way to reactivate these if one of them goes down... Same old challenge.
     //!! cache player names along with games?
     class Game : Grain, IGame, IRemindable
     {
+        static readonly Guid BotPlayerID = Guid.Parse("10000000-0000-0000-0000-000000000000"); //?? remove this, add a database of bots with profiles with IDs
+
         class EndRoundTimerData
         {
             public int playerIndex;
@@ -87,6 +93,8 @@ namespace FLGrains
             e.State.GameData = gameLogic?.Serialize();
 
         int NumJoinedPlayers => state.UseState(state => state.PlayerIDs.Length == 0 ? 0 : state.PlayerIDs[1] == Guid.Empty ? 1 : 2);
+
+        bool IsBotMatch => state.UseState(state => state.PlayerIDs.Length >= 2 && state.PlayerIDs[1] == BotPlayerID); //?? bot database
 
         public override async Task OnActivateAsync()
         {
@@ -179,6 +187,89 @@ namespace FLGrains
                 return (state.PlayerIDs[0], (byte)GameLogic.NumRounds, timeRemaining);
             });
 
+        public Task AddBotAsSecondPlayer() =>
+            state.UseStateAndPersist(async state =>
+            {
+                var gameState = GetStateInternal(state);
+                if (gameState != GameState.WaitingForSecondPlayer)
+                    return;
+
+                GameLogic.SecondPlayerJoined();
+
+                state.PlayerIDs[1] = BotPlayerID;
+
+                await RegisterExpiryReminderIfNecessary();
+
+                var timeRemaining = GetExpiryTimeRemaining();
+
+                await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentJoined(state.PlayerIDs[0], (this).GetPrimaryKey(), new PlayerInfoDTO(Guid.Empty, "", 0, new AvatarDTO(Array.Empty<AvatarPartDTO>())), timeRemaining); //?? Bot names and avatars
+
+                // The bot just joined the game, the result of its first round should be available after a delay
+                await RegisterBotPlayReminder(false);
+            });
+
+        // True to wait a longer time, as if the opponent has played and now the bot must come back online.
+        // False to wait a shorter while, as if the bot is playing its second round and must be done soon.
+        Task RegisterBotPlayReminder(bool longWait)
+        {
+            var config = configReader.Config.ConfigValues;
+
+            var waitTime = longWait ?
+                RandomHelper.GetDouble(config.BotPlayMinWaitMinutes, config.BotPlayMaxWaitMinutes) :
+                1.0;
+
+            return RegisterOrUpdateReminder(GameReminderNames.BotPlay, TimeSpan.FromMinutes(waitTime), TimeSpan.FromMinutes(1));
+        }
+
+        async Task PlayBotTurn()
+        {
+            var config = configReader.Config;
+
+            var botID = state.UseState(state => state.PlayerIDs[1]);
+            var (category, _, _, mustChoose, groups) = await StartRound(botID);
+            if (mustChoose)
+                (category, _, _) = await ChooseGroup(botID, groups.First().ID);
+
+            var shouldWinRound = RandomHelper.GetInt32(2) == 1; //?? decide based on player's performance
+
+            var words = config.CategoriesAsGameLogicFormatByName[category!].Answers.ToHashSet();
+
+            var opponentScore = GameLogic.GetPlayerAnswers(0, GameLogic.RoundNumber).Sum(w => w.score);
+
+            var score = 0u;
+            var numPlayed = 0u;
+
+            Func<bool> shouldStop;
+
+            if (opponentScore == 0)
+            {
+                if (shouldWinRound)
+                    shouldStop = () => numPlayed > 10 && words.Count > 0;
+                else
+                    shouldStop = () => numPlayed > 4 && words.Count > 0;
+            }
+            else
+            {
+                if (shouldWinRound)
+                    shouldStop = () => words.Count == 0 || score < opponentScore;
+                else
+                    shouldStop = () => words.Count == 0 || score < opponentScore - 3;
+            }
+
+            while (!shouldStop())
+            {
+                var word = words.ElementAt(RandomHelper.GetInt32(words.Count));
+                var (wordScore, _) = await PlayWord(botID, word);
+                score += wordScore;
+                words.Remove(word);
+            }
+
+            await EndRound(botID);
+
+            if (GameLogic.Turn == 1)
+                await RegisterBotPlayReminder(false);
+        }
+
         TimeSpan? GetExpiryTimeRemaining() => GameLogic.ExpiryTime == null ? default(TimeSpan?) : GameLogic.ExpiryTime.Value - DateTime.Now;
 
         (bool shouldChooseCategory, string? category, int roundIndex, TimeSpan? roundTime) StartRound(int playerIndex)
@@ -231,10 +322,10 @@ namespace FLGrains
             }
             else
             {
-                await state.UseStateAndPersist(state => 
+                await state.UseStateAndPersist(state =>
                 {
-                    state.TimeExtensionsForThisRound[index] = 0; 
-                    state.WordsRevealedForThisRound[index] = 0; 
+                    state.TimeExtensionsForThisRound[index] = 0;
+                    state.WordsRevealedForThisRound[index] = 0;
                 });
 
                 return (category, await GrainFactory.GetGrain<IPlayer>(id).HaveAnswersForCategory(category), roundTime, false, Enumerable.Empty<GroupInfoDTO>());
@@ -367,6 +458,9 @@ namespace FLGrains
                 else
                 {
                     await RegisterExpiryReminderIfNecessary();
+
+                    if (IsBotMatch)
+                        await RegisterBotPlayReminder(true);
                 }
 
                 return true;
@@ -393,7 +487,8 @@ namespace FLGrains
         public Task ReceiveReminder(string reminderName, TickStatus status) =>
             reminderName switch
             {
-                "e" => HandleGameExpiry(),
+                GameReminderNames.EndTurn => HandleGameExpiry(),
+                GameReminderNames.BotPlay => PlayBotTurn(),
                 _ => Task.CompletedTask,
             };
 

@@ -110,6 +110,9 @@
     "InviterReward": 300,
     "InviteeReward": 300,
 
+    "BotPlayMinWaitMinutes": 4,
+    "BotPlayMaxWaitMinutes": 6,
+
     "CoinRewardVideo": {
       "Interval": "03:00:00",
       "NumberAllowedPerDay": 100

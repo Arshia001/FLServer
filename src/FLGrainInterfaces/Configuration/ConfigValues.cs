@@ -76,6 +76,9 @@ namespace FLGrainInterfaces.Configuration
 
         public uint MaxMatchResultHistoryEntries { get; private set; }
 
+        public double BotPlayMinWaitMinutes { get; private set; }
+        public double BotPlayMaxWaitMinutes { get; private set; }
+
         public static void Validate(ConfigValues data)
         {
             Validation.CheckNotEqual(data.ClientTimePerRound, TimeSpan.Zero, "client time per round");
@@ -118,6 +121,13 @@ namespace FLGrainInterfaces.Configuration
 
             Validation.CheckNotEqual(data.InviterReward, 0u, "inviter reward");
             Validation.CheckNotEqual(data.InviteeReward, 0u, "invitee reward");
+
+            if (data.BotPlayMinWaitMinutes < 1.0f)
+                Validation.FailWith("Bot play min time must be at least 1 minute");
+            if (data.BotPlayMaxWaitMinutes < 1.0f)
+                Validation.FailWith("Bot play max time must be at least 1 minute");
+            if (data.BotPlayMaxWaitMinutes <= data.BotPlayMinWaitMinutes)
+                Validation.FailWith("Bot play max time must be more than bot play min time");
 
             data.CoinRewardVideo.Validate("coin reward video");
             data.GetCategoryAnswersVideo.Validate("get category answers video");

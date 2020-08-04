@@ -40,5 +40,7 @@ namespace FLGrainInterfaces
         public static int GetInt32(int min, int max) => RandomNumberGenerator.GetInt32(max - min) + min;
 
         public static double GetDouble() => RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue;
+
+        public static double GetDouble(double min, double max) => GetDouble() * (max - min) + min;
     }
 }
