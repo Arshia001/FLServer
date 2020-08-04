@@ -147,6 +147,9 @@ namespace FLGrainInterfaces
 
         [Id(30)]
         public IPlayer? Inviter { get; set; }
+
+        [Id(31)]
+        public List<CompetitionResult> MatchResultHistory { get; set; } = new List<CompetitionResult>();
     }
 
     [BondSerializationTag("@p")]

@@ -74,6 +74,8 @@ namespace FLGrainInterfaces.Configuration
         public uint InviterReward { get; private set; }
         public uint InviteeReward { get; private set; }
 
+        public uint MaxMatchResultHistoryEntries { get; private set; }
+
         public static void Validate(ConfigValues data)
         {
             Validation.CheckNotEqual(data.ClientTimePerRound, TimeSpan.Zero, "client time per round");
