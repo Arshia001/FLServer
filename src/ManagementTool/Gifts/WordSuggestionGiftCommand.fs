@@ -17,7 +17,7 @@ type WordSuggestionGift = {
 }
 
 let private giveOne (client: IClusterClient, playerID: Guid, amount: uint32, categoryName: string, words: string seq) =
-    let gift = CoinGiftInfo(Guid.NewGuid(), CoinGiftSubject.SuggestedWords, amount, null, Nullable(), categoryName, words |> String.concat "|", null, null)
+    let gift = CoinGiftInfo(CoinGiftSubject.SuggestedWords, amount, null, Nullable(), categoryName, words |> String.concat "|", null, null)
     client.GetGrain<IPlayer>(playerID).ReceiveCoinGift(gift).Result
 
 let private giveAllFromFile (client: Lazy<IClusterClient>, f: string) =

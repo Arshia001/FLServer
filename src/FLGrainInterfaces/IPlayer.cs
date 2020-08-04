@@ -141,6 +141,12 @@ namespace FLGrainInterfaces
 
         [Id(28)]
         public AvatarManagerState? AvatarManagerState { get; set; }
+
+        [Id(29)]
+        public string? InviteCode { get; set; }
+
+        [Id(30)]
+        public IPlayer? Inviter { get; set; }
     }
 
     [BondSerializationTag("@p")]
@@ -159,7 +165,7 @@ namespace FLGrainInterfaces
         Task<(PlayerInfoDTO info, bool[] haveCategoryAnswers)> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories);
 
         Task<bool> SetUsername(string username);
-        Task<RegistrationResult> PerformRegistration(string username, string email, string password);
+        Task<(RegistrationResult result, ulong totalGold)> PerformRegistration(string username, string email, string password, string? inviteCode);
         Task<SetEmailResult> SetEmail(string email);
         Task<SetPasswordResult> UpdatePassword(string newPassword);
         Task<bool> ValidatePassword(string password);
@@ -216,6 +222,8 @@ namespace FLGrainInterfaces
 
     public static class PlayerIndex
     {
+        //!! update indexer grains with nullability annotations
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
         static readonly GrainIndexManager_Unique<string, IPlayer> byUsername =
             new GrainIndexManager_Unique<string, IPlayer>("p_un", 16384, new StringHashGenerator());
 
@@ -225,16 +233,16 @@ namespace FLGrainInterfaces
         static readonly GrainIndexManager_Unique<string, IPlayer> byPasswordRecoveryToken =
             new GrainIndexManager_Unique<string, IPlayer>("p_prt", 16384, new StringHashGenerator());
 
+        static readonly GrainIndexManager_Unique<string, IPlayer> byInviteCode =
+            new GrainIndexManager_Unique<string, IPlayer>("p_ic", 16384, new StringHashGenerator());
+
         public static Task<bool> UpdateUsernameIfUnique(IGrainFactory grainFactory, IPlayer player, string name) =>
             byUsername.UpdateIndexIfUnique(grainFactory, name.ToLower(), player);
 
         public static Task<bool> UpdateEmailIfUnique(IGrainFactory grainFactory, IPlayer player, string email) =>
             byEmail.UpdateIndexIfUnique(grainFactory, email.ToLower(), player);
 
-        //!! update indexer grains with nullability annotations
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
         public static Task<IPlayer?> GetByEmail(IGrainFactory grainFactory, string email) => byEmail.GetGrain(grainFactory, email.ToLower());
-#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 
         public static Task SetPasswordRecoveryToken(IGrainFactory grainFactory, IPlayer player, string token) =>
             byPasswordRecoveryToken.UpdateIndex(grainFactory, token, player);
@@ -242,8 +250,12 @@ namespace FLGrainInterfaces
         public static Task RemovePasswordRecoveryToken(IGrainFactory grainFactory, string token) =>
             byPasswordRecoveryToken.RemoveIndex(grainFactory, token);
 
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
         public static Task<IPlayer?> GetByRecoveryToken(IGrainFactory grainFactory, string token) => byPasswordRecoveryToken.GetGrain(grainFactory, token);
+
+        public static Task<bool> SetInviteCode(IGrainFactory grainFactory, IPlayer player, string inviteCode) =>
+            byInviteCode.UpdateIndexIfUnique(grainFactory, inviteCode, player);
+
+        public static Task<IPlayer?> GetByInviteCode(IGrainFactory grainFactory, string inviteCode) => byInviteCode.GetGrain(grainFactory, inviteCode);
 #pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
     }
 }

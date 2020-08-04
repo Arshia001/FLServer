@@ -71,6 +71,9 @@ namespace FLGrainInterfaces.Configuration
             private set => notificationTimeFrames = value.OrderBy(x => x).ToList();
         }
 
+        public uint InviterReward { get; private set; }
+        public uint InviteeReward { get; private set; }
+
         public static void Validate(ConfigValues data)
         {
             Validation.CheckNotEqual(data.ClientTimePerRound, TimeSpan.Zero, "client time per round");
@@ -110,6 +113,9 @@ namespace FLGrainInterfaces.Configuration
             if (data.NotificationTimeFrames != null)
                 foreach (var (index, frame) in data.NotificationTimeFrames.Select((f, i) => (i, f)))
                     frame.Validate($"notification time frame #{index}");
+
+            Validation.CheckNotEqual(data.InviterReward, 0u, "inviter reward");
+            Validation.CheckNotEqual(data.InviteeReward, 0u, "invitee reward");
 
             data.CoinRewardVideo.Validate("coin reward video");
             data.GetCategoryAnswersVideo.Validate("get category answers video");

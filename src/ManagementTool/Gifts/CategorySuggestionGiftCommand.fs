@@ -16,7 +16,7 @@ type CategorySuggestionGift = {
 }
 
 let private giveOne (client: IClusterClient, playerID: Guid, amount: uint32, categoryName: string) =
-    let gift = CoinGiftInfo(Guid.NewGuid(), CoinGiftSubject.SuggestedCategories, amount, null, Nullable(), categoryName, null, null, null)
+    let gift = CoinGiftInfo(CoinGiftSubject.SuggestedCategories, amount, null, Nullable(), categoryName, null, null, null)
     client.GetGrain<IPlayer>(playerID).ReceiveCoinGift(gift).Result
 
 let private giveAllFromFile (client: Lazy<IClusterClient>, f: string) =

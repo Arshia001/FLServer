@@ -132,6 +132,8 @@ namespace FLGrains
                 var configValues = config.ConfigValues;
                 var myID = this.GetPrimaryKey();
 
+                await InitializeInviteCodeIfNeeded(state);
+
                 if (IsNewPlayer(state))
                 {
                     state.Gold = configValues.InitialGold;
@@ -177,6 +179,22 @@ namespace FLGrains
             return (await GetOwnPlayerInfo(), coinRewardAdTracker.GetInfo(), getCategoryAnswersAdTracker.GetInfo(), gifts);
         }
 
+        async Task InitializeInviteCodeIfNeeded(PlayerState state)
+        {
+            if (string.IsNullOrEmpty(state.InviteCode))
+            {
+                while (true)
+                {
+                    var code = InviteCodeHelper.GenerateNewCode();
+                    if (await PlayerIndex.SetInviteCode(GrainFactory, this.AsReference<IPlayer>(), code))
+                    {
+                        state.InviteCode = code;
+                        return;
+                    }
+                }
+            }
+        }
+
         public async Task PlayerDisconnected()
         {
             // Reminders can't be registered during silo shutdown.
@@ -191,7 +209,7 @@ namespace FLGrains
             await state.PerformLazyPersistIfPending();
         }
 
-        private bool InitializeAvatarIfNeeded(ReadOnlyConfigData config)
+        bool InitializeAvatarIfNeeded(ReadOnlyConfigData config)
         {
             if (avatarManager!.GetActiveParts().Count == 0)
             {
@@ -234,7 +252,7 @@ namespace FLGrains
         }
 
         public Task<PlayerInfoDTO> GetPlayerInfo() =>
-            state.UseState(async state => 
+            state.UseState(async state =>
                 new PlayerInfoDTO(id: this.GetPrimaryKey(), name: state.Name, level: state.Level, avatar: await GetAvatar())
             );
 
@@ -290,7 +308,8 @@ namespace FLGrains
                     coinRewardVideoNotificationsEnabled: state.CoinRewardVideoNotificationsEnabled,
                     tutorialProgress: state.TutorialProgress,
                     avatar: await GetAvatar(),
-                    ownedAvatarParts: avatarManager!.GetOwnedPartsAsDTO()
+                    ownedAvatarParts: avatarManager!.GetOwnedPartsAsDTO(),
+                    inviteCode: state.InviteCode ?? throw new InvalidOperationException($"Invite code not set before calling {nameof(Player)}.{nameof(GetOwnPlayerInfo)}")
                 );
             });
 
@@ -360,28 +379,47 @@ namespace FLGrains
                 return (shouldPersist: false, result: false);
             });
 
-        public Task<RegistrationResult> PerformRegistration(string username, string email, string password) =>
+        public Task<(RegistrationResult result, ulong totalGold)> PerformRegistration(string username, string email, string password, string? inviteCode) =>
             state.UseStateAndMaybePersist(async state =>
             {
                 if (IsRegistered())
-                    return (false, RegistrationResult.AlreadyRegistered);
+                    return (false, (RegistrationResult.AlreadyRegistered, 0ul));
 
                 if (!RegistrationInfoSpecification.IsEmailAddressValid(email))
-                    return (false, RegistrationResult.InvalidEmailAddress);
+                    return (false, (RegistrationResult.InvalidEmailAddress, 0ul));
 
                 if (!RegistrationInfoSpecification.IsPasswordComplexEnough(password))
-                    return (false, RegistrationResult.PasswordNotComplexEnough);
+                    return (false, (RegistrationResult.PasswordNotComplexEnough, 0ul));
 
                 if (!await PlayerIndex.UpdateEmailIfUnique(GrainFactory, this.AsReference<IPlayer>(), email))
-                    return (false, RegistrationResult.EmailAddressInUse);
+                    return (false, (RegistrationResult.EmailAddressInUse, 0ul));
 
                 if (!await PlayerIndex.UpdateUsernameIfUnique(GrainFactory, this.AsReference<IPlayer>(), username))
-                    return (false, RegistrationResult.UsernameInUse);
+                    return (false, (RegistrationResult.UsernameInUse, 0ul));
+
+                var inviter = default(IPlayer);
+                if (inviteCode != null)
+                {
+                    inviter = await PlayerIndex.GetByInviteCode(GrainFactory, inviteCode);
+                    if (inviter == null)
+                        return (false, (RegistrationResult.InvalidInviteCode, 0ul));
+                }
 
                 state.Name = username;
                 state.Email = email;
                 await UpdatePasswordImpl(password);
-                return (true, RegistrationResult.Success);
+
+                if (inviter != null)
+                {
+                    var config = configReader.Config;
+
+                    await inviter.ReceiveCoinGift(new CoinGiftInfo(CoinGiftSubject.FriendInvited, config.ConfigValues.InviterReward, null, null, username, null, null, null));
+
+                    state.Inviter = inviter;
+                    state.Gold += config.ConfigValues.InviteeReward;
+                }
+
+                return (true, (RegistrationResult.Success, inviter == null ? 0ul : state.Gold));
             });
 
         private Task<bool> UpdatePasswordImpl(string password)

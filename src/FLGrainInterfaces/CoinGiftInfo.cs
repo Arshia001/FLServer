@@ -8,10 +8,10 @@ namespace FLGrainInterfaces
     [Schema]
     public class CoinGiftInfo
     {
-        public CoinGiftInfo(Guid giftID, CoinGiftSubject subject, uint count, string? description, DateTime? expiryTime,
+        public CoinGiftInfo(CoinGiftSubject subject, uint count, string? description, DateTime? expiryTime,
             string? extraData1, string? extraData2, string? extraData3, string? extraData4)
         {
-            GiftID = giftID;
+            GiftID = Guid.NewGuid();
             Subject = subject;
             Count = count;
             Description = description;

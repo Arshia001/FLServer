@@ -104,7 +104,8 @@ enum RegistrationResult
 	InvalidEmailAddress,
 	PasswordNotComplexEnough,
 	UsernameInUse,
-	AlreadyRegistered
+	AlreadyRegistered,
+	InvalidInviteCode
 }
 
 enum SetEmailResult
@@ -126,7 +127,8 @@ enum CoinGiftSubject
 {
 	GiftToAll,
 	SuggestedWords,
-	SuggestedCategories
+	SuggestedCategories,
+	FriendInvited
 }
 
 enum AvatarPartType
@@ -205,6 +207,7 @@ contract OwnPlayerInfoDTO
 	CoinRewardVideoNotificationsEnabled: bool?;
 	Avatar: AvatarDTO;
 	OwnedAvatarParts: AvatarPartDTO[];
+	InviteCode: string;
 }
 
 contract WordScorePairDTO castfrom(FLGameLogic.WordScorePair)
@@ -273,6 +276,8 @@ contract ConfigValuesDTO castfrom(FLGrainInterfaces.Configuration.ConfigValues s
 	LoserGoldGain: u32;
 	DrawGoldGain: u32;
 	VideoAdGold: u32;
+	InviterReward: u32;
+	InviteeReward: u32;
 }
 
 contract GoldPackConfigDTO castfrom(FLGrainInterfaces.Configuration.GoldPackConfig server oneway)
@@ -403,16 +408,18 @@ endpoint System sys
 		}
 	}
 
-	request PerformRegistration reg via Player(clientid).PerformRegistration(username, email, password)
+	request PerformRegistration reg via Player(clientid).PerformRegistration(username, email, password, inviteCode)
 	{
 		{
 			username: string;
 			email: string;
 			password: string;
+			inviteCode: string?;
 		}
 		->
 		{
 			result: RegistrationResult;
+			totalGold: u64;
 		}
 	}
 

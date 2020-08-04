@@ -85,8 +85,8 @@ namespace FLGrains
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_PerformRegistration(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
-            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).PerformRegistration(array[0].AsString, array[1].AsString, array[2].AsString);
-            return Success(LightMessage.Common.Messages.Param.UEnum(result));
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).PerformRegistration(array[0].AsString, array[1].AsString, array[2].AsString, array[3].AsString);
+            return Success(LightMessage.Common.Messages.Param.UEnum(result.result), LightMessage.Common.Messages.Param.UInt(result.totalGold));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("bap")]
