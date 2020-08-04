@@ -27,6 +27,8 @@ namespace FLGrains
         public uint Level { get; private set; }
         [Id(3)]
         public Guid FirstPlayerID { get; private set; }
+        [Id(4)]
+        public DateTime? CreationTime { get; private set; }
 
         [Obsolete("For deserialization only")] public MatchMakingEntry() { }
 
@@ -36,6 +38,7 @@ namespace FLGrains
             Score = score;
             Level = level;
             FirstPlayerID = firstPlayerID;
+            CreationTime = DateTime.Now;
         }
     }
 
@@ -46,7 +49,12 @@ namespace FLGrains
         public List<MatchMakingEntry>? Entries { get; set; }
     }
 
-    class MatchMakingGrain : Grain, IMatchMakingGrain
+    static class MatchMakingReminderNames
+    {
+        public const string AddBotsToStaleMatches = "bot";
+    }
+
+    class MatchMakingGrain : Grain, IMatchMakingGrain, IRemindable
     {
         readonly GrainStateWrapper<MatchMakingGrainState> state;
         readonly IConfigReader configReader;
@@ -77,7 +85,7 @@ namespace FLGrains
 
             RegisterTimer(WriteStateTimer, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
 
-            return Task.CompletedTask;
+            return RegisterOrUpdateReminder(MatchMakingReminderNames.AddBotsToStaleMatches, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
         });
 
         Task WriteStateTimer(object _unused) => state.PerformLazyPersistIfPending();
@@ -102,7 +110,7 @@ namespace FLGrains
 
         bool Within(uint a, uint b, uint delta) => Math.Abs((int)a - (int)b) <= delta;
 
-        public async Task<(Guid gameID, PlayerInfoDTO? opponentInfo, byte numRounds, bool myTurnFirst, TimeSpan? expiryTimeRemaining)> 
+        public async Task<(Guid gameID, PlayerInfoDTO? opponentInfo, byte numRounds, bool myTurnFirst, TimeSpan? expiryTimeRemaining)>
             FindOrCreateGame(IPlayer player, Immutable<ISet<Guid>> activeOpponents)
         {
             var config = configReader.Config;
@@ -196,6 +204,18 @@ namespace FLGrains
                     logger.LogInformation("Match found");
 
                 return true;
+            };
+
+        Task AddBotsToStaleMatched()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task ReceiveReminder(string reminderName, TickStatus status) =>
+            reminderName switch
+            {
+                MatchMakingReminderNames.AddBotsToStaleMatches => AddBotsToStaleMatched(),
+                _ => Task.CompletedTask
             };
     }
 }
