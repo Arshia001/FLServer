@@ -38,6 +38,8 @@ namespace FLGrains
 
             services.AddSingletonNamedService<IControllable, ServerStatisticsControllable>(ServerStatisticsControllable.ServiceName);
 
+            services.AddSingleton<IBotDatabase, BotDatabase>();
+
             return services;
         }
     }

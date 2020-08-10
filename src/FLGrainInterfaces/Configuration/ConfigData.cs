@@ -24,6 +24,9 @@ namespace FLGrainInterfaces.Configuration
         [JsonIgnore]
         public AvatarConfig? AvatarConfig { get; set; }
 
+        [JsonIgnore]
+        public List<BotConfig>? Bots { get; set; }
+
         public List<LevelConfig>? PlayerLevels { get; set; }
 
         public List<GoldPackConfig>? GoldPacks { get; set; }

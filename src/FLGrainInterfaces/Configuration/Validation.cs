@@ -15,6 +15,12 @@ namespace FLGrainInterfaces.Configuration
                 FailWith($"No {name}");
         }
 
+        public static void CheckString(string str, string name)
+        {
+            if (string.IsNullOrEmpty(str))
+                FailWith($"{name} should not be null or empty");
+        }
+
         public static void CheckNotEqual<T>(T t, T test, string name)
         {
             if (

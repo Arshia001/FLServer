@@ -55,9 +55,11 @@ namespace FLGrainInterfaces.Configuration
 
         public uint LastCompatibleClientVersion => data.LastCompatibleClientVersion;
 
-        public Dictionary<AvatarPartType, Dictionary<ushort, AvatarPartConfig>> AvatarParts { get; }
+        public IReadOnlyDictionary<AvatarPartType, Dictionary<ushort, AvatarPartConfig>> AvatarParts { get; }
 
         public InitialAvatarConfig InitialAvatar => data.InitialAvatar!;
+
+        public IReadOnlyList<BotConfig> Bots => data.Bots!;
 
         public int Version => data.Version;
 
@@ -95,6 +97,10 @@ namespace FLGrainInterfaces.Configuration
             Validation.CheckList(data.Categories, "categories");
             Validation.CheckList(data.PlayerLevels, "player levels");
             Validation.CheckList(data.GoldPacks, "gold packs");
+            
+            Validation.CheckList(data.Bots, "bots");
+            foreach (var bot in data.Bots!)
+                bot.Validate();
 
             if (data.RenamedCategories == null)
                 Validation.FailWith("No renamed categories");
