@@ -148,6 +148,7 @@ namespace FLGrainInterfaces
         [Id(30)]
         public IPlayer? Inviter { get; set; }
 
+        // In order from newest to oldest, that is, index 0 is the most recent match
         [Id(31)]
         public List<CompetitionResult> MatchResultHistory { get; set; } = new List<CompetitionResult>();
     }
@@ -192,6 +193,8 @@ namespace FLGrainInterfaces
         Task OnRoundResult(IGame game, CompetitionResult result, ushort groupID);
         Task<(uint score, uint rank, uint level, uint xp, ulong gold)> 
             OnGameResult(IGame game, CompetitionResult result, uint myScore, uint scoreGain, bool gameExpired, Guid opponentID);
+
+        Task<IEnumerable<CompetitionResult>> GetMatchResultHistory(); // In order from newest to oldest, that is, index 0 is the most recent match
 
         Task<(bool success, ulong totalGold, TimeSpan duration)> ActivateUpgradedActiveGameLimit();
 

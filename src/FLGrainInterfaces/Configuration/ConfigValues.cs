@@ -76,6 +76,11 @@ namespace FLGrainInterfaces.Configuration
 
         public uint MaxMatchResultHistoryEntries { get; private set; }
 
+        public uint BotMatchOutcomeNumMatches { get; private set; }
+        public uint BotMatchOutcomeWinThreshold { get; private set; }
+        public uint BotMatchOutcomeLossThreshold { get; private set; }
+
+
         public double BotPlayMinWaitMinutes { get; private set; }
         public double BotPlayMaxWaitMinutes { get; private set; }
 
@@ -123,6 +128,12 @@ namespace FLGrainInterfaces.Configuration
 
             Validation.CheckNotEqual(data.InviterReward, 0u, "inviter reward");
             Validation.CheckNotEqual(data.InviteeReward, 0u, "invitee reward");
+
+            Validation.CheckNotEqual(data.MaxMatchResultHistoryEntries, 0u, "max match result history entries");
+            
+            Validation.CheckNotEqual(data.BotMatchOutcomeNumMatches, 0u, "bot match outcome num matches");
+            Validation.CheckNotEqual(data.BotMatchOutcomeWinThreshold, 0u, "bot match outcome win threshold");
+            Validation.CheckNotEqual(data.BotMatchOutcomeLossThreshold, 0u, "bot match outcome loss threshold");
 
             if (data.BotPlayMinWaitMinutes < 1.0f)
                 Validation.FailWith("Bot play min time must be at least 1 minute");

@@ -731,7 +731,7 @@ namespace FLGrains
 
                 state.ActiveGames.Remove(gameID);
                 state.PastGames.Add(gameID);
-                
+
                 state.MatchResultHistory.Insert(0, result);
                 while (state.MatchResultHistory.Count > config.MaxMatchResultHistoryEntries)
                     state.MatchResultHistory.RemoveAt(state.MatchResultHistory.Count - 1);
@@ -786,6 +786,9 @@ namespace FLGrains
 
                 return (state.Score, (uint)rank, level, xp, gold);
             });
+
+        public Task<IEnumerable<CompetitionResult>> GetMatchResultHistory() =>
+            Task.FromResult<IEnumerable<CompetitionResult>>(state.UseState(state => state.MatchResultHistory));
 
         public Task<ulong?> IncreaseRoundTime(Guid gameID, uint price) =>
             state.UseStateAndLazyPersist(state =>

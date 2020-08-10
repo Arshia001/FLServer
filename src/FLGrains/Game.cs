@@ -47,6 +47,9 @@ namespace FLGrains
 
         [Id(8)]
         public int[] WordsRevealedForThisRound { get; set; } = new[] { 0, 0 };
+
+        [Id(9)]
+        public CompetitionResult? DesiredBotMatchOutcome { get; set; }
     }
 
     static class GameReminderNames
@@ -192,6 +195,8 @@ namespace FLGrains
         public Task AddBotAsSecondPlayer() =>
             state.UseStateAndPersist(async state =>
             {
+                var config = configReader.Config.ConfigValues;
+
                 var gameState = GetStateInternal(state);
                 if (gameState != GameState.WaitingForSecondPlayer)
                     return;
@@ -204,6 +209,15 @@ namespace FLGrains
                 await RegisterExpiryReminderIfNecessary();
 
                 var timeRemaining = GetExpiryTimeRemaining();
+
+                var matchHistory = await GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]).GetMatchResultHistory();
+                var score = matchHistory.Take((int)config.BotMatchOutcomeNumMatches).Sum(r => r switch { CompetitionResult.Win => 1, CompetitionResult.Loss => -1, _ => 0 });
+                if (score > config.BotMatchOutcomeLossThreshold)
+                    state.DesiredBotMatchOutcome = CompetitionResult.Loss;
+                else if (score < config.BotMatchOutcomeWinThreshold)
+                    state.DesiredBotMatchOutcome = CompetitionResult.Win;
+                else
+                    state.DesiredBotMatchOutcome = null;
 
                 await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentJoined(state.PlayerIDs[0], (this).GetPrimaryKey(), bot, timeRemaining);
 
@@ -233,7 +247,7 @@ namespace FLGrains
             if (mustChoose)
                 (category, _, _) = await ChooseGroup(botID, groups.First().ID);
 
-            var shouldWinRound = RandomHelper.GetInt32(2) == 1; //?? decide based on player's performance
+            var shouldWinRound = RandomHelper.GetInt32(2) == 1; //?? decide based on DesiredBotMatchOutcome
 
             var words = config.CategoriesAsGameLogicFormatByName[category!].Answers.ToHashSet();
 
@@ -765,7 +779,7 @@ namespace FLGrains
                     await GrainFactory.GetGrain<IMatchMakingGrain>(0).AddGame(this.AsReference<IGame>(), GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]));
                 }
 
-                var otherPlayerInfo = 
+                var otherPlayerInfo =
                     state.PlayerIDs[1 - index] == Guid.Empty ? null :
                     (botDatabase.GetByID(state.PlayerIDs[1 - index]) ?? // If the opponent isn't a bot, we get null back
                         await PlayerInfoHelper.GetInfo(GrainFactory, state.PlayerIDs[1 - index]));

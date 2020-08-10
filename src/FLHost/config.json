@@ -96,7 +96,11 @@
     "LoserGoldGain": 0,
     "DrawGoldGain": 10,
 
-    "MaxGameHistoryEntries": 10,
+    "MaxGameHistoryEntries": 5,
+
+    "BotMatchOutcomeNumMatches": 5,
+    "BotMatchOutcomeWinThreshold": -3,
+    "BotMatchOutcomeLossThreshold": 3,
 
     "RefreshGroupsAllowedPerRound": 1,
 
