@@ -169,7 +169,15 @@ namespace FLGrains.Configuration
             return result;
         }
 
-        private async Task<(List<GroupConfig>, List<CategoryConfig>, List<RenamedCategoryConfig>, uint latestClientVersion, uint lastCompatibleClientVersion, AvatarConfig avatarConfig)>
+        async Task<(
+                List<GroupConfig>, 
+                List<CategoryConfig>,
+                List<RenamedCategoryConfig>,
+                uint latestClientVersion,
+                uint lastCompatibleClientVersion,
+                AvatarConfig,
+                List<BotConfig>
+            )>
             ReadNonJsonConfigDataFromDatabase(ISession session, Queries queries)
         {
             var groups = await ReadGroupsFromDatabase(session, queries);
@@ -179,7 +187,8 @@ namespace FLGrains.Configuration
                 await ReadRenamedCategoriesFromDatabase(session, queries),
                 await ReadClientVersionFromDatabase(session, queries, "latest-version"),
                 await ReadClientVersionFromDatabase(session, queries, "last-compatible-version"),
-                await ReadAvatarFromDatabase(session, queries)
+                await ReadAvatarFromDatabase(session, queries),
+                await ReadBotsFromDatabase(session, queries)
             );
         }
 
@@ -202,6 +211,14 @@ namespace FLGrains.Configuration
             return ParseJson<AvatarConfig>(value);
         }
 
+        async Task<List<BotConfig>> ReadBotsFromDatabase(ISession session, Queries queries)
+        {
+            var value = await ReadDatabaseConfigEntry(session, queries, "bots") ??
+                throw new Exception($"Bot config key 'bots' not specified in database configuration table");
+
+            return ParseJson<List<BotConfig>>(value);
+        }
+
         async Task InternalUpdateConfigFromDatabase()
         {
             var connectionString = systemSettingsProvider.Settings.Values.ConnectionString;
@@ -209,7 +226,7 @@ namespace FLGrains.Configuration
             var queries = await Queries.CreateInstance(session);
 
             var newData = await ReadConfigDataFromDatabase(session, queries);
-            (newData.Groups, newData.Categories, newData.RenamedCategories, newData.LatestClientVersion, newData.LastCompatibleClientVersion, newData.AvatarConfig) = 
+            (newData.Groups, newData.Categories, newData.RenamedCategories, newData.LatestClientVersion, newData.LastCompatibleClientVersion, newData.AvatarConfig, newData.Bots) = 
                 await ReadNonJsonConfigDataFromDatabase(session, queries);
 
             await SetNewData(newData, session, queries);
@@ -263,6 +280,7 @@ namespace FLGrains.Configuration
             newData.LatestClientVersion = data.LatestClientVersion;
             newData.LastCompatibleClientVersion = data.LastCompatibleClientVersion;
             newData.AvatarConfig = data.AvatarConfig;
+            newData.Bots = data.Bots;
 
             ReadOnlyConfigData.Validate(newData);
 
@@ -297,5 +315,27 @@ namespace FLGrains.Configuration
 
         static Task WriteAvatarConfigToDatabase(string jsonConfig, ISession session, Queries queries)
             => WriteDatabaseConfigEntry(session, queries, "avatar", jsonConfig);
+
+        public async Task UploadBotsConfig(string jsonConfig)
+        {
+            var connectionString = systemSettingsProvider.Settings.Values.ConnectionString;
+            var session = await CassandraSessionFactory.CreateSession(connectionString);
+            var queries = await Queries.CreateInstance(session);
+
+            var data = GetData();
+            var newData = (ConfigData)data.Clone();
+            newData.Bots = ParseJson<List<BotConfig>>(jsonConfig);
+
+            ReadOnlyConfigData.Validate(newData);
+
+            await WriteBotsConfigToDatabase(jsonConfig, session, queries);
+
+            await SetNewData(newData, session, queries, false);
+
+            await PushUpdateToAllSilos();
+        }
+
+        static Task WriteBotsConfigToDatabase(string jsonConfig, ISession session, Queries queries)
+            => WriteDatabaseConfigEntry(session, queries, "bots", jsonConfig);
     }
 }

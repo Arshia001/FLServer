@@ -14,5 +14,6 @@ namespace FLGrainInterfaces.Configuration
 
         Task UploadConfig(string jsonConfig);
         Task UploadAvatarConfig(string jsonConfig);
+        Task UploadBotsConfig(string jsonConfig);
     }
 }

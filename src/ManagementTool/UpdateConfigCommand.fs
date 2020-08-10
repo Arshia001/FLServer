@@ -8,7 +8,8 @@ open System.IO
 [<Verb("update-config", HelpText = "Update config from database, or optionally from a JSON document")>]
 type UpdateConfig = {
     [<Option('f', "input-file", HelpText = "The json file to use; leave out to update from database")>] jsonConfig: string option
-    [<Option("avatar", HelpText = "Update avatar config data")>] avatar: bool
+    [<Option("avatar", HelpText = "Update avatar config data", SetName = "avatar")>] avatar: bool
+    [<Option("bots", HelpText = "Update bots config data", SetName = "bots")>] bots: bool
     [<Option("db", HelpText = "Directly update config in database")>] database: bool
     [<Option('k', "keyspace", HelpText = "Keyspace name; if left out, will use keyspace specified in mgmtool.keyspace. Only relevant when --db is specified.")>] keyspace: string option
 }
@@ -22,6 +23,8 @@ let runUpdateConfig (cmd: UpdateConfig) =
         use client = buildOrleansClient ()
         if cmd.avatar then
             client.GetGrain<ISystemConfig>(0L).UploadAvatarConfig(configText) |> runSynchronously
+        elif cmd.bots then
+            client.GetGrain<ISystemConfig>(0L).UploadBotsConfig(configText) |> runSynchronously
         else
             client.GetGrain<ISystemConfig>(0L).UploadConfig(configText) |> runSynchronously
         raise <| ToolFinished "Config updated successfully"
@@ -36,19 +39,20 @@ let runUpdateConfig (cmd: UpdateConfig) =
 
         let configText = File.ReadAllText file
 
-        executeNonQuery session <| queries.["fl_updateConfig"].Bind({| data = configText; key = if cmd.avatar then "avatar" else "config" |});
+        let key = if cmd.avatar then "avatar" elif cmd.bots then "bots" else "config"
+        executeNonQuery session <| queries.["fl_updateConfig"].Bind({| data = configText; key = key |});
         
         raise <| ToolFinished "Config updated successfully in database"
     | true, None ->
         raise <| ToolFinished "Must specify input file if --db is specified"
-    | false, None when cmd.avatar ->
-        raise <| ToolFinished "Must specify input file if --avatar is specified"
+    | false, None when cmd.avatar || cmd.bots ->
+        raise <| ToolFinished "Must specify input file if --avatar or --bots is specified"
     | false, None ->
         use client = buildOrleansClient ()
         client.GetGrain<ISystemConfig>(0L).UpdateConfigFromDatabase() |> runSynchronously
         raise <| ToolFinished "Config updated successfully"
 
-let runUpdateFromDatabase () = runUpdateConfig { database = false; avatar = false; keyspace = None; jsonConfig = None }
+let runUpdateFromDatabase () = runUpdateConfig { database = false; avatar = false; bots = false; keyspace = None; jsonConfig = None }
 
 let promptAndRunUpdateFromDatabase () =
     if promptYesNo "Do you also wish to update the server's config from database now? (you can do this later by running mgmtool update-config)" then
