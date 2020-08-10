@@ -243,17 +243,18 @@ namespace FLGrains
 
             if (opponentScore == 0)
             {
-                if (shouldWinRound)
-                    shouldStop = () => numPlayed > 10 && words.Count > 0;
-                else
-                    shouldStop = () => numPlayed > 4 && words.Count > 0;
+                var numWords = shouldWinRound ? RandomHelper.GetInt32(8, 12) : RandomHelper.GetInt32(3, 5);
+                shouldStop = () => numPlayed >= numWords && words.Count > 0;
             }
             else
             {
                 if (shouldWinRound)
-                    shouldStop = () => words.Count == 0 || score < opponentScore;
+                    shouldStop = () => words.Count == 0 || score > opponentScore;
                 else
-                    shouldStop = () => words.Count == 0 || score < opponentScore - 3;
+                {
+                    var scoreLimit = opponentScore <= 3 ? 0 : RandomHelper.GetInt32(0, opponentScore - 3);
+                    shouldStop = () => words.Count == 0 || score > scoreLimit;
+                }
             }
 
             while (!shouldStop())
