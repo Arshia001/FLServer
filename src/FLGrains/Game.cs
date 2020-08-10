@@ -3,6 +3,7 @@ using FLGameLogic;
 using FLGameLogicServer;
 using FLGrainInterfaces;
 using FLGrainInterfaces.Configuration;
+using FLGrains.ServiceInterfaces;
 using FLGrains.Utility;
 using LightMessage.OrleansUtils.Grains;
 using Microsoft.Extensions.Logging;
@@ -58,8 +59,6 @@ namespace FLGrains
     //!! cache player names along with games?
     class Game : Grain, IGame, IRemindable
     {
-        static readonly Guid BotPlayerID = Guid.Parse("10000000-0000-0000-0000-000000000000"); //?? remove this, add a database of bots with profiles with IDs
-
         class EndRoundTimerData
         {
             public int playerIndex;
@@ -77,16 +76,19 @@ namespace FLGrains
         readonly IConfigReader configReader;
         readonly GrainStateWrapper<GameGrainState> state;
         readonly ILogger logger;
+        readonly IBotDatabase botDatabase;
 
         // Did we already try to add this game to the match making queue during this activation's life?
         bool triedReAddingToMatchMaking = false;
 
-        public Game(IConfigReader configReader, [PersistentState("State")] IPersistentState<GameGrainState> state, ILogger<Game> logger)
+        public Game(IConfigReader configReader, [PersistentState("State")] IPersistentState<GameGrainState> state, ILogger<Game> logger, IBotDatabase botDatabase)
         {
             this.configReader = configReader;
+            this.logger = logger;
+            this.botDatabase = botDatabase;
+
             this.state = new GrainStateWrapper<GameGrainState>(state);
             this.state.Persist += State_Persist;
-            this.logger = logger;
         }
 
         private void State_Persist(object sender, PersistStateEventArgs<GameGrainState> e) =>
@@ -94,7 +96,7 @@ namespace FLGrains
 
         int NumJoinedPlayers => state.UseState(state => state.PlayerIDs.Length == 0 ? 0 : state.PlayerIDs[1] == Guid.Empty ? 1 : 2);
 
-        bool IsBotMatch => state.UseState(state => state.PlayerIDs.Length >= 2 && state.PlayerIDs[1] == BotPlayerID); //?? bot database
+        bool IsBotMatch => state.UseState(state => state.PlayerIDs.Length >= 2 && botDatabase.IsBotID(state.PlayerIDs[1]));
 
         public override async Task OnActivateAsync()
         {
@@ -196,13 +198,14 @@ namespace FLGrains
 
                 GameLogic.SecondPlayerJoined();
 
-                state.PlayerIDs[1] = BotPlayerID;
+                var bot = botDatabase.GetRandom();
+                state.PlayerIDs[1] = bot.ID;
 
                 await RegisterExpiryReminderIfNecessary();
 
                 var timeRemaining = GetExpiryTimeRemaining();
 
-                await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentJoined(state.PlayerIDs[0], (this).GetPrimaryKey(), new PlayerInfoDTO(Guid.Empty, "", 0, new AvatarDTO(Array.Empty<AvatarPartDTO>())), timeRemaining); //?? Bot names and avatars
+                await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentJoined(state.PlayerIDs[0], (this).GetPrimaryKey(), bot, timeRemaining);
 
                 // The bot just joined the game, the result of its first round should be available after a delay
                 await RegisterBotPlayReminder(false);
@@ -697,11 +700,11 @@ namespace FLGrains
             if (state.PlayerIDs[1] == Guid.Empty)
                 return GameState.WaitingForSecondPlayer;
 
-            if (GameLogic.Expired)
-                return GameState.Expired;
-
             if (GameLogic.Finished)
                 return GameState.Finished;
+
+            if (GameLogic.Expired)
+                return GameState.Expired;
 
             return GameState.InProgress;
         }
@@ -721,14 +724,16 @@ namespace FLGrains
                 var turnsTaken = GameLogic.NumTurnsTakenBy(index);
 
                 var categories = GameLogic.Categories.Take(turnsTakenInclCurrent).Select(c => c.CategoryName).ToList();
-                var playerInfo = state.PlayerIDs[1 - index] == Guid.Empty ? null :
-                    await PlayerInfoHelper.GetInfo(GrainFactory, state.PlayerIDs[1 - index]);
+                var otherPlayerInfo =
+                    state.PlayerIDs[1 - index] == Guid.Empty ? null :
+                    (botDatabase.GetByID(state.PlayerIDs[1 - index]) ?? // If the opponent isn't a bot, we get null back
+                        await PlayerInfoHelper.GetInfo(GrainFactory, state.PlayerIDs[1 - index]));
 
                 var ownedCategories = await GrainFactory.GetGrain<IPlayer>(playerID).HaveAnswersForCategories(categories);
 
                 return new GameInfoDTO
                 (
-                    otherPlayerInfo: playerInfo,
+                    otherPlayerInfo: otherPlayerInfo,
                     numRounds: (byte)GameLogic.Categories.Count,
                     categories: categories,
                     myWordsPlayed: GameLogic.GetPlayerAnswers(index).Take(turnsTakenInclCurrent).Select(ws => ws.Select(w => (WordScorePairDTO)w).ToList()).ToList(),
@@ -760,7 +765,10 @@ namespace FLGrains
                     await GrainFactory.GetGrain<IMatchMakingGrain>(0).AddGame(this.AsReference<IGame>(), GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]));
                 }
 
-                var otherPlayerInfo = state.PlayerIDs[1 - index] == Guid.Empty ? null : await PlayerInfoHelper.GetInfo(GrainFactory, state.PlayerIDs[1 - index]);
+                var otherPlayerInfo = 
+                    state.PlayerIDs[1 - index] == Guid.Empty ? null :
+                    (botDatabase.GetByID(state.PlayerIDs[1 - index]) ?? // If the opponent isn't a bot, we get null back
+                        await PlayerInfoHelper.GetInfo(GrainFactory, state.PlayerIDs[1 - index]));
 
                 return new SimplifiedGameInfoDTO
                 (

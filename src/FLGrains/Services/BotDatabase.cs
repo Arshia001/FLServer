@@ -15,7 +15,7 @@ namespace FLGrains.Services
         readonly IConfigReader configReader;
 
         int? lastObservedConfigVersion;
-        readonly Dictionary<Guid, Bot> bots = new Dictionary<Guid, Bot>();
+        readonly Dictionary<Guid, PlayerInfoDTO> bots = new Dictionary<Guid, PlayerInfoDTO>();
 
         public BotDatabase(IConfigReader configReader) => this.configReader = configReader;
 
@@ -42,7 +42,7 @@ namespace FLGrains.Services
                         if (botConfig.AvatarGlasses.HasValue)
                             parts.Add(new AvatarPartDTO(AvatarPartType.Glasses, botConfig.AvatarGlasses.Value));
 
-                        bots[id] = new Bot(id, botConfig.Name, new AvatarDTO(parts));
+                        bots[id] = new PlayerInfoDTO(id, botConfig.Name, botConfig.Level, new AvatarDTO(parts));
                     }
 
                     lastObservedConfigVersion = config.Version;
@@ -50,13 +50,13 @@ namespace FLGrains.Services
             }
         }
 
-        public Bot? GetByID(Guid id)
+        public PlayerInfoDTO? GetByID(Guid id)
         {
             RefreshBotsIfNeeded();
             return bots.TryGetValue(id, out var result) ? result : null;
         }
 
-        public Bot GetRandom()
+        public PlayerInfoDTO GetRandom()
         {
             RefreshBotsIfNeeded();
             return bots.Values.Skip(RandomHelper.GetInt32(bots.Count)).First();

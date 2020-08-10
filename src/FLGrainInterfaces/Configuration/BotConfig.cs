@@ -6,10 +6,11 @@ namespace FLGrainInterfaces.Configuration
 {
     public class BotConfig
     {
-        public BotConfig(int id, string name, ushort avatarHeadShape, ushort avatarMouth, ushort avatarEyes, ushort? avatarHair, ushort? avatarGlasses)
+        public BotConfig(int id, string name, uint level, ushort avatarHeadShape, ushort avatarMouth, ushort avatarEyes, ushort? avatarHair, ushort? avatarGlasses)
         {
             ID = id;
             Name = name;
+            Level = level;
             AvatarHeadShape = avatarHeadShape;
             AvatarMouth = avatarMouth;
             AvatarEyes = avatarEyes;
@@ -19,6 +20,7 @@ namespace FLGrainInterfaces.Configuration
 
         public int ID { get; }
         public string Name { get; }
+        public uint Level { get; }
         public ushort AvatarHeadShape { get; }
         public ushort AvatarMouth { get; }
         public ushort AvatarEyes { get; }
@@ -29,6 +31,7 @@ namespace FLGrainInterfaces.Configuration
         {
             Validation.CheckNotEqual(ID, 0, "Bot ID");
             Validation.CheckString(Name, $"bot {ID} name");
+            Validation.CheckNotEqual(Level, 0u, $"bot {ID} level");
             Validation.CheckNotEqual(AvatarEyes, 0, $"bot {ID} avatar eyes");
             Validation.CheckNotEqual(AvatarGlasses, null, $"bot {ID} avatar head shape");
             Validation.CheckNotEqual(AvatarGlasses!.Value, 0, $"bot {ID} avatar glasses");
