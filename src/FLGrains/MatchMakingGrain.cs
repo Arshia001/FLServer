@@ -206,9 +206,32 @@ namespace FLGrains
                 return true;
             };
 
-        Task AddBotsToStaleMatched()
+        async Task AddBotsToStaleMatched()
         {
-            throw new NotImplementedException();
+            var now = DateTime.Now;
+            var timeout = configReader.Config.ConfigValues.MatchMakingWaitBeforeBotMatch;
+            var toRemove = new HashSet<MatchMakingEntry>();
+
+            foreach (var entry in entries)
+                if (now - entry.CreationTime > timeout)
+                {
+                    var game = entry.Game;
+                    if (game == null)
+                        continue; // This is a rather impossible case, but if it does happen, the entry will be removed in the normal matchmaking cycle above
+
+                    try
+                    {
+                        await game.AddBotAsSecondPlayer();
+                        toRemove.Add(entry);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, $"Failed to add bot to game {game.GetPrimaryKey()}");
+                    }
+                }
+
+            foreach (var entry in toRemove)
+                entries.Remove(entry);
         }
 
         public Task ReceiveReminder(string reminderName, TickStatus status) =>

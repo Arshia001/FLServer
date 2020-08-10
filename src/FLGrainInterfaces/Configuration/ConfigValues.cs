@@ -79,6 +79,8 @@ namespace FLGrainInterfaces.Configuration
         public double BotPlayMinWaitMinutes { get; private set; }
         public double BotPlayMaxWaitMinutes { get; private set; }
 
+        public TimeSpan MatchMakingWaitBeforeBotMatch { get; private set; }
+
         public static void Validate(ConfigValues data)
         {
             Validation.CheckNotEqual(data.ClientTimePerRound, TimeSpan.Zero, "client time per round");
@@ -128,6 +130,8 @@ namespace FLGrainInterfaces.Configuration
                 Validation.FailWith("Bot play max time must be at least 1 minute");
             if (data.BotPlayMaxWaitMinutes <= data.BotPlayMinWaitMinutes)
                 Validation.FailWith("Bot play max time must be more than bot play min time");
+
+            Validation.CheckNotEqual(data.MatchMakingWaitBeforeBotMatch, TimeSpan.Zero, "match-making wait before bot match");
 
             data.CoinRewardVideo.Validate("coin reward video");
             data.GetCategoryAnswersVideo.Validate("get category answers video");

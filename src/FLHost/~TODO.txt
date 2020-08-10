@@ -12,7 +12,6 @@ SERVER Global notification: Notify those already in the game via broadcast messa
 SERVER split needed grains into separate assembly to prevent builds of service status and password recovery depending on almost everything
 
 CLIENT notify game expiry with a popup
-CLIENT Keep keyboard open while in game screen
 CLIENT XP/Score/Gold/Rank change notifications after game is complete
 CLIENT Clear game history button
 
