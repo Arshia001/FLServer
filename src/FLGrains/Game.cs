@@ -247,7 +247,16 @@ namespace FLGrains
             if (mustChoose)
                 (category, _, _) = await ChooseGroup(botID, groups.First().ID);
 
-            var shouldWinRound = RandomHelper.GetInt32(2) == 1; //?? decide based on DesiredBotMatchOutcome
+            var desiredOutcome = state.UseState(state => state.DesiredBotMatchOutcome);
+            var (playerScore, botScore) = (GameLogic.GetNumRoundsWon(0), GameLogic.GetNumRoundsWon(1));
+
+            bool? shouldWinRound;
+            if (desiredOutcome == CompetitionResult.Win && botScore <= playerScore)
+                shouldWinRound = true;
+            else if (desiredOutcome == CompetitionResult.Loss && botScore >= playerScore)
+                shouldWinRound = false;
+            else
+                shouldWinRound = null;
 
             var words = config.CategoriesAsGameLogicFormatByName[category!].Answers.ToHashSet();
 
@@ -258,19 +267,27 @@ namespace FLGrains
 
             Func<bool> shouldStop;
 
-            if (opponentScore == 0)
+            if (!shouldWinRound.HasValue)
             {
-                var numWords = shouldWinRound ? RandomHelper.GetInt32(8, 12) : RandomHelper.GetInt32(3, 5);
+                var numWords = RandomHelper.GetInt32(3, 12);
                 shouldStop = () => numPlayed >= numWords && words.Count > 0;
             }
             else
             {
-                if (shouldWinRound)
-                    shouldStop = () => words.Count == 0 || score > opponentScore;
+                if (opponentScore == 0)
+                {
+                    var numWords = shouldWinRound.Value ? RandomHelper.GetInt32(8, 12) : RandomHelper.GetInt32(3, 5);
+                    shouldStop = () => numPlayed >= numWords && words.Count > 0;
+                }
                 else
                 {
-                    var scoreLimit = opponentScore <= 3 ? 0 : RandomHelper.GetInt32(0, opponentScore - 3);
-                    shouldStop = () => words.Count == 0 || score > scoreLimit;
+                    if (shouldWinRound.Value)
+                        shouldStop = () => words.Count == 0 || score > opponentScore;
+                    else
+                    {
+                        var scoreLimit = opponentScore <= 3 ? 0 : RandomHelper.GetInt32(0, opponentScore - 3);
+                        shouldStop = () => words.Count == 0 || score > scoreLimit;
+                    }
                 }
             }
 
