@@ -631,6 +631,8 @@ endpoint Game gm
 		}
 	}
 
+	request ClearGameHistory cgh via Player(clientid).ClearGameHistory() { {} -> {} }
+
 	request GetAnswers ans via Player(clientid).GetAnswers(category)
 	{
 		{

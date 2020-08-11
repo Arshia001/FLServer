@@ -184,6 +184,7 @@ namespace FLGrainInterfaces
         Task AddStats(List<StatisticValueDTO> values);
 
         Task<Immutable<IReadOnlyList<IGame>>> GetGames();
+        Task ClearGameHistory();
         Task ClearFinishedGames();
         Task<(bool canEnter, Immutable<ISet<Guid>> activeOpponents)> CheckCanEnterGameAndGetActiveOpponents();
         Task<byte> JoinGameAsFirstPlayer(IGame game);

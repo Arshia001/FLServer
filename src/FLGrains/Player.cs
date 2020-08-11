@@ -245,6 +245,8 @@ namespace FLGrains
                     .AsImmutable<IReadOnlyList<IGame>>()
                 ));
 
+        public Task ClearGameHistory() => state.UseStateAndPersist(state => state.PastGames.Clear());
+
         public Task ClearFinishedGames()
         {
             state.UseStateAndLazyPersist(s => s.PastGames.Clear());

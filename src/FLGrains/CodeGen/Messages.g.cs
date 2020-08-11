@@ -297,6 +297,14 @@ namespace FLGrains
             return Success(LightMessage.Common.Messages.Param.Array(result.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
         }
 
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("cgh")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_ClearGameHistory(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            await GrainFactory.GetGrain<IPlayer>(input.ClientID).ClearGameHistory();
+            return Success();
+        }
+
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("ans")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_GetAnswers(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
