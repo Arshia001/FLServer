@@ -762,6 +762,9 @@ namespace FLGrains
 
                 var ownedCategories = await GrainFactory.GetGrain<IPlayer>(playerID).HaveAnswersForCategories(categories);
 
+                // The client is assumed to always be behind the server by ExtraTimePerRound to compensate for network delays
+                var clientNow = DateTime.Now + configReader.Config.ConfigValues.ExtraTimePerRound;
+
                 return new GameInfoDTO
                 (
                     otherPlayerInfo: otherPlayerInfo,
@@ -776,7 +779,8 @@ namespace FLGrains
                     expired: GameLogic.Expired,
                     expiredForMe: GameLogic.ExpiredFor == index,
                     expiryTimeRemaining: GetStateInternal(state) == GameState.InProgress && GameLogic.ExpiryTime.HasValue ? GameLogic.ExpiryTime.Value - DateTime.Now : default(TimeSpan?),
-                    roundTimeExtensions: (uint)state.TimeExtensionsForEntireGame[index]
+                    roundTimeExtensions: (uint)state.TimeExtensionsForEntireGame[index],
+                    myTurnTimeRemaining: GameLogic.IsTurnInProgress(index, clientNow) ? GameLogic.GetTurnEndTime(index) - clientNow : default
                 );
             });
 
@@ -801,6 +805,9 @@ namespace FLGrains
                     (botDatabase.GetByID(state.PlayerIDs[1 - index]) ?? // If the opponent isn't a bot, we get null back
                         await PlayerInfoHelper.GetInfo(GrainFactory, state.PlayerIDs[1 - index]));
 
+                // The client is assumed to always be behind the server by ExtraTimePerRound to compensate for network delays
+                var clientNow = DateTime.Now + configReader.Config.ConfigValues.ExtraTimePerRound;
+
                 return new SimplifiedGameInfoDTO
                 (
                     gameID: this.GetPrimaryKey(),
@@ -811,7 +818,8 @@ namespace FLGrains
                     myScore: GameLogic.GetNumRoundsWon(index),
                     theirScore: GameLogic.GetNumRoundsWon(1 - index),
                     winnerOfExpiredGame: gameState == GameState.Expired && isWinner,
-                    expiryTimeRemaining: gameState == GameState.InProgress && GameLogic.ExpiryTime.HasValue ? GameLogic.ExpiryTime.Value - DateTime.Now : default(TimeSpan?)
+                    expiryTimeRemaining: gameState == GameState.InProgress && GameLogic.ExpiryTime.HasValue ? GameLogic.ExpiryTime.Value - DateTime.Now : default(TimeSpan?),
+                    myTurnTimeRemaining: GameLogic.IsTurnInProgress(index, clientNow) ? GameLogic.GetTurnEndTime(index) - clientNow : default
                 );
             });
     }

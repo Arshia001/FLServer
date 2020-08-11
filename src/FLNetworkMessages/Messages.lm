@@ -231,6 +231,7 @@ contract GameInfoDTO
 	ExpiredForMe: bool;
 	ExpiryTimeRemaining: timespan?;
 	RoundTimeExtensions: u32;
+	MyTurnTimeRemaining: timespan?;
 }
 
 contract SimplifiedGameInfoDTO
@@ -244,6 +245,7 @@ contract SimplifiedGameInfoDTO
     TheirScore: u8;
 	WinnerOfExpiredGame: bool;
 	ExpiryTimeRemaining: timespan?;
+	MyTurnTimeRemaining: timespan?;
 }
 
 contract ConfigValuesDTO castfrom(FLGrainInterfaces.Configuration.ConfigValues server oneway)
