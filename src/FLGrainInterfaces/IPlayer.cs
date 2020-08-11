@@ -214,6 +214,7 @@ namespace FLGrainInterfaces
         Task<(IabPurchaseResult result, ulong totalGold)> ProcessGoldPackPurchase(string sku, string purchaseToken);
 
         Task SetFcmToken(string token);
+        Task UnsetFcmToken();
         Task SetNotificationsEnabled(bool enable);
         Task SetCoinRewardVideoNotificationsEnabled(bool enable);
         Task SendMyTurnStartedNotification(Guid opponentID);

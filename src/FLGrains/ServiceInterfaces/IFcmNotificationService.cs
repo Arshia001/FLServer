@@ -6,11 +6,11 @@ namespace FLGrains.ServiceInterfaces
 {
     interface IFcmNotificationService
     {
-        void SendMyTurnStarted(string token, string opponentName);
-        void SendGameEnded(string token, string opponentName);
+        void SendMyTurnStarted(Guid playerID, string token, string opponentName);
+        void SendGameEnded(Guid playerID, string token, string opponentName);
         
-        void SendDay4Reminder(string token);
-        void SendRoundWinRewardAvailableReminder(string token);
-        void SendCoinRewardVideoReadyReminder(string token);
+        void SendDay4Reminder(Guid playerID, string token);
+        void SendRoundWinRewardAvailableReminder(Guid playerID, string token);
+        void SendCoinRewardVideoReadyReminder(Guid playerID, string token);
     }
 }

@@ -999,40 +999,42 @@ namespace FLGrains
 
         public Task SetFcmToken(string token) => state.UseStateAndPersist(state => { state.FcmToken = token; });
 
+        public Task UnsetFcmToken() => state.UseStateAndPersist(state => { state.FcmToken = null; });
+
         public Task SetNotificationsEnabled(bool enable) => state.UseStateAndPersist(state => { state.NotificationsEnabled = enable; });
 
         public Task SetCoinRewardVideoNotificationsEnabled(bool enable) => state.UseStateAndPersist(state => { state.CoinRewardVideoNotificationsEnabled = enable; });
 
         bool CanSendNotification(PlayerState state) => state.NotificationsEnabled && !string.IsNullOrEmpty(state.FcmToken);
 
-        Task SendNotificationIfPossible(Func<string, Task> sendNotification) =>
+        Task SendNotificationIfPossible(Func<Guid, string, Task> sendNotification) =>
             state.UseState(state =>
             {
-                if (CanSendNotification(state) && state.FcmToken != null)
-                    return sendNotification(state.FcmToken);
+                if (CanSendNotification(state))
+                    return sendNotification(this.GetPrimaryKey(), state.FcmToken!);
 
                 return Task.CompletedTask;
             });
 
-        void SendNotificationIfPossible(Action<string> sendNotification) =>
+        void SendNotificationIfPossible(Action<Guid, string> sendNotification) =>
             state.UseState(state =>
             {
                 if (CanSendNotification(state))
-                    sendNotification(state.FcmToken!);
+                    sendNotification(this.GetPrimaryKey(), state.FcmToken!);
             });
 
         public Task SendMyTurnStartedNotification(Guid opponentID)
-            => SendNotificationIfPossible(async token =>
+            => SendNotificationIfPossible(async (id, token) =>
             {
                 var opName = await PlayerInfoHelper.GetName(GrainFactory, opponentID);
-                fcmNotificationService.SendMyTurnStarted(token, opName);
+                fcmNotificationService.SendMyTurnStarted(id, token, opName);
             });
 
         public Task SendGameEndedNotification(Guid opponentID)
-            => SendNotificationIfPossible(async token =>
+            => SendNotificationIfPossible(async (id, token) =>
             {
                 var opName = await PlayerInfoHelper.GetName(GrainFactory, opponentID);
-                fcmNotificationService.SendGameEnded(token, opName);
+                fcmNotificationService.SendGameEnded(id, token, opName);
             });
 
         public Task SetTutorialProgress(ulong progress) => state.UseStateAndPersist(s => s.TutorialProgress = progress);
@@ -1140,17 +1142,17 @@ namespace FLGrains
             {
                 case PlayerReminderNames.Day4Notification:
                     await UnregisterReminderIfExists(reminderName);
-                    SendNotificationIfPossible(token => fcmNotificationService.SendDay4Reminder(token));
+                    SendNotificationIfPossible((id, token) => fcmNotificationService.SendDay4Reminder(id, token));
                     break;
 
                 case PlayerReminderNames.RoundWinRewardNotification:
                     await UnregisterReminderIfExists(reminderName);
-                    SendNotificationIfPossible(token => fcmNotificationService.SendRoundWinRewardAvailableReminder(token));
+                    SendNotificationIfPossible((id, token) => fcmNotificationService.SendRoundWinRewardAvailableReminder(id, token));
                     break;
 
                 case PlayerReminderNames.CoinRewardVideoNotification:
                     await UnregisterReminderIfExists(reminderName);
-                    SendNotificationIfPossible(token => fcmNotificationService.SendCoinRewardVideoReadyReminder(token));
+                    SendNotificationIfPossible((id, token) => fcmNotificationService.SendCoinRewardVideoReadyReminder(id, token));
                     break;
 
                 default:
