@@ -97,7 +97,7 @@ namespace FLGameLogic
         {
             var now = DateTime.Now;
             if (turnEndTimes[player] > now)
-                turnEndTimes[player] = now;
+                turnEndTimes[player] = now.AddSeconds(-1);
         }
 
         protected void RestoreGameState(IEnumerable<IEnumerable<WordScorePair>>[] wordsPlayed, DateTime?[] turnEndTimes)
@@ -110,11 +110,9 @@ namespace FLGameLogic
 
             if (turnEndTimes != null)
             {
-                if (turnEndTimes[0] != null)
-                    this.turnEndTimes[0] = turnEndTimes[0].Value;
-
-                if (turnEndTimes[1] != null)
-                    this.turnEndTimes[1] = turnEndTimes[1].Value;
+                var expired = DateTime.Now.AddSeconds(-1);
+                this.turnEndTimes[0] = turnEndTimes[0].HasValue ? turnEndTimes[0].Value : expired;
+                this.turnEndTimes[1] = turnEndTimes[1].HasValue ? turnEndTimes[1].Value : expired;
             }
         }
 

@@ -224,7 +224,6 @@ contract GameInfoDTO
 	HaveCategoryAnswers: bool[];
     MyWordsPlayed: WordScorePairDTO[][];
     TheirWordsPlayed: WordScorePairDTO[][]?;
-    MyTurnEndTime: datetime;
     MyTurnFirst: bool;
     NumTurnsTakenByOpponent: u8;
 	Expired: bool;

@@ -772,7 +772,6 @@ namespace FLGrains
                     categories: categories,
                     myWordsPlayed: GameLogic.GetPlayerAnswers(index).Take(turnsTakenInclCurrent).Select(ws => ws.Select(w => (WordScorePairDTO)w).ToList()).ToList(),
                     theirWordsPlayed: GameLogic.GetPlayerAnswers(1 - index)?.Take(turnsTaken).Select(ws => ws.Select(w => (WordScorePairDTO)w).ToList()).ToList(), // don't return words for the round currently in progress
-                    myTurnEndTime: GameLogic.GetTurnEndTime(index),
                     myTurnFirst: GameLogic.FirstTurn == index,
                     numTurnsTakenByOpponent: (byte)GameLogic.NumTurnsTakenByIncludingCurrent(1 - index),
                     haveCategoryAnswers: ownedCategories,
