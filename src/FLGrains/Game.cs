@@ -251,9 +251,9 @@ namespace FLGrains
             var (playerScore, botScore) = (GameLogic.GetNumRoundsWon(0), GameLogic.GetNumRoundsWon(1));
 
             bool? shouldWinRound;
-            if (desiredOutcome == CompetitionResult.Win && botScore <= playerScore)
+            if (desiredOutcome == CompetitionResult.Loss && botScore <= playerScore)
                 shouldWinRound = true;
-            else if (desiredOutcome == CompetitionResult.Loss && botScore >= playerScore)
+            else if (desiredOutcome == CompetitionResult.Win && botScore >= playerScore)
                 shouldWinRound = false;
             else
                 shouldWinRound = null;

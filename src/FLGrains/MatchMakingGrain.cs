@@ -85,7 +85,12 @@ namespace FLGrains
 
             RegisterTimer(WriteStateTimer, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
 
-            return RegisterOrUpdateReminder(MatchMakingReminderNames.AddBotsToStaleMatches, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
+            var staleMatchHalfTimeout = configReader.Config.ConfigValues.MatchMakingWaitBeforeBotMatch / 2;
+            var staleMatchDiscoveryInterval =
+                staleMatchHalfTimeout < TimeSpan.FromMinutes(1) ? TimeSpan.FromMinutes(1) :
+                staleMatchHalfTimeout > TimeSpan.FromMinutes(5) ? TimeSpan.FromMinutes(5) :
+                staleMatchHalfTimeout;
+            return RegisterOrUpdateReminder(MatchMakingReminderNames.AddBotsToStaleMatches, staleMatchDiscoveryInterval, staleMatchDiscoveryInterval);
         });
 
         Task WriteStateTimer(object _unused) => state.PerformLazyPersistIfPending();
@@ -206,7 +211,7 @@ namespace FLGrains
                 return true;
             };
 
-        async Task AddBotsToStaleMatched()
+        async Task AddBotsToStaleMatches()
         {
             var now = DateTime.Now;
             var timeout = configReader.Config.ConfigValues.MatchMakingWaitBeforeBotMatch;
@@ -237,7 +242,7 @@ namespace FLGrains
         public Task ReceiveReminder(string reminderName, TickStatus status) =>
             reminderName switch
             {
-                MatchMakingReminderNames.AddBotsToStaleMatches => AddBotsToStaleMatched(),
+                MatchMakingReminderNames.AddBotsToStaleMatches => AddBotsToStaleMatches(),
                 _ => Task.CompletedTask
             };
     }
