@@ -54,7 +54,9 @@ namespace FLGrains.Services
                 };
                 await FirebaseMessaging.DefaultInstance.SendAsync(message);
             }
-            catch (FirebaseMessagingException fmex) when (fmex.MessagingErrorCode == MessagingErrorCode.SenderIdMismatch)
+            catch (FirebaseMessagingException fmex) when (
+                fmex.MessagingErrorCode == MessagingErrorCode.SenderIdMismatch ||
+                fmex.MessagingErrorCode == MessagingErrorCode.InvalidArgument)
             {
                 try
                 {
@@ -62,7 +64,7 @@ namespace FLGrains.Services
                 }
                 catch (Exception ex2)
                 {
-                    logger.LogError(ex2, $"Failed to unset FCM token for player {playerID} after SENDER_ID_MISMATCH error");
+                    logger.LogError(ex2, $"Failed to unset FCM token for player {playerID} after error with code {fmex.MessagingErrorCode}");
                 }
             }
             catch (Exception ex)
