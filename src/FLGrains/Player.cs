@@ -403,7 +403,7 @@ namespace FLGrains
                 if (inviteCode != null)
                 {
                     inviter = await PlayerIndex.GetByInviteCode(GrainFactory, inviteCode);
-                    if (inviter == null)
+                    if (inviter == null || inviter.GetPrimaryKey() == this.GetPrimaryKey())
                         return (false, (RegistrationResult.InvalidInviteCode, 0ul));
                 }
 
