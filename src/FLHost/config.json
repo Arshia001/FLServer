@@ -98,6 +98,7 @@
 
     "MaxGameHistoryEntries": 5,
 
+    "MaxMatchResultHistoryEntries": 10,
     "BotMatchOutcomeNumMatches": 5,
     "BotMatchOutcomeWinThreshold": -3,
     "BotMatchOutcomeLossThreshold": 3,

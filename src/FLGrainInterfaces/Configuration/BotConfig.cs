@@ -29,16 +29,16 @@ namespace FLGrainInterfaces.Configuration
 
         public void Validate()
         {
-            Validation.CheckNotEqual(ID, 0, "Bot ID");
+            Validation.CheckNotDefaultStruct(ID, "Bot ID");
             Validation.CheckString(Name, $"bot {ID} name");
-            Validation.CheckNotEqual(Level, 0u, $"bot {ID} level");
-            Validation.CheckNotEqual(AvatarEyes, 0, $"bot {ID} avatar eyes");
-            Validation.CheckNotEqual(AvatarGlasses, null, $"bot {ID} avatar head shape");
-            Validation.CheckNotEqual(AvatarGlasses!.Value, 0, $"bot {ID} avatar glasses");
-            Validation.CheckNotEqual(AvatarHair, null, $"bot {ID} avatar head shape");
-            Validation.CheckNotEqual(AvatarHair!.Value, 0, $"bot {ID} avatar hair");
-            Validation.CheckNotEqual(AvatarHeadShape, 0, $"bot {ID} avatar head shape");
-            Validation.CheckNotEqual(AvatarMouth, 0, $"bot {ID} avatar mouth");
+            Validation.CheckNotDefaultStruct(Level, $"bot {ID} level");
+            Validation.CheckNotDefaultStruct(AvatarEyes, $"bot {ID} avatar eyes");
+            Validation.CheckNotDefaultStruct(AvatarGlasses, $"bot {ID} avatar head shape");
+            Validation.CheckNotDefaultStruct(AvatarGlasses!.Value, $"bot {ID} avatar glasses");
+            Validation.CheckNotDefaultStruct(AvatarHair, $"bot {ID} avatar head shape");
+            Validation.CheckNotDefaultStruct(AvatarHair!.Value, $"bot {ID} avatar hair");
+            Validation.CheckNotDefaultStruct(AvatarHeadShape, $"bot {ID} avatar head shape");
+            Validation.CheckNotDefaultStruct(AvatarMouth, $"bot {ID} avatar mouth");
         }
     }
 }

@@ -24,9 +24,9 @@ namespace FLGrainInterfaces.Configuration
 
         public void Validate(AvatarConfig avatarConfig)
         {
-            Validation.CheckNotEqual(HeadShape, null, "initial avatar head shape");
-            Validation.CheckNotEqual(Eyes, null, "initial avatar eyes");
-            Validation.CheckNotEqual(Mouth, null, "initial avatar mouth");
+            Validation.CheckNotDefaultStruct(HeadShape, "initial avatar head shape");
+            Validation.CheckNotDefaultStruct(Eyes, "initial avatar eyes");
+            Validation.CheckNotDefaultStruct(Mouth, "initial avatar mouth");
 
             if (avatarConfig.HeadShapes.Where(h => h.ID == HeadShape).FirstOrDefault() == null)
                 Validation.FailWith("Initial head shape not found in avatar parts");

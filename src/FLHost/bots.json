@@ -2,6 +2,7 @@
   {
     "ID": 1,
     "Name": "Mr. Bot",
+    "Level": 1,
     "AvatarHeadShape": 1,
     "AvatarMouth": 1,
     "AvatarEyes": 1,

@@ -11,8 +11,8 @@ namespace FLGrainInterfaces.Configuration
 
         public void Validate(string nameInError)
         {
-            Validation.CheckNotEqual(Interval, null, $"{nameInError} -> interval");
-            Validation.CheckNotEqual(NumberAllowedPerDay, null, $"{nameInError} -> ads allowed per day");
+            Validation.CheckNotDefaultStruct(Interval, $"{nameInError} -> interval");
+            Validation.CheckNotDefaultStruct(NumberAllowedPerDay, $"{nameInError} -> ads allowed per day");
         }
     }
 }

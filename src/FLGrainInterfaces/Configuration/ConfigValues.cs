@@ -77,8 +77,8 @@ namespace FLGrainInterfaces.Configuration
         public uint MaxMatchResultHistoryEntries { get; private set; }
 
         public uint BotMatchOutcomeNumMatches { get; private set; }
-        public uint BotMatchOutcomeWinThreshold { get; private set; }
-        public uint BotMatchOutcomeLossThreshold { get; private set; }
+        public int BotMatchOutcomeWinThreshold { get; private set; }
+        public int BotMatchOutcomeLossThreshold { get; private set; }
 
 
         public double BotPlayMinWaitMinutes { get; private set; }
@@ -88,35 +88,42 @@ namespace FLGrainInterfaces.Configuration
 
         public static void Validate(ConfigValues data)
         {
-            Validation.CheckNotEqual(data.ClientTimePerRound, TimeSpan.Zero, "client time per round");
-            Validation.CheckNotEqual(data.DrawGoldGain, 0u, "draw gold gain");
-            Validation.CheckNotEqual(data.DrawXPGain, 0u, "draw XP gain");
-            Validation.CheckNotEqual(data.ExtraTimePerRound, TimeSpan.Zero, "extra time per round");
-            Validation.CheckNotEqual(data.GameInactivityTimeout, TimeSpan.Zero, "game inactivity timeout");
-            Validation.CheckNotEqual(data.GameExpiryGoldPenalty, null, "game expiry gold penalty");
-            Validation.CheckNotEqual(data.GameExpiryScorePenalty, null, "game expiry score penalty");
-            Validation.CheckNotEqual(data.UpgradedActiveGameLimitPrice, 0u, "max active games when upgraded");
-            Validation.CheckNotEqual(data.MaxActiveGamesWhenUpgraded, 0u, "upgraded active game limit price");
-            Validation.CheckNotEqual(data.UpgradedActiveGameLimitTime, TimeSpan.Zero, "upgraded active game limit time");
-            Validation.CheckNotEqual(data.LoserScoreLossRatio, 0, "loser score loss ratio");
-            Validation.CheckNotEqual(data.MatchmakingLevelDifference, 0u, "matchmaking level difference");
-            Validation.CheckNotEqual(data.MatchmakingScoreDifference, 0u, "matchmaking score difference");
-            Validation.CheckNotEqual(data.MaxActiveGames, 0u, "max active games");
-            Validation.CheckNotEqual(data.MaxScoreGain, 0u, "max score gain");
-            Validation.CheckNotEqual(data.NumGoldRewardForWinningRounds, 0u, "gold reward for winning rounds");
-            Validation.CheckNotEqual(data.NumGroupChoices, 0u, "group choices");
-            Validation.CheckNotEqual(data.NumRoundsPerGame, 0u, "rounds per game");
-            Validation.CheckNotEqual(data.NumRoundsToWinToGetReward, 0u, "rounds to win to get reward");
-            Validation.CheckNotEqual(data.NumTimeExtensionsPerRound, 0u, "time extensions per round");
-            Validation.CheckNotEqual(data.PriceToRefreshGroups, 0u, "refresh group price");
-            Validation.CheckNotEqual(data.RoundTimeExtension, TimeSpan.Zero, "round time extension amount");
-            Validation.CheckNotEqual(data.RoundWinRewardInterval, TimeSpan.Zero, "win reward interval");
-            Validation.CheckNotEqual(data.WinnerGoldGain, 0u, "winner gold gain");
-            Validation.CheckNotEqual(data.WinnerXPGain, 0u, "winner XP gain");
-            Validation.CheckNotEqual(data.WordScoreThreshold2, 0, "word score threshold 2");
-            Validation.CheckNotEqual(data.WordScoreThreshold3, 0, "word score threshold 3");
-            Validation.CheckNotEqual(data.VideoAdGold, 0u, "video ad gold");
-            Validation.CheckNotEqual(data.GetAnswersPrice, 0u, "answers prices");
+            Validation.CheckNotDefaultStruct(data.ClientTimePerRound, "client time per round");
+            Validation.CheckNotDefaultStruct(data.DrawGoldGain, "draw gold gain");
+            Validation.CheckNotDefaultStruct(data.DrawXPGain, "draw XP gain");
+            Validation.CheckNotDefaultStruct(data.ExtraTimePerRound, "extra time per round");
+            Validation.CheckNotDefaultStruct(data.GameInactivityTimeout, "game inactivity timeout");
+            Validation.CheckNotDefaultStruct(data.GameExpiryGoldPenalty, "game expiry gold penalty");
+            Validation.CheckNotDefaultStruct(data.GameExpiryScorePenalty, "game expiry score penalty");
+            Validation.CheckNotDefaultStruct(data.UpgradedActiveGameLimitPrice, "max active games when upgraded");
+            Validation.CheckNotDefaultStruct(data.MaxActiveGamesWhenUpgraded, "upgraded active game limit price");
+            Validation.CheckNotDefaultStruct(data.UpgradedActiveGameLimitTime, "upgraded active game limit time");
+            Validation.CheckNotDefaultStruct(data.LoserScoreLossRatio, "loser score loss ratio");
+            Validation.CheckNotDefaultStruct(data.MatchmakingLevelDifference, "matchmaking level difference");
+            Validation.CheckNotDefaultStruct(data.MatchmakingScoreDifference, "matchmaking score difference");
+            Validation.CheckNotDefaultStruct(data.MaxActiveGames, "max active games");
+            Validation.CheckNotDefaultStruct(data.MaxScoreGain, "max score gain");
+            Validation.CheckNotDefaultStruct(data.MinScoreGain, "min score gain");
+            Validation.CheckNotDefaultStruct(data.NumGoldRewardForWinningRounds, "gold reward for winning rounds");
+            Validation.CheckNotDefaultStruct(data.NumGroupChoices, "group choices");
+            Validation.CheckNotDefaultStruct(data.NumRoundsPerGame, "rounds per game");
+            Validation.CheckNotDefaultStruct(data.NumRoundsToWinToGetReward, "rounds to win to get reward");
+            Validation.CheckNotDefaultStruct(data.NumTimeExtensionsPerRound, "time extensions per round");
+            Validation.CheckNotDefaultStruct(data.PriceToRefreshGroups, "refresh group price");
+            Validation.CheckNotDefaultStruct(data.RoundTimeExtension, "round time extension amount");
+            Validation.CheckNotDefaultStruct(data.RoundWinRewardInterval, "win reward interval");
+            Validation.CheckNotDefaultStruct(data.WinnerGoldGain, "winner gold gain");
+            Validation.CheckNotDefaultStruct(data.WinnerXPGain, "winner XP gain");
+            Validation.CheckNotDefaultStruct(data.LoserXPGain, "loser XP gain");
+            Validation.CheckNotDefaultStruct(data.WordScoreThreshold2, "word score threshold 2");
+            Validation.CheckNotDefaultStruct(data.WordScoreThreshold3, "word score threshold 3");
+            Validation.CheckNotDefaultStruct(data.VideoAdGold, "video ad gold");
+            Validation.CheckNotDefaultStruct(data.GetAnswersPrice, "answers prices");
+            Validation.CheckNotDefaultStruct(data.MaxGameHistoryEntries, "maximum game history entries");
+            Validation.CheckNotDefaultStruct(data.RefreshGroupsAllowedPerRound, "refresh groups allowed per round");
+            Validation.CheckNotDefaultStruct(data.InitialGold, "initial gold");
+            Validation.CheckNotDefaultStruct(data.LeaderBoardTopScoreCount, "leader board top score count");
+            Validation.CheckNotDefaultStruct(data.LeaderBoardAroundScoreCount, "leader board around score count");
 
             Validation.CheckList(data.RevealWordPrices, "reveal word prices");
             Validation.CheckList(data.RoundTimeExtensionPrices, "round time extension price");
@@ -126,14 +133,14 @@ namespace FLGrainInterfaces.Configuration
                 foreach (var (index, frame) in data.NotificationTimeFrames.Select((f, i) => (i, f)))
                     frame.Validate($"notification time frame #{index}");
 
-            Validation.CheckNotEqual(data.InviterReward, 0u, "inviter reward");
-            Validation.CheckNotEqual(data.InviteeReward, 0u, "invitee reward");
+            Validation.CheckNotDefaultStruct(data.InviterReward, "inviter reward");
+            Validation.CheckNotDefaultStruct(data.InviteeReward, "invitee reward");
 
-            Validation.CheckNotEqual(data.MaxMatchResultHistoryEntries, 0u, "max match result history entries");
-            
-            Validation.CheckNotEqual(data.BotMatchOutcomeNumMatches, 0u, "bot match outcome num matches");
-            Validation.CheckNotEqual(data.BotMatchOutcomeWinThreshold, 0u, "bot match outcome win threshold");
-            Validation.CheckNotEqual(data.BotMatchOutcomeLossThreshold, 0u, "bot match outcome loss threshold");
+            Validation.CheckNotDefaultStruct(data.MaxMatchResultHistoryEntries, "max match result history entries");
+
+            Validation.CheckNotDefaultStruct(data.BotMatchOutcomeNumMatches, "bot match outcome num matches");
+            Validation.CheckNotDefaultStruct(data.BotMatchOutcomeWinThreshold, "bot match outcome win threshold");
+            Validation.CheckNotDefaultStruct(data.BotMatchOutcomeLossThreshold, "bot match outcome loss threshold");
 
             if (data.BotPlayMinWaitMinutes < 1.0f)
                 Validation.FailWith("Bot play min time must be at least 1 minute");
@@ -142,7 +149,7 @@ namespace FLGrainInterfaces.Configuration
             if (data.BotPlayMaxWaitMinutes <= data.BotPlayMinWaitMinutes)
                 Validation.FailWith("Bot play max time must be more than bot play min time");
 
-            Validation.CheckNotEqual(data.MatchMakingWaitBeforeBotMatch, TimeSpan.Zero, "match-making wait before bot match");
+            Validation.CheckNotDefaultStruct(data.MatchMakingWaitBeforeBotMatch, "match-making wait before bot match");
 
             data.CoinRewardVideo.Validate("coin reward video");
             data.GetCategoryAnswersVideo.Validate("get category answers video");
