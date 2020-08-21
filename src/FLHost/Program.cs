@@ -117,12 +117,19 @@ namespace FLHost
 
                     client = host.Services.GetRequiredService<IClusterClient>();
 
-                    await host.WaitForShutdownAsync();
+                    try
+                    {
+                        await host.WaitForShutdownAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"WaitForShutdownAsync threw an exception, will ignore: {ex.Message}");
+                    }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to start server due to {ex}, will exit in 5 seconds");
+                Console.WriteLine($"Failed to start server, will exit in 5 seconds; due to {ex}");
                 await Task.Delay(5000);
                 Environment.Exit(-1);
             }
