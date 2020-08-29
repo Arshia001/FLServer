@@ -240,69 +240,84 @@ namespace FLGrains
 
         async Task PlayBotTurn()
         {
-            var config = configReader.Config;
-
-            var botID = state.UseState(state => state.PlayerIDs[1]);
-            var (category, _, _, mustChoose, groups) = await StartRound(botID);
-            if (mustChoose)
-                (category, _, _) = await ChooseGroup(botID, groups.First().ID);
-
-            var desiredOutcome = state.UseState(state => state.DesiredBotMatchOutcome);
-            var (playerScore, botScore) = (GameLogic.GetNumRoundsWon(0), GameLogic.GetNumRoundsWon(1));
-
-            bool? shouldWinRound;
-            if (desiredOutcome == CompetitionResult.Loss && botScore <= playerScore)
-                shouldWinRound = true;
-            else if (desiredOutcome == CompetitionResult.Win && botScore >= playerScore)
-                shouldWinRound = false;
-            else
-                shouldWinRound = null;
-
-            var words = config.CategoriesAsGameLogicFormatByName[category!].Answers.ToHashSet();
-
-            var opponentScore = GameLogic.GetPlayerAnswers(0, GameLogic.RoundNumber).Sum(w => w.score);
-
-            var score = 0u;
-            var numPlayed = 0u;
-
-            Func<bool> shouldStop;
-
-            if (!shouldWinRound.HasValue)
+            try
             {
-                var numWords = RandomHelper.GetInt32(3, 12);
-                shouldStop = () => numPlayed >= numWords && words.Count > 0;
-            }
-            else
-            {
-                if (opponentScore == 0)
+                var config = configReader.Config;
+
+                var botID = state.UseState(state => state.PlayerIDs[1]);
+                var (category, _, _, mustChoose, groups) = await StartRound(botID);
+                if (mustChoose)
+                    (category, _, _) = await ChooseGroup(botID, groups.First().ID);
+
+                var desiredOutcome = state.UseState(state => state.DesiredBotMatchOutcome);
+                var (playerScore, botScore) = (GameLogic.GetNumRoundsWon(0), GameLogic.GetNumRoundsWon(1));
+
+                bool? shouldWinRound;
+                if (desiredOutcome == CompetitionResult.Loss && botScore <= playerScore)
+                    shouldWinRound = true;
+                else if (desiredOutcome == CompetitionResult.Win && botScore >= playerScore)
+                    shouldWinRound = false;
+                else
+                    shouldWinRound = null;
+
+                var words = config.CategoriesAsGameLogicFormatByName[category!].Answers.ToHashSet();
+
+                var opponentScore = GameLogic.GetPlayerAnswers(0, GameLogic.RoundNumber).Sum(w => w.score);
+
+                var score = 0u;
+                var numPlayed = 0u;
+
+                Func<bool> shouldStop;
+
+                if (!shouldWinRound.HasValue)
                 {
-                    var numWords = shouldWinRound.Value ? RandomHelper.GetInt32(8, 12) : RandomHelper.GetInt32(3, 5);
+                    var numWords = RandomHelper.GetInt32(3, 12);
                     shouldStop = () => numPlayed >= numWords && words.Count > 0;
                 }
                 else
                 {
-                    if (shouldWinRound.Value)
-                        shouldStop = () => words.Count == 0 || score > opponentScore;
+                    if (opponentScore == 0)
+                    {
+                        var numWords = shouldWinRound.Value ? RandomHelper.GetInt32(8, 12) : RandomHelper.GetInt32(3, 5);
+                        shouldStop = () => numPlayed >= numWords && words.Count > 0;
+                    }
                     else
                     {
-                        var scoreLimit = opponentScore <= 3 ? 0 : RandomHelper.GetInt32(0, opponentScore - 3);
-                        shouldStop = () => words.Count == 0 || score > scoreLimit;
+                        if (shouldWinRound.Value)
+                            shouldStop = () => words.Count == 0 || score > opponentScore;
+                        else
+                        {
+                            var scoreLimit = opponentScore <= 3 ? 0 : RandomHelper.GetInt32(0, opponentScore - 3);
+                            shouldStop = () => words.Count == 0 || score > scoreLimit;
+                        }
                     }
                 }
-            }
 
-            while (!shouldStop())
+                while (!shouldStop())
+                {
+                    var word = words.ElementAt(RandomHelper.GetInt32(words.Count));
+                    var (wordScore, _) = await PlayWord(botID, word);
+                    score += wordScore;
+                    ++numPlayed;
+                    words.Remove(word);
+                }
+
+                await EndRound(botID);
+
+                if (GameLogic.Turn == 1)
+                    await RegisterBotPlayReminder(false);
+                else
+                    await UnregisterReminder(GameReminderNames.BotPlay);
+            }
+            catch (Exception ex)
             {
-                var word = words.ElementAt(RandomHelper.GetInt32(words.Count));
-                var (wordScore, _) = await PlayWord(botID, word);
-                score += wordScore;
-                words.Remove(word);
+                logger.LogError(ex, "Failed to play bot turn, will stop reminder");
+                try
+                {
+                    await UnregisterReminder(GameReminderNames.BotPlay);
+                }
+                catch { }
             }
-
-            await EndRound(botID);
-
-            if (GameLogic.Turn == 1)
-                await RegisterBotPlayReminder(false);
         }
 
         TimeSpan? GetExpiryTimeRemaining() => GameLogic.ExpiryTime == null ? default(TimeSpan?) : GameLogic.ExpiryTime.Value - DateTime.Now;
@@ -513,7 +528,7 @@ namespace FLGrains
                 else
                 {
                     logger.Info("Less than one minute remaining to expiry time, will terminate game immediately");
-                    await UnregisterExpiryReminder();
+                    await UnregisterReminder(GameReminderNames.EndTurn);
                     await HandleGameExpiry();
                 }
             }
@@ -529,7 +544,7 @@ namespace FLGrains
 
         async Task HandleGameExpiry()
         {
-            await UnregisterExpiryReminder();
+            await UnregisterReminder(GameReminderNames.EndTurn);
 
             if (!GameLogic.Expired)
             {
@@ -565,11 +580,11 @@ namespace FLGrains
             });
         }
 
-        private async Task UnregisterExpiryReminder()
+        private async Task UnregisterReminder(string name)
         {
             try
             {
-                var expiryReminder = await GetReminder("e");
+                var expiryReminder = await GetReminder(name);
                 if (expiryReminder != null)
                     await UnregisterReminder(expiryReminder);
             }
