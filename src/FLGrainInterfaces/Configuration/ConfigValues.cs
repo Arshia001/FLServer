@@ -86,6 +86,8 @@ namespace FLGrainInterfaces.Configuration
 
         public TimeSpan MatchMakingWaitBeforeBotMatch { get; private set; }
 
+        public uint TutorialGamesCount { get; private set; }
+
         public static void Validate(ConfigValues data)
         {
             Validation.CheckNotDefaultStruct(data.ClientTimePerRound, "client time per round");
@@ -150,6 +152,8 @@ namespace FLGrainInterfaces.Configuration
                 Validation.FailWith("Bot play max time must be more than bot play min time");
 
             Validation.CheckNotDefaultStruct(data.MatchMakingWaitBeforeBotMatch, "match-making wait before bot match");
+            
+            Validation.CheckNotDefaultStruct(data.TutorialGamesCount, "Tutorial games count");
 
             data.CoinRewardVideo.Validate("coin reward video");
             data.GetCategoryAnswersVideo.Validate("get category answers video");

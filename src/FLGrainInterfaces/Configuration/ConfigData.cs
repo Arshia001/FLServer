@@ -31,6 +31,8 @@ namespace FLGrainInterfaces.Configuration
 
         public List<GoldPackConfig>? GoldPacks { get; set; }
 
+        public List<TutorialGameSubjectConfig>? TutorialGameCategories { get; set; }
+
         public EditDistanceConfig? EditDistanceConfig { get; set; }
 
         public ConfigValues? ConfigValues { get; set; }

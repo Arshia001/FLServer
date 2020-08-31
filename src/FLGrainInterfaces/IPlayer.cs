@@ -164,7 +164,7 @@ namespace FLGrainInterfaces
         Task<PlayerInfoDTO> GetPlayerInfo();
         Task<OwnPlayerInfoDTO> GetOwnPlayerInfo();
         Task<PlayerLeaderBoardInfoDTO> GetLeaderBoardInfo();
-        Task<(uint score, uint level)> GetMatchMakingInfo();
+        Task<(uint score, uint level, bool shouldJoinTutorialMatch)> GetMatchMakingInfo();
         Task<uint> GetScore();
         Task<(PlayerInfoDTO info, bool[] haveCategoryAnswers)> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories);
 

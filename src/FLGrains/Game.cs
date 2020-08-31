@@ -50,6 +50,9 @@ namespace FLGrains
 
         [Id(9)]
         public CompetitionResult? DesiredBotMatchOutcome { get; set; }
+
+        [Id(10)]
+        public bool IsTutorialGame { get; set; }
     }
 
     static class GameReminderNames
@@ -225,6 +228,17 @@ namespace FLGrains
                 await RegisterBotPlayReminder(false);
             });
 
+        public Task SetupTutorialMatch() =>
+            state.UseStateAndPersist(state =>
+            {
+                var gameState = GetStateInternal(state);
+                if (gameState != GameState.WaitingForSecondPlayer || GameLogic.Turn != 0)
+                    throw new InvalidOperationException("To setup as tutorial match, a game must be in WaitingForSecondPlayer state and it must be the first player's turn");
+
+                state.DesiredBotMatchOutcome = CompetitionResult.Win;
+                state.IsTutorialGame = true;
+            });
+
         // True to wait a longer time, as if the opponent has played and now the bot must come back online.
         // False to wait a shorter while, as if the bot is playing its second round and must be done soon.
         Task RegisterBotPlayReminder(bool longWait)
@@ -249,20 +263,23 @@ namespace FLGrains
                 if (mustChoose)
                     (category, _, _) = await ChooseGroup(botID, groups.First().ID);
 
-                var desiredOutcome = state.UseState(state => state.DesiredBotMatchOutcome);
+                var (desiredOutcome, isTutorialGame) = state.UseState(state => (state.DesiredBotMatchOutcome, state.IsTutorialGame));
                 var (playerScore, botScore) = (GameLogic.GetNumRoundsWon(0), GameLogic.GetNumRoundsWon(1));
 
                 bool? shouldWinRound;
-                if (desiredOutcome == CompetitionResult.Loss && botScore <= playerScore)
-                    shouldWinRound = true;
-                else if (desiredOutcome == CompetitionResult.Win && botScore >= playerScore)
+                if (isTutorialGame || (desiredOutcome == CompetitionResult.Win && botScore >= playerScore))
                     shouldWinRound = false;
+                else if (desiredOutcome == CompetitionResult.Loss && botScore <= playerScore)
+                    shouldWinRound = true;
                 else
                     shouldWinRound = null;
 
                 var words = config.CategoriesAsGameLogicFormatByName[category!].Answers.ToHashSet();
 
-                var opponentScore = GameLogic.GetPlayerAnswers(0, GameLogic.RoundNumber).Sum(w => w.score);
+                var opponentScore =
+                    GameLogic.PlayerFinishedTurn(0, GameLogic.RoundNumber) ?
+                    GameLogic.GetPlayerAnswers(0, GameLogic.RoundNumber).Sum(w => w.score) :
+                    default(int?);
 
                 var score = 0u;
                 var numPlayed = 0u;
@@ -271,29 +288,33 @@ namespace FLGrains
 
                 if (!shouldWinRound.HasValue)
                 {
-                    var numWords = RandomHelper.GetInt32(3, 12);
-                    shouldStop = () => numPlayed >= numWords && words.Count > 0;
+                    var numWords = RandomHelper.GetInt32(3, 11);
+                    shouldStop = () => numPlayed >= numWords;
                 }
                 else
                 {
-                    if (opponentScore == 0)
+                    if (!opponentScore.HasValue)
                     {
-                        var numWords = shouldWinRound.Value ? RandomHelper.GetInt32(8, 12) : RandomHelper.GetInt32(3, 5);
-                        shouldStop = () => numPlayed >= numWords && words.Count > 0;
+                        var numWords = shouldWinRound.Value ? RandomHelper.GetInt32(7, 11) : RandomHelper.GetInt32(3, 6);
+                        shouldStop = () => numPlayed >= numWords;
                     }
                     else
                     {
                         if (shouldWinRound.Value)
-                            shouldStop = () => words.Count == 0 || score > opponentScore;
+                        {
+                            var scoreLimit = opponentScore.Value + RandomHelper.GetInt32(0, 7);
+                            shouldStop = () => score > scoreLimit;
+                        }
                         else
                         {
-                            var scoreLimit = opponentScore <= 3 ? 0 : RandomHelper.GetInt32(0, opponentScore - 3);
-                            shouldStop = () => words.Count == 0 || score > scoreLimit;
+                            var scoreDeficiency = RandomHelper.GetInt32(4, 10);
+                            var scoreLimit = opponentScore.Value <= scoreDeficiency ? 0 : RandomHelper.GetInt32(0, opponentScore.Value - scoreDeficiency);
+                            shouldStop = () => score > scoreLimit;
                         }
                     }
                 }
 
-                while (!shouldStop())
+                while (words.Count > 0 && !shouldStop())
                 {
                     var word = words.ElementAt(RandomHelper.GetInt32(words.Count));
                     var (wordScore, _) = await PlayWord(botID, word);
@@ -390,20 +411,22 @@ namespace FLGrains
             if (!mustChooseCategory)
                 return (category ?? throw new Exception("Don't have a category"), await GrainFactory.GetGrain<IPlayer>(id).HaveAnswersForCategory(category), roundTime!.Value);
 
-            state.UseState(state =>
+            var isTutorialGame = state.UseState(state =>
             {
                 if (state.GroupChooser != index || state.GroupChoices == null)
                     throw new VerbatimException("Not this player's turn to choose a group");
 
                 if (!state.GroupChoices.Contains(groupID))
                     throw new VerbatimException($"Specified group {groupID} is not a valid choice out of ({string.Join(", ", state.GroupChoices)})");
+
+                return state.IsTutorialGame;
             });
 
             GrainFactory.GetGrain<IPlayer>(id).AddStats(new List<StatisticValueDTO> { new StatisticValueDTO(Statistics.GroupChosen_Param, groupID, 1) }).Ignore();
 
             var config = configReader.Config;
 
-            var categories = config.CategoryNamesByGroupID[groupID];
+            var categories = isTutorialGame ? config.TutorialGameCategories[groupID] : config.CategoryNamesByGroupID[groupID];
             var currentCategories = GameLogic.CategoryNames;
             string categoryName;
             do
@@ -509,7 +532,19 @@ namespace FLGrains
                 {
                     await RegisterExpiryReminderIfNecessary();
 
-                    if (IsBotMatch)
+                    if (state.IsTutorialGame && playerIndex == 0 && roundIndex == 0)
+                    {
+                        GameLogic.SecondPlayerJoined();
+
+                        var bot = botDatabase.GetRandom();
+                        state.PlayerIDs[1] = bot.ID;
+
+                        var timeRemaining = GetExpiryTimeRemaining();
+                        await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentJoined(state.PlayerIDs[0], (this).GetPrimaryKey(), bot, timeRemaining);
+
+                        await RegisterBotPlayReminder(false);
+                    }
+                    else if (IsBotMatch && playerIndex == 0 && GameLogic.Turn == 1)
                         await RegisterBotPlayReminder(true);
                 }
 

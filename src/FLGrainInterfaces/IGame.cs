@@ -20,6 +20,7 @@ namespace FLGrainInterfaces
         Task<byte> StartNew(Guid playerOneID); // Returns number of rounds
         Task<(Guid opponentID, byte numRounds, TimeSpan? expiryTimeRemaining)> AddSecondPlayer(PlayerInfoDTO playerTwo);
         Task AddBotAsSecondPlayer();
+        Task SetupTutorialMatch();
         Task<(string? category, bool? haveAnswers, TimeSpan? roundTime, bool mustChooseGroup, IEnumerable<GroupInfoDTO> groups)> StartRound(Guid id);
         Task<(string category, bool haveAnswers, TimeSpan roundTime)> ChooseGroup(Guid id, ushort groupID);
         Task<(byte wordScore, string corrected)> PlayWord(Guid id, string word);

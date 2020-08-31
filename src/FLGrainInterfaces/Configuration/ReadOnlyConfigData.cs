@@ -32,6 +32,8 @@ namespace FLGrainInterfaces.Configuration
                 .ToList();
 
             AvatarParts = data.AvatarConfig!.GetIndexedData();
+
+            TutorialGameCategories = data.TutorialGameCategories!.ToDictionary(s => s.GroupID, s => s.Categories);
         }
 
         public IReadOnlyList<GroupConfig> Groups => data.Groups ?? throw new Exception("Groups not specified in config");
@@ -60,6 +62,8 @@ namespace FLGrainInterfaces.Configuration
         public InitialAvatarConfig InitialAvatar => data.InitialAvatar!;
 
         public IReadOnlyList<BotConfig> Bots => data.Bots!;
+
+        public IReadOnlyDictionary<uint, IReadOnlyList<string>> TutorialGameCategories { get; }
 
         public int Version => data.Version;
 
@@ -97,10 +101,17 @@ namespace FLGrainInterfaces.Configuration
             Validation.CheckList(data.Categories, "categories");
             Validation.CheckList(data.PlayerLevels, "player levels");
             Validation.CheckList(data.GoldPacks, "gold packs");
-            
+
             Validation.CheckList(data.Bots, "bots");
             foreach (var bot in data.Bots!)
                 bot.Validate();
+
+            Validation.CheckList(data.TutorialGameCategories, "tutorial game categories");
+            foreach (var (tgc, index) in data.TutorialGameCategories!.Select((x, i) => (x, i)))
+                tgc.Validate(index, data.Groups!, data.Categories!);
+            var group = data.Groups.FirstOrDefault(g => !data.TutorialGameCategories.Any(tgc => tgc.GroupID == g.ID));
+            if (group != null)
+                Validation.FailWith($"No tutorial game categories found for group {group.ID}");
 
             if (data.RenamedCategories == null)
                 Validation.FailWith("No renamed categories");

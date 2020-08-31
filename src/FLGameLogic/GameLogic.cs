@@ -59,7 +59,8 @@ namespace FLGameLogic
 
         public IReadOnlyList<uint> GetPlayerScores(int player) => playerScores[player];
 
-        public IReadOnlyList<WordScorePair> GetPlayerAnswers(int player, int round) => playerAnswers[player].Count > round ? playerAnswers[player][round] : new List<WordScorePair>();
+        public IReadOnlyList<WordScorePair> GetPlayerAnswers(int player, int round) => 
+            playerAnswers[player].Count > round ? (IReadOnlyList<WordScorePair>)playerAnswers[player][round] : Array.Empty<WordScorePair>();
 
         public IReadOnlyList<IReadOnlyList<WordScorePair>> GetPlayerAnswers(int player) => playerAnswers[player];
 

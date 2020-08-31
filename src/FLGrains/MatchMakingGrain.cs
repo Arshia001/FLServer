@@ -107,7 +107,7 @@ namespace FLGrains
             // updating of state happens in the State_Persist event handler above.
             return state.UseStateAndLazyPersist(async _state =>
             {
-                var (score, level) = await firstPlayer.GetMatchMakingInfo();
+                var (score, level, _) = await firstPlayer.GetMatchMakingInfo();
                 var entry = new MatchMakingEntry(game, score, level, firstPlayer.GetPrimaryKey());
                 entries.Add(entry);
             });
@@ -119,10 +119,24 @@ namespace FLGrains
             FindOrCreateGame(IPlayer player, Immutable<ISet<Guid>> activeOpponents)
         {
             var config = configReader.Config;
-            var (score, level) = await player.GetMatchMakingInfo();
+            var (score, level, isTutorialGame) = await player.GetMatchMakingInfo();
             var playerID = player.GetPrimaryKey();
 
             var detailedLog = this.detailedLog.Value;
+
+            if (isTutorialGame)
+            {
+                IGame gameToEnter;
+                do
+                    gameToEnter = GrainFactory.GetGrain<IGame>(Guid.NewGuid());
+                while (await gameToEnter.GetState() != GameState.New);
+
+                var numRounds = await player.JoinGameAsFirstPlayer(gameToEnter);
+
+                await gameToEnter.SetupTutorialMatch();
+
+                return (gameToEnter.GetPrimaryKey(), null, numRounds, true, default);
+            }
 
             if (detailedLog)
                 logger.LogInformation($"Matching player ID {playerID} with level {level} and score {score}");

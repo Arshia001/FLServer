@@ -322,7 +322,16 @@ namespace FLGrains
                 new PlayerLeaderBoardInfoDTO(state.Name, await GetAvatar())
             );
 
-        public Task<(uint score, uint level)> GetMatchMakingInfo() => state.UseState(state => Task.FromResult((state.Score, state.Level)));
+        uint GetTotalGames(PlayerState state) => (uint)(
+            GetStat(state, Statistics.GamesWon) +
+            GetStat(state, Statistics.GamesLost) +
+            GetStat(state, Statistics.GamesEndedInDraw) +
+            (uint)state.ActiveGames.Count);
+
+        public Task<(uint score, uint level, bool shouldJoinTutorialMatch)> GetMatchMakingInfo() =>
+            state.UseState(state => 
+                Task.FromResult((state.Score, state.Level, GetTotalGames(state) < configReader.Config.ConfigValues.TutorialGamesCount))
+            );
 
         public Task<uint> GetScore() => state.UseState(state => Task.FromResult(state.Score));
 
