@@ -112,13 +112,13 @@
 
     "VideoAdGold": 30,
 
-    "InviterReward": 300,
-    "InviteeReward": 300,
+    "InviterReward": 200,
+    "InviteeReward": 200,
 
     "BotPlayMinWaitMinutes": 4,
-    "BotPlayMaxWaitMinutes": 6,
+    "BotPlayMaxWaitMinutes": 10,
 
-    "MatchMakingWaitBeforeBotMatch": "00:15:00",
+    "MatchMakingWaitBeforeBotMatch": "00:10:00",
 
     "TutorialGamesCount": 5,
 
