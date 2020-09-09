@@ -127,8 +127,8 @@
       "NumberAllowedPerDay": 100
     },
     "GetCategoryAnswersVideo": {
-      "Interval": "00:00:00",
-      "NumberAllowedPerDay": 1
+      "Interval": "02:00:00",
+      "NumberAllowedPerDay": 100
     },
 
     "NotificationTimeFrames": [
