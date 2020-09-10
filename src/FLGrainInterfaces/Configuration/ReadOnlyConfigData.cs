@@ -102,10 +102,6 @@ namespace FLGrainInterfaces.Configuration
             Validation.CheckList(data.PlayerLevels, "player levels");
             Validation.CheckList(data.GoldPacks, "gold packs");
 
-            Validation.CheckList(data.Bots, "bots");
-            foreach (var bot in data.Bots!)
-                bot.Validate();
-
             Validation.CheckList(data.TutorialGameCategories, "tutorial game categories");
             foreach (var (tgc, index) in data.TutorialGameCategories!.Select((x, i) => (x, i)))
                 tgc.Validate(index, data.Groups!, data.Categories!);
@@ -130,6 +126,10 @@ namespace FLGrainInterfaces.Configuration
 
             data.AvatarConfig.Validate();
             data.InitialAvatar.Validate(data.AvatarConfig);
+
+            Validation.CheckList(data.Bots, "bots");
+            foreach (var bot in data.Bots!)
+                bot.Validate(data.AvatarConfig);
 
             try
             {

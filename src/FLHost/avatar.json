@@ -38,7 +38,7 @@
     {
       "ID": 8,
       "MinimumLevel": 2,
-      "Price": 300
+      "Price": 500
     },
     {
       "ID": 9,
@@ -93,22 +93,22 @@
     {
       "ID": 19,
       "MinimumLevel": 2,
-      "Price": 100
+      "Price": 300
     },
     {
       "ID": 20,
       "MinimumLevel": 2,
-      "Price": 100
+      "Price": 300
     },
     {
       "ID": 21,
       "MinimumLevel": 2,
-      "Price": 100
+      "Price": 300
     },
     {
       "ID": 22,
       "MinimumLevel": 2,
-      "Price": 100
+      "Price": 300
     },
     {
       "ID": 23,
@@ -138,22 +138,22 @@
     {
       "ID": 28,
       "MinimumLevel": 2,
-      "Price": 200
+      "Price": 300
     },
     {
       "ID": 29,
       "MinimumLevel": 2,
-      "Price": 200
+      "Price": 300
     },
     {
       "ID": 30,
       "MinimumLevel": 2,
-      "Price": 200
+      "Price": 300
     },
     {
       "ID": 31,
       "MinimumLevel": 2,
-      "Price": 200
+      "Price": 300
     },
     {
       "ID": 32,
@@ -183,22 +183,22 @@
     {
       "ID": 37,
       "MinimumLevel": 2,
-      "Price": 250
+      "Price": 300
     },
     {
       "ID": 38,
       "MinimumLevel": 2,
-      "Price": 250
+      "Price": 300
     },
     {
       "ID": 39,
       "MinimumLevel": 2,
-      "Price": 250
+      "Price": 300
     },
     {
       "ID": 40,
       "MinimumLevel": 2,
-      "Price": 250
+      "Price": 300
     },
     {
       "ID": 41,
@@ -239,7 +239,7 @@
     },
     {
       "ID": 3,
-      "MinimumLevel": 3,
+      "MinimumLevel": 2,
       "Price": 1500
     },
     {
@@ -249,7 +249,7 @@
     },
     {
       "ID": 5,
-      "MinimumLevel": 3,
+      "MinimumLevel": 2,
       "Price": 1000
     },
     {
@@ -265,7 +265,7 @@
     {
       "ID": 8,
       "MinimumLevel": 1,
-      "Price": 300
+      "Price": 500
     },
     {
       "ID": 9,
@@ -275,7 +275,7 @@
     {
       "ID": 10,
       "MinimumLevel": 1,
-      "Price": 300
+      "Price": 500
     },
     {
       "ID": 11,
@@ -294,24 +294,24 @@
     },
     {
       "ID": 14,
-      "MinimumLevel": 3,
+      "MinimumLevel": 2,
       "Price": 7000
     },
     {
       "ID": 15,
       "MinimumLevel": 1,
-      "Price": 700
+      "Price": 1500
     },
     {
       "ID": 16,
-      "MinimumLevel": 3,
+      "MinimumLevel": 2,
       "Price": 2500
     }
   ],
   "Glasses": [
     {
       "ID": 1,
-      "MinimumLevel": 3,
+      "MinimumLevel": 1,
       "Price": 3500
     },
     {
@@ -336,22 +336,22 @@
     },
     {
       "ID": 6,
-      "MinimumLevel": 5,
+      "MinimumLevel": 2,
       "Price": 3000
     },
     {
       "ID": 7,
-      "MinimumLevel": 4,
+      "MinimumLevel": 3,
       "Price": 4000
     },
     {
       "ID": 8,
-      "MinimumLevel": 4,
+      "MinimumLevel": 1,
       "Price": 3000
     },
     {
       "ID": 9,
-      "MinimumLevel": 3,
+      "MinimumLevel": 1,
       "Price": 3000
     }
   ],
@@ -393,8 +393,8 @@
     },
     {
       "ID": 8,
-      "MinimumLevel": 3,
-      "Price": 800
+      "MinimumLevel": 1,
+      "Price": 250
     },
     {
       "ID": 9,
@@ -429,7 +429,7 @@
     {
       "ID": 15,
       "MinimumLevel": 1,
-      "Price": 300
+      "Price": 500
     },
     {
       "ID": 16,
@@ -664,7 +664,7 @@
     {
       "ID": 62,
       "MinimumLevel": 1,
-      "Price": 200
+      "Price": 500
     },
     {
       "ID": 63,
@@ -674,7 +674,7 @@
     {
       "ID": 64,
       "MinimumLevel": 2,
-      "Price": 200
+      "Price": 500
     }
   ],
   "Hairs": [
@@ -826,17 +826,17 @@
     {
       "ID": 30,
       "MinimumLevel": 2,
-      "Price": 300
+      "Price": 400
     },
     {
       "ID": 31,
       "MinimumLevel": 2,
-      "Price": 300
+      "Price": 400
     },
     {
       "ID": 32,
       "MinimumLevel": 2,
-      "Price": 300
+      "Price": 400
     },
     {
       "ID": 33,
@@ -866,7 +866,7 @@
     {
       "ID": 38,
       "MinimumLevel": 1,
-      "Price": 150
+      "Price": 200
     },
     {
       "ID": 39,
@@ -896,7 +896,7 @@
     {
       "ID": 44,
       "MinimumLevel": 1,
-      "Price": 200
+      "Price": 300
     },
     {
       "ID": 45,
@@ -906,7 +906,7 @@
     {
       "ID": 46,
       "MinimumLevel": 1,
-      "Price": 100
+      "Price": 200
     },
     {
       "ID": 47,
@@ -946,22 +946,22 @@
     {
       "ID": 54,
       "MinimumLevel": 1,
-      "Price": 200
+      "Price": 400
     },
     {
       "ID": 55,
       "MinimumLevel": 1,
-      "Price": 200
+      "Price": 400
     },
     {
       "ID": 56,
       "MinimumLevel": 1,
-      "Price": 100
+      "Price": 200
     },
     {
       "ID": 57,
       "MinimumLevel": 1,
-      "Price": 100
+      "Price": 200
     },
     {
       "ID": 58,
@@ -971,7 +971,7 @@
     {
       "ID": 59,
       "MinimumLevel": 2,
-      "Price": 300
+      "Price": 350
     },
     {
       "ID": 60,
@@ -991,7 +991,7 @@
     {
       "ID": 63,
       "MinimumLevel": 1,
-      "Price": 100
+      "Price": 200
     },
     {
       "ID": 64,
@@ -1016,7 +1016,7 @@
     {
       "ID": 68,
       "MinimumLevel": 1,
-      "Price": 150
+      "Price": 250
     },
     {
       "ID": 69,
