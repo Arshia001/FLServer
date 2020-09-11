@@ -229,8 +229,8 @@
   "Eyes": [
     {
       "ID": 1,
-      "MinimumLevel": 1,
-      "Price": 0
+      "MinimumLevel": 2,
+      "Price": 1000
     },
     {
       "ID": 2,
@@ -254,8 +254,8 @@
     },
     {
       "ID": 6,
-      "MinimumLevel": 2,
-      "Price": 800
+      "MinimumLevel": 1,
+      "Price": 0
     },
     {
       "ID": 7,
