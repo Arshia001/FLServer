@@ -74,7 +74,7 @@
     "UpgradedActiveGameLimitTime": "03:00:00",
     "MaxActiveGamesWhenUpgraded": 25,
 
-    "NumRoundsToWinToGetReward": 20,
+    "NumRoundsToWinToGetReward": 10,
     "RoundWinRewardInterval": "1.00:00:00",
     "NumGoldRewardForWinningRounds": 90,
 
@@ -115,10 +115,10 @@
     "InviterReward": 200,
     "InviteeReward": 200,
 
-    "BotPlayMinWaitMinutes": 4,
-    "BotPlayMaxWaitMinutes": 10,
+    "BotPlayMinWaitMinutes": 10,
+    "BotPlayMaxWaitMinutes": 30,
 
-    "MatchMakingWaitBeforeBotMatch": "00:10:00",
+    "MatchMakingWaitBeforeBotMatch": "4.00:00:00",
 
     "TutorialGamesCount": 5,
 
