@@ -71,6 +71,8 @@ namespace FLGrainInterfaces.Configuration
             private set => notificationTimeFrames = value.OrderBy(x => x).ToList();
         }
 
+        public IReadOnlyList<uint>? InactivityNotificationIntervalsInDays { get; private set; }
+
         public uint InviterReward { get; private set; }
         public uint InviteeReward { get; private set; }
 
@@ -134,6 +136,8 @@ namespace FLGrainInterfaces.Configuration
             if (data.NotificationTimeFrames != null)
                 foreach (var (index, frame) in data.NotificationTimeFrames.Select((f, i) => (i, f)))
                     frame.Validate($"notification time frame #{index}");
+
+            Validation.CheckList(data.InactivityNotificationIntervalsInDays, "inactivity notification intervals");
 
             Validation.CheckNotDefaultStruct(data.InviterReward, "inviter reward");
             Validation.CheckNotDefaultStruct(data.InviteeReward, "invitee reward");

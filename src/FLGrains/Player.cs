@@ -25,19 +25,10 @@ namespace FLGrains
     //!! Reminders for notifications could be separated out into another grain
     static class PlayerReminderNames
     {
-        public const string Day4Notification = "Day4";
+        [Obsolete] public const string Obsolete_Day4Notification = "Day4";
+        public const string InactivityNotification = "Inactivity";
         public const string RoundWinRewardNotification = "RoundWinReward";
         public const string CoinRewardVideoNotification = "GiftVideo";
-
-        public static IEnumerable<string> All
-        {
-            get
-            {
-                yield return Day4Notification;
-                yield return RoundWinRewardNotification;
-                yield return CoinRewardVideoNotification;
-            }
-        }
     }
 
     //!! The StateWrapper allows us to know exactly when we need to persist. Now, do we need a timer for periodic persistance?
@@ -329,7 +320,7 @@ namespace FLGrains
             (uint)state.ActiveGames.Count);
 
         public Task<(uint score, uint level, bool shouldJoinTutorialMatch)> GetMatchMakingInfo() =>
-            state.UseState(state => 
+            state.UseState(state =>
                 Task.FromResult((state.Score, state.Level, GetTotalGames(state) < configReader.Config.ConfigValues.TutorialGamesCount))
             );
 
@@ -1113,9 +1104,14 @@ namespace FLGrains
         {
             var reminders = await GetReminders();
 
-            await UnregisterReminderIfExists(reminders, PlayerReminderNames.Day4Notification);
+#pragma warning disable CS0612 // Type or member is obsolete
+            await UnregisterReminderIfExists(reminders, PlayerReminderNames.Obsolete_Day4Notification);
+#pragma warning restore CS0612 // Type or member is obsolete
+            await UnregisterReminderIfExists(reminders, PlayerReminderNames.InactivityNotification);
             await UnregisterReminderIfExists(reminders, PlayerReminderNames.RoundWinRewardNotification);
             await UnregisterReminderIfExists(reminders, PlayerReminderNames.CoinRewardVideoNotification);
+
+            state.UseStateAndLazyPersist(state => state.NextInactivityReminderIndex = 0);
         }
 
         Task RegisterOfflineReminders() =>
@@ -1127,8 +1123,7 @@ namespace FLGrains
 
                 var timeFrames = configReader.Config.ConfigValues.NotificationTimeFrames!;
 
-                var day4Time = TimeFrame.GetClosestInterval(DateTime.Now.AddDays(4), timeFrames, new[] { DateTime.Now }).GetRandomTimeInside();
-                await RegisterOrUpdateReminder(PlayerReminderNames.Day4Notification, day4Time - DateTime.Now, TimeSpan.FromMinutes(5));
+                await RegisterNextInactivityReminder();
 
                 var rewardStatus = GetRoundWinRewardStatus();
                 if (rewardStatus.inCoolDown)
@@ -1145,13 +1140,43 @@ namespace FLGrains
                 }
             });
 
+        Task RegisterNextInactivityReminder() =>
+            state.UseStateAndLazyPersist(async state =>
+            {
+                var config = configReader.Config.ConfigValues;
+                var timeFrames = config.NotificationTimeFrames!;
+                var notificationIntervals = config.InactivityNotificationIntervalsInDays!;
+
+                if (state.NextInactivityReminderIndex >= notificationIntervals.Count)
+                    return;
+
+                var interval =
+                    state.NextInactivityReminderIndex == 0 ?
+                    notificationIntervals[0] :
+                    notificationIntervals[state.NextInactivityReminderIndex] - notificationIntervals[state.NextInactivityReminderIndex - 1];
+
+                var time = TimeFrame.GetClosestInterval(DateTime.Now.AddDays(interval), timeFrames, new[] { DateTime.Now }).GetRandomTimeInside();
+                await RegisterOrUpdateReminder(PlayerReminderNames.InactivityNotification, time - DateTime.Now, TimeSpan.FromMinutes(5));
+
+                ++state.NextInactivityReminderIndex;
+            });
+
+        async Task SendInactivityNotification()
+        {
+            SendNotificationIfPossible((id, token) => fcmNotificationService.SendInactivityReminder(id, token));
+            await RegisterNextInactivityReminder();
+        }
+
         public async Task ReceiveReminder(string reminderName, TickStatus status)
         {
             switch (reminderName)
             {
-                case PlayerReminderNames.Day4Notification:
+#pragma warning disable CS0612 // Type or member is obsolete
+                case PlayerReminderNames.Obsolete_Day4Notification:
+#pragma warning restore CS0612 // Type or member is obsolete
+                case PlayerReminderNames.InactivityNotification:
                     await UnregisterReminderIfExists(reminderName);
-                    SendNotificationIfPossible((id, token) => fcmNotificationService.SendDay4Reminder(id, token));
+                    await SendInactivityNotification();
                     break;
 
                 case PlayerReminderNames.RoundWinRewardNotification:

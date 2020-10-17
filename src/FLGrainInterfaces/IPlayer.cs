@@ -151,6 +151,9 @@ namespace FLGrainInterfaces
         // In order from newest to oldest, that is, index 0 is the most recent match
         [Id(31)]
         public List<CompetitionResult> MatchResultHistory { get; set; } = new List<CompetitionResult>();
+
+        [Id(32)]
+        public int NextInactivityReminderIndex { get; set; }
     }
 
     [BondSerializationTag("@p")]

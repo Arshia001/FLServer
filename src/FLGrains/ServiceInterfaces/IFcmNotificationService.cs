@@ -9,7 +9,7 @@ namespace FLGrains.ServiceInterfaces
         void SendMyTurnStarted(Guid playerID, string token, string opponentName);
         void SendGameEnded(Guid playerID, string token, string opponentName);
         
-        void SendDay4Reminder(Guid playerID, string token);
+        void SendInactivityReminder(Guid playerID, string token);
         void SendRoundWinRewardAvailableReminder(Guid playerID, string token);
         void SendCoinRewardVideoReadyReminder(Guid playerID, string token);
     }
