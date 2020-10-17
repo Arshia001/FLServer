@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace FLGrains
 {
+    //?? Isn't it better to do the actual score assignment calculations here instead of in the aggregator caches?
     class CategoryStatisticsAggregator : Aggregator<CategoryStatisticsData, CategoryStatisticsData>, ICategoryStatisticsAggregator, ICategoryStatisticsAggregateRetriever
     {
         protected override CategoryStatisticsData AddDelta(CategoryStatisticsData current, CategoryStatisticsData delta)
@@ -109,6 +110,15 @@ namespace FLGrains
         {
             var current = await GetData();
             return (current.UpVotes, current.DownVotes);
+        }
+
+        public async Task<IEnumerable<byte>> GetScores(IEnumerable<string> words)
+        {
+            var current = await GetData();
+            return
+                words
+                .Select(w => current.WordScores.TryGetValue(w, out var score) ? score : (byte)2)
+                .ToList();
         }
     }
 }

@@ -5,7 +5,9 @@ using FLGrainInterfaces;
 using FLGrainInterfaces.Configuration;
 using FLGrains.ServiceInterfaces;
 using FLGrains.Utility;
+using LightMessage.Common.ProtocolMessages;
 using LightMessage.OrleansUtils.Grains;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Concurrency;
@@ -274,7 +276,31 @@ namespace FLGrains
                 else
                     shouldWinRound = null;
 
-                var words = config.CategoriesAsGameLogicFormatByName[category!].Answers.ToHashSet();
+                var wordsByScore =
+                    (await
+                        GrainFactory.GetGrain<ICategoryStatisticsAggregatorCache>(category!)
+                        .GetScores(config.CategoriesAsGameLogicFormatByName[category!].Answers))
+                    .Zip(config.CategoriesAsGameLogicFormatByName[category!].Answers, (s, w) => (score: s, word: w))
+                    .Aggregate(
+                        new Dictionary<byte, HashSet<string>>
+                        {
+                            [1] = new HashSet<string>(),
+                            [2] = new HashSet<string>(),
+                            [3] = new HashSet<string>(),
+                        },
+                        (dic, ws) =>
+                        {
+                            if (ws.score < 1 || ws.score > 3)
+                            {
+                                logger.LogWarning($"Got out-of-range score {ws.score} for word {ws.word} in category {category}");
+                                return dic;
+                            }
+
+                            if (!dic.TryGetValue(ws.score, out var set))
+                                dic[ws.score] = set = new HashSet<string>();
+                            set.Add(ws.word);
+                            return dic;
+                        });
 
                 var opponentScore =
                     GameLogic.PlayerFinishedTurn(0, GameLogic.RoundNumber) ?
@@ -314,13 +340,41 @@ namespace FLGrains
                     }
                 }
 
-                while (words.Count > 0 && !shouldStop())
+                byte GetRandomDesiredWordScore()
                 {
-                    var word = words.ElementAt(RandomHelper.GetInt32(words.Count));
+                    var r = RandomHelper.GetInt32(6);
+                    return (byte)(
+                        r <= 2 ? 1 :
+                        r <= 4 ? 2 :
+                        3);
+                }
+
+                (byte, string) GetWordWithScore(byte score)
+                {
+                    (byte, byte, byte) attempts =
+                        score == 1 ? ((byte)1, (byte)2, (byte)3) :
+                        score == 2 ? ((byte)2, (byte)1, (byte)3) :
+                        score == 3 ? ((byte)3, (byte)2, (byte)1) :
+                        throw new ArgumentOutOfRangeException(nameof(score));
+
+                    if (wordsByScore[attempts.Item1].Count > 0)
+                        return (attempts.Item1, wordsByScore[attempts.Item1].ElementAt(RandomHelper.GetInt32(wordsByScore[attempts.Item1].Count)));
+                    else if (wordsByScore[attempts.Item2].Count > 0)
+                        return (attempts.Item2, wordsByScore[attempts.Item2].ElementAt(RandomHelper.GetInt32(wordsByScore[attempts.Item2].Count)));
+                    else if (wordsByScore[attempts.Item3].Count > 0)
+                        return (attempts.Item3, wordsByScore[attempts.Item3].ElementAt(RandomHelper.GetInt32(wordsByScore[attempts.Item3].Count)));
+                    else
+                        throw new Exception("No more words left");
+                }
+
+                while ((wordsByScore[1].Count > 0 || wordsByScore[2].Count > 0 || wordsByScore[3].Count > 0) && !shouldStop())
+                {
+                    var desiredScore = GetRandomDesiredWordScore();
+                    var (actualScore, word) = GetWordWithScore(desiredScore);
                     var (wordScore, _) = await PlayWord(botID, word);
                     score += wordScore;
                     ++numPlayed;
-                    words.Remove(word);
+                    wordsByScore[actualScore].Remove(word);
                 }
 
                 await EndRound(botID);

@@ -51,6 +51,7 @@ namespace FLGrainInterfaces
     public interface ICategoryStatisticsAggregatorCache : IGrainWithStringKey, IAggregatorCache<AggregatedCategoryStatisticsData>
     {
         Task<byte> GetScore(string word);
+        Task<IEnumerable<byte>> GetScores(IEnumerable<string> words);
         Task<(ulong upVotes, ulong downVotes)> GetVotes();
     }
 }
