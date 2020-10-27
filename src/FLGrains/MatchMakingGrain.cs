@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 namespace FLGrains
 {
     [Schema]
-    class MatchMakingEntry
+    public class MatchMakingEntry
     {
         [Id(0)]
         public IGame? Game { get; private set; }
@@ -40,10 +40,22 @@ namespace FLGrains
             FirstPlayerID = firstPlayerID;
             CreationTime = DateTime.Now;
         }
+
+        public override int GetHashCode()
+        {
+            return Game?.GetPrimaryKey().GetHashCode() ?? 0;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is MatchMakingEntry entry))
+                return false;
+            return Game?.GetPrimaryKey() == entry.Game?.GetPrimaryKey();
+        }
     }
 
     [Schema, BondSerializationTag("#mm")]
-    class MatchMakingGrainState
+    public class MatchMakingGrainState
     {
         [Id(0)]
         public List<MatchMakingEntry>? Entries { get; set; }
@@ -99,7 +111,7 @@ namespace FLGrains
 
         public Task AddGame(IGame game, IPlayer firstPlayer)
         {
-            if (entries.Any(e => e.Game == game))
+            if (entries.Any(e => e.Game?.GetPrimaryKey() == game.GetPrimaryKey()))
                 return Task.CompletedTask;
 
             // We don't actually update the state as that incurs a performance penalty.
@@ -189,7 +201,7 @@ namespace FLGrains
             e =>
             {
                 if (detailedLog)
-                    logger.LogInformation($"Testing {e.FirstPlayerID} with level {e.Level} and score {e.Score}");
+                    logger.LogInformation($"Testing {e.Game?.GetPrimaryKey()} of player {e.FirstPlayerID} with level {e.Level} and score {e.Score}");
 
                 if (activeOpponents != null && activeOpponents.Contains(e.FirstPlayerID))
                 {
