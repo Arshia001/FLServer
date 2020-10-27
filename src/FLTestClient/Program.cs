@@ -1,5 +1,6 @@
 ﻿using Bond;
 using Bond.Tag;
+using Cassandra;
 using FLGameLogic;
 using FLGameLogicServer;
 using FLGrainInterfaces;
@@ -12,7 +13,9 @@ using LightMessage.Common.ProtocolMessages;
 using LightMessage.Common.Util;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Org.BouncyCastle.Asn1.X509.Qualified;
 using Orleans;
+using Orleans.CodeGeneration;
 using Orleans.Configuration;
 using Orleans.Runtime;
 using Orleans.Serialization;
@@ -24,21 +27,55 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace FLTestClient
 {
+    class NullGrainRuntime : IGrainReferenceRuntime
+    {
+        public TGrainInterface Convert<TGrainInterface>(IAddressable grain)
+        {
+            return
+                (TGrainInterface)
+                typeof(TGrainInterface)
+                .Assembly
+                .GetTypes()
+                .Where(t => t.GetInterfaces().Contains(typeof(TGrainInterface)) && t.BaseType == typeof(GrainReference))
+                .First()
+                .GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static, null, new[] { typeof(GrainReference) }, Array.Empty<ParameterModifier>())
+                .Invoke(new object[] { grain });
+        }
+
+        public object Convert(IAddressable grain, Type interfaceType)
+        {
+            return grain;
+        }
+
+        public Task<T> InvokeMethodAsync<T>(GrainReference reference, int methodId, object[] arguments, InvokeMethodOptions options, SiloAddress silo)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void InvokeOneWayMethod(GrainReference reference, int methodId, object[] arguments, InvokeMethodOptions options, SiloAddress silo)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     class NullGrainReferenceConverter : IGrainReferenceConverter
     {
+        IGrainReferenceRuntime runtime = new NullGrainRuntime();
+
         public GrainReference GetGrainFromKeyInfo(GrainReferenceKeyInfo keyInfo)
         {
-            return null;
+            return (GrainReference)typeof(GrainReference).GetMethod("FromKeyInfo", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, new object[] { keyInfo, runtime });
         }
 
         public GrainReference GetGrainFromKeyString(string key)
         {
-            return null;
+            return (GrainReference)typeof(GrainReference).GetMethod("FromKeyString", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, new object[] { key, runtime });
         }
     }
 
@@ -187,6 +224,14 @@ namespace FLTestClient
     {
         //        static Guid ID(int i) => new Guid(i, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
+        public static byte[] StringToByteArray(string hex)
+        {
+            return Enumerable.Range(0, hex.Length)
+                             .Where(x => x % 2 == 0)
+                             .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
+                             .ToArray();
+        }
+
         static void Main(string[] args)
         {
             var svc = new ServiceCollection();
@@ -196,11 +241,20 @@ namespace FLTestClient
 
             BondSerializationUtil.Initialize(provider);
 
-            var data = Convert.FromBase64String(
-                "CwoBDQkQIQ/ZhtmF24wg2K/ZiNmG2YUCDtin2YjYsdin2YbZiNizJAjYstmF24zZhiwI2LLZh9ix2YckCNmF2LHbjNiuKAbYstmH2YQMBtiy2K3ZhCQK2YbZvtiq2YjZhiwM2b7ZhNmI2KrZiNmGIgrZhdi02KrYsduMIgjZiNmG2YjYswQK2LnYt9in2LHYryAM2K7ZiNix2LTbjNivFgbZhdin2YcaBtiy2YfYsQIE2YXZhgII2YbbjNmF2KcCDNmF2KfZhdin2YbZhQIR2KjYudmE2Ycg2K/bjNqv2YcCCNiz2YTYp9mFAgrYqNix2KzbjNizAhjYqtmF2KfYp9in2KfYp9in2KfYp9in2YUCDtmH2YfZh9mH2YfZh9mHAhbYrNmI2YjZiNmI2YbZhtmG2YbZhtmGAgzaqdmH2qnYtNin2YYCD9i02YfYp9ioINiz2YbarwIG2YLZhdixAgpNIGJyaHJqcmlyAgzZvtmI2YTZiNiq2YgCCNmF2KfYsdizAgbYsdmH2KcCENin2YjYsdin2YbYs9mI2YYCCNiy2YjZh9mEAgAA"
-                );
+            var data = StringToByteArray(File.ReadAllText(@"C:\Users\Arshia\source\repos\fl\mmstate.txt"));
 
-            var obj = BondSerializer.Deserialize(typeof(AggregatorState<CategoryStatisticsData>), new MemoryStream(data));
+            var session = CassandraSessionFactory.CreateSession("Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy").Result;
+            var statement = session.Prepare("update storage set data = :? where grain_type = '#mm' and grain_id = 0x00; ");
+            var x = session.Execute(statement.Bind(data));
+            foreach (var xx in x)
+            {
+                Console.WriteLine(xx);
+            }
+
+            var obj = (MatchMakingGrainState)BondSerializer.Deserialize(typeof(MatchMakingGrainState), new MemoryStream(data));
+
+            var grouped = obj.Entries.GroupBy(e => e.Game.GetPrimaryKey().ToString() + e.FirstPlayerID.ToString());
+            var grouped2 = obj.Entries.GroupBy(e => e.Game.GetPrimaryKey().ToString());
 
             Console.WriteLine("Done");
         }
