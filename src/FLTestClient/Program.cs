@@ -241,20 +241,23 @@ namespace FLTestClient
 
             BondSerializationUtil.Initialize(provider);
 
-            var data = StringToByteArray(File.ReadAllText(@"C:\Users\Arshia\source\repos\fl\mmstate.txt"));
+            var data = StringToByteArray(
+                //File.ReadAllText(@"C:\Users\Arshia\source\repos\fl\mmstate.txt")
+                "0b0a010b0b05120112a906340646062f0647060c202a063106cc06460620002d06cc0648062706460627062a0612001200120012002b0b020b010a000b004b0b0205010005006b1102aca6e890cacebcd81100b18080cea6a532002b0b020e10c852e6bb1e3d4c41928cfff707c49fc40e10000000000000000000000000000000004b10020101ab10020000d00602cb0710020000cb081002000000"
+                );
 
-            var session = CassandraSessionFactory.CreateSession("Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy").Result;
-            var statement = session.Prepare("update storage set data = :? where grain_type = '#mm' and grain_id = 0x00; ");
-            var x = session.Execute(statement.Bind(data));
-            foreach (var xx in x)
-            {
-                Console.WriteLine(xx);
-            }
+            //var session = CassandraSessionFactory.CreateSession("Contact Point=localhost;KeySpace=fl_server_dev;Compression=Snappy").Result;
+            //var statement = session.Prepare("update storage set data = :? where grain_type = '#mm' and grain_id = 0x00; ");
+            //var x = session.Execute(statement.Bind(data));
+            //foreach (var xx in x)
+            //{
+            //    Console.WriteLine(xx);
+            //}
 
-            var obj = (MatchMakingGrainState)BondSerializer.Deserialize(typeof(MatchMakingGrainState), new MemoryStream(data));
+            var obj = (GameGrainState)BondSerializer.Deserialize(typeof(GameGrainState), new MemoryStream(data));
 
-            var grouped = obj.Entries.GroupBy(e => e.Game.GetPrimaryKey().ToString() + e.FirstPlayerID.ToString());
-            var grouped2 = obj.Entries.GroupBy(e => e.Game.GetPrimaryKey().ToString());
+            //var grouped = obj.Entries.GroupBy(e => e.Game.GetPrimaryKey().ToString() + e.FirstPlayerID.ToString());
+            //var grouped2 = obj.Entries.GroupBy(e => e.Game.GetPrimaryKey().ToString());
 
             Console.WriteLine("Done");
         }

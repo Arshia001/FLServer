@@ -106,7 +106,7 @@ namespace FLGrains
 
         bool IsBotMatch => state.UseState(state => state.PlayerIDs.Length >= 2 && botDatabase.IsBotID(state.PlayerIDs[1]));
 
-        public override async Task OnActivateAsync()
+        public override Task OnActivateAsync()
         {
             state.UseState(state =>
             {
@@ -130,23 +130,36 @@ namespace FLGrains
 
             var numPlayers = NumJoinedPlayers;
             if (numPlayers >= 1)
-                await SetTimerOrProcessEndTurnIfNecessary(0);
+                SetTimerOrProcessEndTurnIfNecessary(0);
             if (numPlayers >= 2)
-                await SetTimerOrProcessEndTurnIfNecessary(1);
+                SetTimerOrProcessEndTurnIfNecessary(1);
+
+            return Task.CompletedTask;
         }
 
         public override Task OnDeactivateAsync() => state.PerformLazyPersistIfPending();
 
         GameLogicServer GameLogic => gameLogic ?? throw new Exception("Internal error: game logic not initialized");
 
-        async Task SetTimerOrProcessEndTurnIfNecessary(int playerIndex)
+        void SetTimerOrProcessEndTurnIfNecessary(int playerIndex)
         {
             var now = DateTime.Now;
             var roundIndex = GameLogic.NumTurnsTakenByIncludingCurrent(playerIndex) - 1;
             if (GameLogic.IsTurnInProgress(playerIndex, now))
                 SetEndTurnTimerImpl(playerIndex, GameLogic.GetTurnEndTime(playerIndex) - now, roundIndex);
             else if (!EndTurnProcessed(playerIndex, roundIndex))
-                await HandleEndTurn(playerIndex, roundIndex); // In case the game grain went down while the game was in progress
+            {
+                // In case the game grain went down while the game was in progress
+                // We also can't just call EndTurn here because if the second player is just connecting,
+                // The matchmaking grain will be in our call chain
+
+                IDisposable? disposable = default;
+                disposable = RegisterTimer(async _ =>
+                {
+                    disposable?.Dispose();
+                    await HandleEndTurn(playerIndex, roundIndex);
+                }, null, TimeSpan.FromSeconds(1), TimeSpan.FromHours(1));
+            }
         }
 
         int Index(Guid playerID) =>
@@ -527,7 +540,7 @@ namespace FLGrains
 
                 var config = configReader.Config;
 
-                if (playerIndex == 0 && roundIndex == 0)
+                if (playerIndex == 0 && roundIndex == 0 && NumJoinedPlayers == 1)
                     await GrainFactory.GetGrain<IMatchMakingGrain>(0).AddGame(this.AsReference<IGame>(), GrainFactory.GetGrain<IPlayer>(state.PlayerIDs[0]));
 
                 var opponentFinishedThisRound = GameLogic.PlayerFinishedTurn(1 - playerIndex, roundIndex);

@@ -81,8 +81,8 @@
     "WordScoreThreshold2": 1.3,
     "WordScoreThreshold3": 0.7,
 
-    "MatchmakingScoreDifference": 700,
-    "MatchmakingLevelDifference": 7,
+    "MatchmakingScoreDifference": 4000,
+    "MatchmakingLevelDifference": 15,
 
     "MaxScoreGain": 40,
     "MinScoreGain": 10,
