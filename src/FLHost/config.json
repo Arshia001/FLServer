@@ -81,8 +81,12 @@
     "WordScoreThreshold2": 1.3,
     "WordScoreThreshold3": 0.7,
 
-    "MatchmakingScoreDifference": 4000,
-    "MatchmakingLevelDifference": 15,
+    "MatchmakingScoreDifference": 400,
+    "MatchmakingLevelDifference": 3,
+    "MatchMakingWaitBeforeBotMatch": "4.00:00:00",
+    "MatchMakingWindowExpansionInterval": "00:05:00",
+    "MatchMakingScorePerExpansion": 200,
+    "MatchMakingLevelPerExpansion": 1,
 
     "MaxScoreGain": 40,
     "MinScoreGain": 10,
@@ -117,8 +121,6 @@
 
     "BotPlayMinWaitMinutes": 10,
     "BotPlayMaxWaitMinutes": 30,
-
-    "MatchMakingWaitBeforeBotMatch": "4.00:00:00",
 
     "TutorialGamesCount": 5,
 

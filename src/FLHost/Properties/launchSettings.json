@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "FLHost": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "FLSERVER_DETAILED_MATCHMAKING_LOG": "yes"
+      }
+    }
+  }
+}

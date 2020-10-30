@@ -153,9 +153,10 @@ namespace FLGrains
             if (detailedLog)
                 logger.LogInformation($"Matching player ID {playerID} with level {level} and score {score}");
 
+            var now = DateTime.Now;
             while (true)
             {
-                var match = entries.FirstOrDefault(IsMatch(score, level, playerID, config, activeOpponents.Value, detailedLog));
+                var match = entries.FirstOrDefault(IsMatch(score, level, playerID, config, activeOpponents.Value, detailedLog, now));
 
                 if (match != null)
                 {
@@ -197,11 +198,13 @@ namespace FLGrains
             }
         }
 
-        Func<MatchMakingEntry, bool> IsMatch(uint score, uint level, Guid playerID, ReadOnlyConfigData config, ISet<Guid> activeOpponents, bool detailedLog) =>
+        Func<MatchMakingEntry, bool> IsMatch(uint score, uint level, Guid playerID, ReadOnlyConfigData config, ISet<Guid> activeOpponents, bool detailedLog, DateTime now) =>
             e =>
             {
+                var expansionIntervals = (uint)((now - e.CreationTime!).Value.TotalMilliseconds / config.ConfigValues.MatchMakingWindowExpansionInterval.TotalMilliseconds);
+
                 if (detailedLog)
-                    logger.LogInformation($"Testing {e.Game?.GetPrimaryKey()} of player {e.FirstPlayerID} with level {e.Level} and score {e.Score}");
+                    logger.LogInformation($"Testing {e.Game?.GetPrimaryKey()} of player {e.FirstPlayerID} with level {e.Level} and score {e.Score}, after {expansionIntervals} expansions");
 
                 if (activeOpponents != null && activeOpponents.Contains(e.FirstPlayerID))
                 {
@@ -210,17 +213,19 @@ namespace FLGrains
                     return false;
                 }
 
-                if (!Within(e.Level, level, config.ConfigValues.MatchmakingLevelDifference))
+                var levelWindow = config.ConfigValues.MatchmakingLevelDifference + expansionIntervals * config.ConfigValues.MatchMakingLevelPerExpansion;
+                if (!Within(e.Level, level, levelWindow))
                 {
                     if (detailedLog)
-                        logger.LogInformation($"Level difference exceeds expected range {config.ConfigValues.MatchmakingLevelDifference}, won't match");
+                        logger.LogInformation($"Level difference exceeds expected range {levelWindow}, won't match");
                     return false;
                 }
 
-                if (!Within(e.Score, score, config.ConfigValues.MatchmakingScoreDifference))
+                uint scoreWindow = config.ConfigValues.MatchmakingScoreDifference + expansionIntervals * config.ConfigValues.MatchMakingScorePerExpansion;
+                if (!Within(e.Score, score, scoreWindow))
                 {
                     if (detailedLog)
-                        logger.LogInformation($"Score difference exceeds expected range {config.ConfigValues.MatchmakingScoreDifference}, won't match");
+                        logger.LogInformation($"Score difference exceeds expected range {scoreWindow}, won't match");
                     return false;
                 }
 

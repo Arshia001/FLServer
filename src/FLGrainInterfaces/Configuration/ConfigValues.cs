@@ -38,6 +38,10 @@ namespace FLGrainInterfaces.Configuration
 
         public uint MatchmakingScoreDifference { get; private set; }
         public uint MatchmakingLevelDifference { get; private set; }
+        public TimeSpan MatchMakingWaitBeforeBotMatch { get; private set; }
+        public TimeSpan MatchMakingWindowExpansionInterval { get; private set; }
+        public uint MatchMakingScorePerExpansion { get; private set; }
+        public uint MatchMakingLevelPerExpansion { get; private set; }
 
         public uint MaxScoreGain { get; private set; }
         public uint MinScoreGain { get; private set; }
@@ -86,8 +90,6 @@ namespace FLGrainInterfaces.Configuration
         public double BotPlayMinWaitMinutes { get; private set; }
         public double BotPlayMaxWaitMinutes { get; private set; }
 
-        public TimeSpan MatchMakingWaitBeforeBotMatch { get; private set; }
-
         public uint TutorialGamesCount { get; private set; }
 
         public static void Validate(ConfigValues data)
@@ -103,8 +105,6 @@ namespace FLGrainInterfaces.Configuration
             Validation.CheckNotDefaultStruct(data.MaxActiveGamesWhenUpgraded, "upgraded active game limit price");
             Validation.CheckNotDefaultStruct(data.UpgradedActiveGameLimitTime, "upgraded active game limit time");
             Validation.CheckNotDefaultStruct(data.LoserScoreLossRatio, "loser score loss ratio");
-            Validation.CheckNotDefaultStruct(data.MatchmakingLevelDifference, "matchmaking level difference");
-            Validation.CheckNotDefaultStruct(data.MatchmakingScoreDifference, "matchmaking score difference");
             Validation.CheckNotDefaultStruct(data.MaxActiveGames, "max active games");
             Validation.CheckNotDefaultStruct(data.MaxScoreGain, "max score gain");
             Validation.CheckNotDefaultStruct(data.MinScoreGain, "min score gain");
@@ -128,6 +128,13 @@ namespace FLGrainInterfaces.Configuration
             Validation.CheckNotDefaultStruct(data.InitialGold, "initial gold");
             Validation.CheckNotDefaultStruct(data.LeaderBoardTopScoreCount, "leader board top score count");
             Validation.CheckNotDefaultStruct(data.LeaderBoardAroundScoreCount, "leader board around score count");
+
+            Validation.CheckNotDefaultStruct(data.MatchmakingLevelDifference, "matchmaking level difference");
+            Validation.CheckNotDefaultStruct(data.MatchmakingScoreDifference, "matchmaking score difference");
+            Validation.CheckNotDefaultStruct(data.MatchMakingWaitBeforeBotMatch, "match-making wait before bot match");
+            Validation.CheckNotDefaultStruct(data.MatchMakingWindowExpansionInterval, "match-making window expansion interval");
+            Validation.CheckNotDefaultStruct(data.MatchMakingScorePerExpansion, "match-making score per expansion");
+            Validation.CheckNotDefaultStruct(data.MatchMakingLevelPerExpansion, "match-making level per expansion");
 
             Validation.CheckList(data.RevealWordPrices, "reveal word prices");
             Validation.CheckList(data.RoundTimeExtensionPrices, "round time extension price");
@@ -155,8 +162,6 @@ namespace FLGrainInterfaces.Configuration
             if (data.BotPlayMaxWaitMinutes <= data.BotPlayMinWaitMinutes)
                 Validation.FailWith("Bot play max time must be more than bot play min time");
 
-            Validation.CheckNotDefaultStruct(data.MatchMakingWaitBeforeBotMatch, "match-making wait before bot match");
-            
             Validation.CheckNotDefaultStruct(data.TutorialGamesCount, "Tutorial games count");
 
             data.CoinRewardVideo.Validate("coin reward video");
