@@ -169,9 +169,9 @@ namespace FLGrainInterfaces
         public static implicit operator AvatarPartDTO(FLGrainInterfaces.Utility.AvatarPart obj) => new AvatarPartDTO(obj.PartType, obj.ID);
         public static implicit operator FLGrainInterfaces.Utility.AvatarPart(AvatarPartDTO obj) => new FLGrainInterfaces.Utility.AvatarPart { PartType = obj.PartType, ID = obj.ID };
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.UEnum(PartType), LightMessage.Common.Messages.Param.UInt(ID));
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(LightMessage.Common.WireProtocol.Param.UEnum(PartType), LightMessage.Common.WireProtocol.Param.UInt(ID));
 
-        public static AvatarPartDTO FromParam(LightMessage.Common.Messages.Param param)
+        public static AvatarPartDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;
@@ -190,9 +190,9 @@ namespace FLGrainInterfaces
 
         public System.Collections.Generic.IReadOnlyList<AvatarPartDTO> Parts { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.Array(Parts.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(LightMessage.Common.WireProtocol.Param.Array(Parts.Select(a => a?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())));
 
-        public static AvatarDTO FromParam(LightMessage.Common.Messages.Param param)
+        public static AvatarDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;
@@ -217,9 +217,9 @@ namespace FLGrainInterfaces
         public uint Price { get; }
         public ushort MinimumLevel { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.UEnum(PartType), LightMessage.Common.Messages.Param.UInt(ID), LightMessage.Common.Messages.Param.UInt(Price), LightMessage.Common.Messages.Param.UInt(MinimumLevel));
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(LightMessage.Common.WireProtocol.Param.UEnum(PartType), LightMessage.Common.WireProtocol.Param.UInt(ID), LightMessage.Common.WireProtocol.Param.UInt(Price), LightMessage.Common.WireProtocol.Param.UInt(MinimumLevel));
 
-        public static AvatarPartConfigDTO FromParam(LightMessage.Common.Messages.Param param)
+        public static AvatarPartConfigDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;
@@ -240,9 +240,9 @@ namespace FLGrainInterfaces
         public string Name { get; }
         public AvatarDTO Avatar { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name), Avatar?.ToParam() ?? LightMessage.Common.Messages.Param.Null());
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(LightMessage.Common.WireProtocol.Param.String(Name), Avatar?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null());
 
-        public static PlayerLeaderBoardInfoDTO FromParam(LightMessage.Common.Messages.Param param)
+        public static PlayerLeaderBoardInfoDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;
@@ -265,9 +265,9 @@ namespace FLGrainInterfaces
         public ulong Rank { get; }
         public ulong Score { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(Info?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.UInt(Rank), LightMessage.Common.Messages.Param.UInt(Score));
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(Info?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null(), LightMessage.Common.WireProtocol.Param.UInt(Rank), LightMessage.Common.WireProtocol.Param.UInt(Score));
 
-        public static LeaderBoardEntryDTO FromParam(LightMessage.Common.Messages.Param param)
+        public static LeaderBoardEntryDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;
@@ -292,9 +292,9 @@ namespace FLGrainInterfaces
         public uint Level { get; }
         public AvatarDTO Avatar { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.Guid(ID), LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.UInt(Level), Avatar?.ToParam() ?? LightMessage.Common.Messages.Param.Null());
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(LightMessage.Common.WireProtocol.Param.Guid(ID), LightMessage.Common.WireProtocol.Param.String(Name), LightMessage.Common.WireProtocol.Param.UInt(Level), Avatar?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null());
 
-        public static PlayerInfoDTO FromParam(LightMessage.Common.Messages.Param param)
+        public static PlayerInfoDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;
@@ -317,9 +317,9 @@ namespace FLGrainInterfaces
         public int Parameter { get; }
         public ulong Value { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.UEnum(Statistic), LightMessage.Common.Messages.Param.Int(Parameter), LightMessage.Common.Messages.Param.UInt(Value));
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(LightMessage.Common.WireProtocol.Param.UEnum(Statistic), LightMessage.Common.WireProtocol.Param.Int(Parameter), LightMessage.Common.WireProtocol.Param.UInt(Value));
 
-        public static StatisticValueDTO FromParam(LightMessage.Common.Messages.Param param)
+        public static StatisticValueDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;
@@ -374,9 +374,9 @@ namespace FLGrainInterfaces
         public System.Collections.Generic.IReadOnlyList<AvatarPartDTO> OwnedAvatarParts { get; }
         public string InviteCode { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.String(Email), LightMessage.Common.Messages.Param.UInt(XP), LightMessage.Common.Messages.Param.UInt(Level), LightMessage.Common.Messages.Param.UInt(NextLevelXPThreshold), LightMessage.Common.Messages.Param.UInt(Score), LightMessage.Common.Messages.Param.UInt(Rank), LightMessage.Common.Messages.Param.UInt(Gold), LightMessage.Common.Messages.Param.UInt(CurrentNumRoundsWonForReward), LightMessage.Common.Messages.Param.TimeSpan(NextRoundWinRewardTimeRemaining), LightMessage.Common.Messages.Param.TimeSpan(UpgradedActiveGameLimitTimeRemaining), LightMessage.Common.Messages.Param.Array(StatisticsValues.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())), LightMessage.Common.Messages.Param.Boolean(IsRegistered), LightMessage.Common.Messages.Param.Boolean(NotificationsEnabled), LightMessage.Common.Messages.Param.UInt(TutorialProgress), LightMessage.Common.Messages.Param.Boolean(CoinRewardVideoNotificationsEnabled), Avatar?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.Array(OwnedAvatarParts.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())), LightMessage.Common.Messages.Param.String(InviteCode));
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(LightMessage.Common.WireProtocol.Param.String(Name), LightMessage.Common.WireProtocol.Param.String(Email), LightMessage.Common.WireProtocol.Param.UInt(XP), LightMessage.Common.WireProtocol.Param.UInt(Level), LightMessage.Common.WireProtocol.Param.UInt(NextLevelXPThreshold), LightMessage.Common.WireProtocol.Param.UInt(Score), LightMessage.Common.WireProtocol.Param.UInt(Rank), LightMessage.Common.WireProtocol.Param.UInt(Gold), LightMessage.Common.WireProtocol.Param.UInt(CurrentNumRoundsWonForReward), LightMessage.Common.WireProtocol.Param.TimeSpan(NextRoundWinRewardTimeRemaining), LightMessage.Common.WireProtocol.Param.TimeSpan(UpgradedActiveGameLimitTimeRemaining), LightMessage.Common.WireProtocol.Param.Array(StatisticsValues.Select(a => a?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())), LightMessage.Common.WireProtocol.Param.Boolean(IsRegistered), LightMessage.Common.WireProtocol.Param.Boolean(NotificationsEnabled), LightMessage.Common.WireProtocol.Param.UInt(TutorialProgress), LightMessage.Common.WireProtocol.Param.Boolean(CoinRewardVideoNotificationsEnabled), Avatar?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null(), LightMessage.Common.WireProtocol.Param.Array(OwnedAvatarParts.Select(a => a?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())), LightMessage.Common.WireProtocol.Param.String(InviteCode));
 
-        public static OwnPlayerInfoDTO FromParam(LightMessage.Common.Messages.Param param)
+        public static OwnPlayerInfoDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;
@@ -400,9 +400,9 @@ namespace FLGrainInterfaces
         public static implicit operator WordScorePairDTO(FLGameLogic.WordScorePair obj) => new WordScorePairDTO(obj.word, obj.score);
         public static implicit operator FLGameLogic.WordScorePair(WordScorePairDTO obj) => new FLGameLogic.WordScorePair { word = obj.Word, score = obj.Score };
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Word), LightMessage.Common.Messages.Param.UInt(Score));
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(LightMessage.Common.WireProtocol.Param.String(Word), LightMessage.Common.WireProtocol.Param.UInt(Score));
 
-        public static WordScorePairDTO FromParam(LightMessage.Common.Messages.Param param)
+        public static WordScorePairDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;
@@ -445,9 +445,9 @@ namespace FLGrainInterfaces
         public uint RoundTimeExtensions { get; }
         public System.TimeSpan? MyTurnTimeRemaining { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(OtherPlayerInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.UInt(NumRounds), LightMessage.Common.Messages.Param.Array(Categories.Select(a => LightMessage.Common.Messages.Param.String(a))), LightMessage.Common.Messages.Param.Array(HaveCategoryAnswers.Select(a => LightMessage.Common.Messages.Param.Boolean(a))), LightMessage.Common.Messages.Param.Array(MyWordsPlayed.Select(a => LightMessage.Common.Messages.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.Messages.Param.Null())))), LightMessage.Common.Messages.Param.Array(TheirWordsPlayed?.Select(a => LightMessage.Common.Messages.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.Messages.Param.Null())))), LightMessage.Common.Messages.Param.Boolean(MyTurnFirst), LightMessage.Common.Messages.Param.UInt(NumTurnsTakenByOpponent), LightMessage.Common.Messages.Param.Boolean(Expired), LightMessage.Common.Messages.Param.Boolean(ExpiredForMe), LightMessage.Common.Messages.Param.TimeSpan(ExpiryTimeRemaining), LightMessage.Common.Messages.Param.UInt(RoundTimeExtensions), LightMessage.Common.Messages.Param.TimeSpan(MyTurnTimeRemaining));
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(OtherPlayerInfo?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null(), LightMessage.Common.WireProtocol.Param.UInt(NumRounds), LightMessage.Common.WireProtocol.Param.Array(Categories.Select(a => LightMessage.Common.WireProtocol.Param.String(a))), LightMessage.Common.WireProtocol.Param.Array(HaveCategoryAnswers.Select(a => LightMessage.Common.WireProtocol.Param.Boolean(a))), LightMessage.Common.WireProtocol.Param.Array(MyWordsPlayed.Select(a => LightMessage.Common.WireProtocol.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())))), LightMessage.Common.WireProtocol.Param.Array(TheirWordsPlayed?.Select(a => LightMessage.Common.WireProtocol.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())))), LightMessage.Common.WireProtocol.Param.Boolean(MyTurnFirst), LightMessage.Common.WireProtocol.Param.UInt(NumTurnsTakenByOpponent), LightMessage.Common.WireProtocol.Param.Boolean(Expired), LightMessage.Common.WireProtocol.Param.Boolean(ExpiredForMe), LightMessage.Common.WireProtocol.Param.TimeSpan(ExpiryTimeRemaining), LightMessage.Common.WireProtocol.Param.UInt(RoundTimeExtensions), LightMessage.Common.WireProtocol.Param.TimeSpan(MyTurnTimeRemaining));
 
-        public static GameInfoDTO FromParam(LightMessage.Common.Messages.Param param)
+        public static GameInfoDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;
@@ -484,9 +484,9 @@ namespace FLGrainInterfaces
         public System.TimeSpan? ExpiryTimeRemaining { get; }
         public System.TimeSpan? MyTurnTimeRemaining { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.Guid(GameID), LightMessage.Common.Messages.Param.UEnum(GameState), LightMessage.Common.Messages.Param.String(OtherPlayerName), OtherPlayerAvatar?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.Boolean(MyTurn), LightMessage.Common.Messages.Param.UInt(MyScore), LightMessage.Common.Messages.Param.UInt(TheirScore), LightMessage.Common.Messages.Param.Boolean(WinnerOfExpiredGame), LightMessage.Common.Messages.Param.TimeSpan(ExpiryTimeRemaining), LightMessage.Common.Messages.Param.TimeSpan(MyTurnTimeRemaining));
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(LightMessage.Common.WireProtocol.Param.Guid(GameID), LightMessage.Common.WireProtocol.Param.UEnum(GameState), LightMessage.Common.WireProtocol.Param.String(OtherPlayerName), OtherPlayerAvatar?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null(), LightMessage.Common.WireProtocol.Param.Boolean(MyTurn), LightMessage.Common.WireProtocol.Param.UInt(MyScore), LightMessage.Common.WireProtocol.Param.UInt(TheirScore), LightMessage.Common.WireProtocol.Param.Boolean(WinnerOfExpiredGame), LightMessage.Common.WireProtocol.Param.TimeSpan(ExpiryTimeRemaining), LightMessage.Common.WireProtocol.Param.TimeSpan(MyTurnTimeRemaining));
 
-        public static SimplifiedGameInfoDTO FromParam(LightMessage.Common.Messages.Param param)
+        public static SimplifiedGameInfoDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;
@@ -565,9 +565,9 @@ namespace FLGrainInterfaces
 
         public static implicit operator ConfigValuesDTO(FLGrainInterfaces.Configuration.ConfigValues obj) => new ConfigValuesDTO(obj.NumRoundsToWinToGetReward, obj.RoundWinRewardInterval, obj.NumGoldRewardForWinningRounds, obj.PriceToRefreshGroups, obj.RoundTimeExtension, obj.RoundTimeExtensionPrices.ToList(), obj.RevealWordPrices.ToList(), obj.GetAnswersPrice, obj.MaxActiveGames, obj.UpgradedActiveGameLimitPrice, obj.MaxActiveGamesWhenUpgraded, obj.NumTimeExtensionsPerRound, obj.RefreshGroupsAllowedPerRound, obj.UpgradedActiveGameLimitTime, obj.NumRoundsPerGame, obj.NumGroupChoices, obj.ClientTimePerRound, obj.GameInactivityTimeout, obj.MaxScoreGain, obj.MinScoreGain, obj.LoserScoreLossRatio, obj.WinnerXPGain, obj.LoserXPGain, obj.DrawXPGain, obj.WinnerGoldGain, obj.LoserGoldGain, obj.DrawGoldGain, obj.VideoAdGold, obj.InviterReward, obj.InviteeReward);
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.UInt(NumRoundsToWinToGetReward), LightMessage.Common.Messages.Param.TimeSpan(RoundWinRewardInterval), LightMessage.Common.Messages.Param.UInt(NumGoldRewardForWinningRounds), LightMessage.Common.Messages.Param.UInt(PriceToRefreshGroups), LightMessage.Common.Messages.Param.TimeSpan(RoundTimeExtension), LightMessage.Common.Messages.Param.Array(RoundTimeExtensionPrices.Select(a => LightMessage.Common.Messages.Param.UInt(a))), LightMessage.Common.Messages.Param.Array(RevealWordPrices.Select(a => LightMessage.Common.Messages.Param.UInt(a))), LightMessage.Common.Messages.Param.UInt(GetAnswersPrice), LightMessage.Common.Messages.Param.UInt(MaxActiveGames), LightMessage.Common.Messages.Param.UInt(UpgradedActiveGameLimitPrice), LightMessage.Common.Messages.Param.UInt(MaxActiveGamesWhenUpgraded), LightMessage.Common.Messages.Param.UInt(NumTimeExtensionsPerRound), LightMessage.Common.Messages.Param.UInt(RefreshGroupsAllowedPerRound), LightMessage.Common.Messages.Param.TimeSpan(UpgradedActiveGameLimitTime), LightMessage.Common.Messages.Param.UInt(NumRoundsPerGame), LightMessage.Common.Messages.Param.UInt(NumGroupChoices), LightMessage.Common.Messages.Param.TimeSpan(ClientTimePerRound), LightMessage.Common.Messages.Param.TimeSpan(GameInactivityTimeout), LightMessage.Common.Messages.Param.UInt(MaxScoreGain), LightMessage.Common.Messages.Param.UInt(MinScoreGain), LightMessage.Common.Messages.Param.Float(LoserScoreLossRatio), LightMessage.Common.Messages.Param.UInt(WinnerXPGain), LightMessage.Common.Messages.Param.UInt(LoserXPGain), LightMessage.Common.Messages.Param.UInt(DrawXPGain), LightMessage.Common.Messages.Param.UInt(WinnerGoldGain), LightMessage.Common.Messages.Param.UInt(LoserGoldGain), LightMessage.Common.Messages.Param.UInt(DrawGoldGain), LightMessage.Common.Messages.Param.UInt(VideoAdGold), LightMessage.Common.Messages.Param.UInt(InviterReward), LightMessage.Common.Messages.Param.UInt(InviteeReward));
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(LightMessage.Common.WireProtocol.Param.UInt(NumRoundsToWinToGetReward), LightMessage.Common.WireProtocol.Param.TimeSpan(RoundWinRewardInterval), LightMessage.Common.WireProtocol.Param.UInt(NumGoldRewardForWinningRounds), LightMessage.Common.WireProtocol.Param.UInt(PriceToRefreshGroups), LightMessage.Common.WireProtocol.Param.TimeSpan(RoundTimeExtension), LightMessage.Common.WireProtocol.Param.Array(RoundTimeExtensionPrices.Select(a => LightMessage.Common.WireProtocol.Param.UInt(a))), LightMessage.Common.WireProtocol.Param.Array(RevealWordPrices.Select(a => LightMessage.Common.WireProtocol.Param.UInt(a))), LightMessage.Common.WireProtocol.Param.UInt(GetAnswersPrice), LightMessage.Common.WireProtocol.Param.UInt(MaxActiveGames), LightMessage.Common.WireProtocol.Param.UInt(UpgradedActiveGameLimitPrice), LightMessage.Common.WireProtocol.Param.UInt(MaxActiveGamesWhenUpgraded), LightMessage.Common.WireProtocol.Param.UInt(NumTimeExtensionsPerRound), LightMessage.Common.WireProtocol.Param.UInt(RefreshGroupsAllowedPerRound), LightMessage.Common.WireProtocol.Param.TimeSpan(UpgradedActiveGameLimitTime), LightMessage.Common.WireProtocol.Param.UInt(NumRoundsPerGame), LightMessage.Common.WireProtocol.Param.UInt(NumGroupChoices), LightMessage.Common.WireProtocol.Param.TimeSpan(ClientTimePerRound), LightMessage.Common.WireProtocol.Param.TimeSpan(GameInactivityTimeout), LightMessage.Common.WireProtocol.Param.UInt(MaxScoreGain), LightMessage.Common.WireProtocol.Param.UInt(MinScoreGain), LightMessage.Common.WireProtocol.Param.Float(LoserScoreLossRatio), LightMessage.Common.WireProtocol.Param.UInt(WinnerXPGain), LightMessage.Common.WireProtocol.Param.UInt(LoserXPGain), LightMessage.Common.WireProtocol.Param.UInt(DrawXPGain), LightMessage.Common.WireProtocol.Param.UInt(WinnerGoldGain), LightMessage.Common.WireProtocol.Param.UInt(LoserGoldGain), LightMessage.Common.WireProtocol.Param.UInt(DrawGoldGain), LightMessage.Common.WireProtocol.Param.UInt(VideoAdGold), LightMessage.Common.WireProtocol.Param.UInt(InviterReward), LightMessage.Common.WireProtocol.Param.UInt(InviteeReward));
 
-        public static ConfigValuesDTO FromParam(LightMessage.Common.Messages.Param param)
+        public static ConfigValuesDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;
@@ -594,9 +594,9 @@ namespace FLGrainInterfaces
 
         public static implicit operator GoldPackConfigDTO(FLGrainInterfaces.Configuration.GoldPackConfig obj) => new GoldPackConfigDTO(obj.Sku, obj.NumGold, obj.Title, obj.Tag);
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Sku), LightMessage.Common.Messages.Param.UInt(NumGold), LightMessage.Common.Messages.Param.String(Title), LightMessage.Common.Messages.Param.UEnum(Tag));
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(LightMessage.Common.WireProtocol.Param.String(Sku), LightMessage.Common.WireProtocol.Param.UInt(NumGold), LightMessage.Common.WireProtocol.Param.String(Title), LightMessage.Common.WireProtocol.Param.UEnum(Tag));
 
-        public static GoldPackConfigDTO FromParam(LightMessage.Common.Messages.Param param)
+        public static GoldPackConfigDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;
@@ -621,9 +621,9 @@ namespace FLGrainInterfaces
         public System.TimeSpan Interval { get; }
         public uint NumberPerDay { get; }
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.TimeSpan(TimeSinceLastWatched), LightMessage.Common.Messages.Param.UInt(NumberWatchedToday), LightMessage.Common.Messages.Param.TimeSpan(Interval), LightMessage.Common.Messages.Param.UInt(NumberPerDay));
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(LightMessage.Common.WireProtocol.Param.TimeSpan(TimeSinceLastWatched), LightMessage.Common.WireProtocol.Param.UInt(NumberWatchedToday), LightMessage.Common.WireProtocol.Param.TimeSpan(Interval), LightMessage.Common.WireProtocol.Param.UInt(NumberPerDay));
 
-        public static VideoAdTrackerInfoDTO FromParam(LightMessage.Common.Messages.Param param)
+        public static VideoAdTrackerInfoDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;
@@ -658,9 +658,9 @@ namespace FLGrainInterfaces
 
         public static implicit operator CoinGiftInfoDTO(FLGrainInterfaces.CoinGiftInfo obj) => new CoinGiftInfoDTO(obj.GiftID, obj.Subject, obj.Count, obj.Description, obj.ExtraData1, obj.ExtraData2, obj.ExtraData3, obj.ExtraData4);
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.Guid(GiftID), LightMessage.Common.Messages.Param.UEnum(Subject), LightMessage.Common.Messages.Param.UInt(Count), LightMessage.Common.Messages.Param.String(Description), LightMessage.Common.Messages.Param.String(ExtraData1), LightMessage.Common.Messages.Param.String(ExtraData2), LightMessage.Common.Messages.Param.String(ExtraData3), LightMessage.Common.Messages.Param.String(ExtraData4));
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(LightMessage.Common.WireProtocol.Param.Guid(GiftID), LightMessage.Common.WireProtocol.Param.UEnum(Subject), LightMessage.Common.WireProtocol.Param.UInt(Count), LightMessage.Common.WireProtocol.Param.String(Description), LightMessage.Common.WireProtocol.Param.String(ExtraData1), LightMessage.Common.WireProtocol.Param.String(ExtraData2), LightMessage.Common.WireProtocol.Param.String(ExtraData3), LightMessage.Common.WireProtocol.Param.String(ExtraData4));
 
-        public static CoinGiftInfoDTO FromParam(LightMessage.Common.Messages.Param param)
+        public static CoinGiftInfoDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;
@@ -683,9 +683,9 @@ namespace FLGrainInterfaces
 
         public static implicit operator GroupInfoDTO(FLGrainInterfaces.Configuration.GroupConfig obj) => new GroupInfoDTO(obj.Name, obj.ID);
 
-        public LightMessage.Common.Messages.Param ToParam() => LightMessage.Common.Messages.Param.Array(LightMessage.Common.Messages.Param.String(Name), LightMessage.Common.Messages.Param.UInt(ID));
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(LightMessage.Common.WireProtocol.Param.String(Name), LightMessage.Common.WireProtocol.Param.UInt(ID));
 
-        public static GroupInfoDTO FromParam(LightMessage.Common.Messages.Param param)
+        public static GroupInfoDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;

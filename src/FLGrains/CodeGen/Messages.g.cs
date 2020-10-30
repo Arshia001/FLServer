@@ -8,9 +8,9 @@ namespace FLGrains
     [LightMessage.OrleansUtils.GrainInterfaces.EndPointNameAttribute("sys"), Orleans.Concurrency.StatelessWorkerAttribute(128)]
     public abstract class SystemEndPointBase : LightMessage.OrleansUtils.Grains.EndPointGrain, ISystemEndPoint
     {
-        public virtual System.Threading.Tasks.Task<bool> SendNumRoundsWonForRewardUpdated(System.Guid clientID, uint totalRoundsWon) => SendMessage(clientID, "rwu", LightMessage.Common.Messages.Param.UInt(totalRoundsWon));
-        public virtual System.Threading.Tasks.Task<bool> SendStatisticUpdated(System.Guid clientID, StatisticValueDTO stat) => SendMessage(clientID, "st", stat?.ToParam() ?? LightMessage.Common.Messages.Param.Null());
-        public virtual System.Threading.Tasks.Task<bool> SendCoinGiftReceived(System.Guid clientID, CoinGiftInfoDTO gift) => SendMessage(clientID, "cg", gift?.ToParam() ?? LightMessage.Common.Messages.Param.Null());
+        public virtual System.Threading.Tasks.Task<bool> SendNumRoundsWonForRewardUpdated(System.Guid clientID, uint totalRoundsWon) => SendMessage(clientID, "rwu", LightMessage.Common.WireProtocol.Param.UInt(totalRoundsWon));
+        public virtual System.Threading.Tasks.Task<bool> SendStatisticUpdated(System.Guid clientID, StatisticValueDTO stat) => SendMessage(clientID, "st", stat?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null());
+        public virtual System.Threading.Tasks.Task<bool> SendCoinGiftReceived(System.Guid clientID, CoinGiftInfoDTO gift) => SendMessage(clientID, "cg", gift?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null());
         protected abstract System.Threading.Tasks.Task<(OwnPlayerInfoDTO playerInfo, ConfigValuesDTO configData, System.Collections.Generic.IEnumerable<GoldPackConfigDTO> goldPacks, VideoAdTrackerInfoDTO coinRewardVideo, VideoAdTrackerInfoDTO getCategoryAnswersVideo, System.Collections.Generic.IEnumerable<CoinGiftInfoDTO> coinGifts, System.Collections.Generic.IEnumerable<AvatarPartConfigDTO> avatarParts)> GetStartupInfo(System.Guid clientID);
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("st")]
@@ -18,7 +18,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GetStartupInfo(input.ClientID);
-            return Success(result.playerInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), result.configData?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.Array(result.goldPacks.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())), result.coinRewardVideo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), result.getCategoryAnswersVideo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.Array(result.coinGifts.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())), LightMessage.Common.Messages.Param.Array(result.avatarParts.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
+            return Success(result.playerInfo?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null(), result.configData?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null(), LightMessage.Common.WireProtocol.Param.Array(result.goldPacks.Select(a => a?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())), result.coinRewardVideo?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null(), result.getCategoryAnswersVideo?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null(), LightMessage.Common.WireProtocol.Param.Array(result.coinGifts.Select(a => a?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())), LightMessage.Common.WireProtocol.Param.Array(result.avatarParts.Select(a => a?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("trwr")]
@@ -26,7 +26,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).TakeRewardForWinningRounds();
-            return Success(LightMessage.Common.Messages.Param.UInt(result.totalGold), LightMessage.Common.Messages.Param.TimeSpan(result.timeUntilNextReward));
+            return Success(LightMessage.Common.WireProtocol.Param.UInt(result.totalGold), LightMessage.Common.WireProtocol.Param.TimeSpan(result.timeUntilNextReward));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("upgl")]
@@ -34,7 +34,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).ActivateUpgradedActiveGameLimit();
-            return Success(LightMessage.Common.Messages.Param.Boolean(result.success), LightMessage.Common.Messages.Param.UInt(result.totalGold), LightMessage.Common.Messages.Param.TimeSpan(result.duration));
+            return Success(LightMessage.Common.WireProtocol.Param.Boolean(result.success), LightMessage.Common.WireProtocol.Param.UInt(result.totalGold), LightMessage.Common.WireProtocol.Param.TimeSpan(result.duration));
         }
 
         protected abstract System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<LeaderBoardEntryDTO>> GetLeaderBoard(System.Guid clientID, LeaderBoardSubject subject, LeaderBoardGroup group);
@@ -44,7 +44,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GetLeaderBoard(input.ClientID, array[0].AsUEnum<LeaderBoardSubject>().Value, array[1].AsUEnum<LeaderBoardGroup>().Value);
-            return Success(LightMessage.Common.Messages.Param.Array(result.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
+            return Success(LightMessage.Common.WireProtocol.Param.Array(result.Select(a => a?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("bgp")]
@@ -52,7 +52,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).ProcessGoldPackPurchase(array[0].AsString, array[1].AsString);
-            return Success(LightMessage.Common.Messages.Param.UEnum(result.result), LightMessage.Common.Messages.Param.UInt(result.totalGold));
+            return Success(LightMessage.Common.WireProtocol.Param.UEnum(result.result), LightMessage.Common.WireProtocol.Param.UInt(result.totalGold));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("ne")]
@@ -78,7 +78,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await Login(input.ClientID, array[0].AsString, array[1].AsString);
-            return Success(LightMessage.Common.Messages.Param.Guid(result));
+            return Success(LightMessage.Common.WireProtocol.Param.Guid(result));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("reg")]
@@ -86,7 +86,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).PerformRegistration(array[0].AsString, array[1].AsString, array[2].AsString, array[3].AsString);
-            return Success(LightMessage.Common.Messages.Param.UEnum(result.result), LightMessage.Common.Messages.Param.UInt(result.totalGold));
+            return Success(LightMessage.Common.WireProtocol.Param.UEnum(result.result), LightMessage.Common.WireProtocol.Param.UInt(result.totalGold));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("bap")]
@@ -94,7 +94,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).BuyAvatarParts(array[0].AsArray.Select(a => AvatarPartDTO.FromParam(a)).ToList());
-            return Success(LightMessage.Common.Messages.Param.Boolean(result.success), LightMessage.Common.Messages.Param.UInt(result.totalGold));
+            return Success(LightMessage.Common.WireProtocol.Param.Boolean(result.success), LightMessage.Common.WireProtocol.Param.UInt(result.totalGold));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("aav")]
@@ -110,7 +110,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).SetUsername(array[0].AsString);
-            return Success(LightMessage.Common.Messages.Param.Boolean(result));
+            return Success(LightMessage.Common.WireProtocol.Param.Boolean(result));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("eml")]
@@ -118,7 +118,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).SetEmail(array[0].AsString);
-            return Success(LightMessage.Common.Messages.Param.UEnum(result));
+            return Success(LightMessage.Common.WireProtocol.Param.UEnum(result));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("pwd")]
@@ -126,7 +126,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).UpdatePassword(array[0].AsString);
-            return Success(LightMessage.Common.Messages.Param.UEnum(result));
+            return Success(LightMessage.Common.WireProtocol.Param.UEnum(result));
         }
 
         protected abstract System.Threading.Tasks.Task SendPasswordRecoveryLink(System.Guid clientID, string email);
@@ -168,7 +168,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).GiveVideoAdReward();
-            return Success(LightMessage.Common.Messages.Param.UInt(result));
+            return Success(LightMessage.Common.WireProtocol.Param.UInt(result));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("ccg")]
@@ -176,7 +176,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).ClaimCoinGift(array[0].AsGuid.Value);
-            return Success(LightMessage.Common.Messages.Param.UInt(result));
+            return Success(LightMessage.Common.WireProtocol.Param.UInt(result));
         }
     }
 
@@ -207,10 +207,10 @@ namespace FLGrains
     [LightMessage.OrleansUtils.GrainInterfaces.EndPointNameAttribute("gm"), Orleans.Concurrency.StatelessWorkerAttribute(128)]
     public abstract class GameEndPointBase : LightMessage.OrleansUtils.Grains.EndPointGrain, IGameEndPoint
     {
-        public virtual System.Threading.Tasks.Task<bool> SendOpponentJoined(System.Guid clientID, System.Guid gameID, PlayerInfoDTO opponentInfo, System.TimeSpan? expiryTimeRemaining) => SendMessage(clientID, "opj", LightMessage.Common.Messages.Param.Guid(gameID), opponentInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.TimeSpan(expiryTimeRemaining));
-        public virtual System.Threading.Tasks.Task<bool> SendOpponentTurnEnded(System.Guid clientID, System.Guid gameID, byte roundNumber, System.Collections.Generic.IEnumerable<WordScorePairDTO>? wordsPlayed, System.TimeSpan? expiryTimeRemaining) => SendMessage(clientID, "opr", LightMessage.Common.Messages.Param.Guid(gameID), LightMessage.Common.Messages.Param.UInt(roundNumber), LightMessage.Common.Messages.Param.Array(wordsPlayed?.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())), LightMessage.Common.Messages.Param.TimeSpan(expiryTimeRemaining));
-        public virtual System.Threading.Tasks.Task<bool> SendGameEnded(System.Guid clientID, System.Guid gameID, uint myScore, uint theirScore, uint myPlayerScore, uint myPlayerRank, uint myLevel, uint myXP, ulong myGold) => SendMessage(clientID, "gend", LightMessage.Common.Messages.Param.Guid(gameID), LightMessage.Common.Messages.Param.UInt(myScore), LightMessage.Common.Messages.Param.UInt(theirScore), LightMessage.Common.Messages.Param.UInt(myPlayerScore), LightMessage.Common.Messages.Param.UInt(myPlayerRank), LightMessage.Common.Messages.Param.UInt(myLevel), LightMessage.Common.Messages.Param.UInt(myXP), LightMessage.Common.Messages.Param.UInt(myGold));
-        public virtual System.Threading.Tasks.Task<bool> SendGameExpired(System.Guid clientID, System.Guid gameID, bool myWin, uint myPlayerScore, uint myPlayerRank, uint myLevel, uint myXP, ulong myGold) => SendMessage(clientID, "gexp", LightMessage.Common.Messages.Param.Guid(gameID), LightMessage.Common.Messages.Param.Boolean(myWin), LightMessage.Common.Messages.Param.UInt(myPlayerScore), LightMessage.Common.Messages.Param.UInt(myPlayerRank), LightMessage.Common.Messages.Param.UInt(myLevel), LightMessage.Common.Messages.Param.UInt(myXP), LightMessage.Common.Messages.Param.UInt(myGold));
+        public virtual System.Threading.Tasks.Task<bool> SendOpponentJoined(System.Guid clientID, System.Guid gameID, PlayerInfoDTO opponentInfo, System.TimeSpan? expiryTimeRemaining) => SendMessage(clientID, "opj", LightMessage.Common.WireProtocol.Param.Guid(gameID), opponentInfo?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null(), LightMessage.Common.WireProtocol.Param.TimeSpan(expiryTimeRemaining));
+        public virtual System.Threading.Tasks.Task<bool> SendOpponentTurnEnded(System.Guid clientID, System.Guid gameID, byte roundNumber, System.Collections.Generic.IEnumerable<WordScorePairDTO>? wordsPlayed, System.TimeSpan? expiryTimeRemaining) => SendMessage(clientID, "opr", LightMessage.Common.WireProtocol.Param.Guid(gameID), LightMessage.Common.WireProtocol.Param.UInt(roundNumber), LightMessage.Common.WireProtocol.Param.Array(wordsPlayed?.Select(a => a?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())), LightMessage.Common.WireProtocol.Param.TimeSpan(expiryTimeRemaining));
+        public virtual System.Threading.Tasks.Task<bool> SendGameEnded(System.Guid clientID, System.Guid gameID, uint myScore, uint theirScore, uint myPlayerScore, uint myPlayerRank, uint myLevel, uint myXP, ulong myGold) => SendMessage(clientID, "gend", LightMessage.Common.WireProtocol.Param.Guid(gameID), LightMessage.Common.WireProtocol.Param.UInt(myScore), LightMessage.Common.WireProtocol.Param.UInt(theirScore), LightMessage.Common.WireProtocol.Param.UInt(myPlayerScore), LightMessage.Common.WireProtocol.Param.UInt(myPlayerRank), LightMessage.Common.WireProtocol.Param.UInt(myLevel), LightMessage.Common.WireProtocol.Param.UInt(myXP), LightMessage.Common.WireProtocol.Param.UInt(myGold));
+        public virtual System.Threading.Tasks.Task<bool> SendGameExpired(System.Guid clientID, System.Guid gameID, bool myWin, uint myPlayerScore, uint myPlayerRank, uint myLevel, uint myXP, ulong myGold) => SendMessage(clientID, "gexp", LightMessage.Common.WireProtocol.Param.Guid(gameID), LightMessage.Common.WireProtocol.Param.Boolean(myWin), LightMessage.Common.WireProtocol.Param.UInt(myPlayerScore), LightMessage.Common.WireProtocol.Param.UInt(myPlayerRank), LightMessage.Common.WireProtocol.Param.UInt(myLevel), LightMessage.Common.WireProtocol.Param.UInt(myXP), LightMessage.Common.WireProtocol.Param.UInt(myGold));
         protected abstract System.Threading.Tasks.Task<(System.Guid gameID, PlayerInfoDTO? opponentInfo, byte numRounds, bool myTurnFirst, System.TimeSpan? expiryTimeRemaining)> NewGame(System.Guid clientID);
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("new")]
@@ -218,7 +218,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await NewGame(input.ClientID);
-            return Success(LightMessage.Common.Messages.Param.Guid(result.gameID), result.opponentInfo?.ToParam() ?? LightMessage.Common.Messages.Param.Null(), LightMessage.Common.Messages.Param.UInt(result.numRounds), LightMessage.Common.Messages.Param.Boolean(result.myTurnFirst), LightMessage.Common.Messages.Param.TimeSpan(result.expiryTimeRemaining));
+            return Success(LightMessage.Common.WireProtocol.Param.Guid(result.gameID), result.opponentInfo?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null(), LightMessage.Common.WireProtocol.Param.UInt(result.numRounds), LightMessage.Common.WireProtocol.Param.Boolean(result.myTurnFirst), LightMessage.Common.WireProtocol.Param.TimeSpan(result.expiryTimeRemaining));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("rnd")]
@@ -226,7 +226,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IGame>(array[0].AsGuid.Value).StartRound(input.ClientID);
-            return Success(LightMessage.Common.Messages.Param.String(result.category), LightMessage.Common.Messages.Param.Boolean(result.haveAnswers), LightMessage.Common.Messages.Param.TimeSpan(result.roundTime), LightMessage.Common.Messages.Param.Boolean(result.mustChooseGroup), LightMessage.Common.Messages.Param.Array(result.groups?.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
+            return Success(LightMessage.Common.WireProtocol.Param.String(result.category), LightMessage.Common.WireProtocol.Param.Boolean(result.haveAnswers), LightMessage.Common.WireProtocol.Param.TimeSpan(result.roundTime), LightMessage.Common.WireProtocol.Param.Boolean(result.mustChooseGroup), LightMessage.Common.WireProtocol.Param.Array(result.groups?.Select(a => a?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("cgr")]
@@ -234,7 +234,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IGame>(array[0].AsGuid.Value).ChooseGroup(input.ClientID, (ushort)array[1].AsUInt.Value);
-            return Success(LightMessage.Common.Messages.Param.String(result.category), LightMessage.Common.Messages.Param.Boolean(result.haveAnswers), LightMessage.Common.Messages.Param.TimeSpan(result.roundTime));
+            return Success(LightMessage.Common.WireProtocol.Param.String(result.category), LightMessage.Common.WireProtocol.Param.Boolean(result.haveAnswers), LightMessage.Common.WireProtocol.Param.TimeSpan(result.roundTime));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("rgr")]
@@ -242,7 +242,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).RefreshGroups(array[0].AsGuid.Value);
-            return Success(LightMessage.Common.Messages.Param.Array(result.groups?.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())), LightMessage.Common.Messages.Param.UInt(result.totalGold));
+            return Success(LightMessage.Common.WireProtocol.Param.Array(result.groups?.Select(a => a?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())), LightMessage.Common.WireProtocol.Param.UInt(result.totalGold));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("word")]
@@ -250,7 +250,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IGame>(array[0].AsGuid.Value).PlayWord(input.ClientID, array[1].AsString);
-            return Success(LightMessage.Common.Messages.Param.UInt(result.wordScore), LightMessage.Common.Messages.Param.String(result.corrected));
+            return Success(LightMessage.Common.WireProtocol.Param.UInt(result.wordScore), LightMessage.Common.WireProtocol.Param.String(result.corrected));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("irt")]
@@ -258,7 +258,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IGame>(array[0].AsGuid.Value).IncreaseRoundTime(input.ClientID);
-            return Success(LightMessage.Common.Messages.Param.UInt(result.gold), LightMessage.Common.Messages.Param.TimeSpan(result.remainingTime));
+            return Success(LightMessage.Common.WireProtocol.Param.UInt(result.gold), LightMessage.Common.WireProtocol.Param.TimeSpan(result.remainingTime));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("rvw")]
@@ -266,7 +266,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IGame>(array[0].AsGuid.Value).RevealWord(input.ClientID);
-            return Success(LightMessage.Common.Messages.Param.UInt(result.gold), LightMessage.Common.Messages.Param.String(result.word), LightMessage.Common.Messages.Param.UInt(result.wordScore));
+            return Success(LightMessage.Common.WireProtocol.Param.UInt(result.gold), LightMessage.Common.WireProtocol.Param.String(result.word), LightMessage.Common.WireProtocol.Param.UInt(result.wordScore));
         }
 
         protected abstract System.Threading.Tasks.Task<(System.Collections.Generic.IEnumerable<WordScorePairDTO>? opponentWords, System.TimeSpan? expiryTimeRemaining)> EndRound(System.Guid clientID, System.Guid gameID);
@@ -276,7 +276,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await EndRound(input.ClientID, array[0].AsGuid.Value);
-            return Success(LightMessage.Common.Messages.Param.Array(result.opponentWords?.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())), LightMessage.Common.Messages.Param.TimeSpan(result.expiryTimeRemaining));
+            return Success(LightMessage.Common.WireProtocol.Param.Array(result.opponentWords?.Select(a => a?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())), LightMessage.Common.WireProtocol.Param.TimeSpan(result.expiryTimeRemaining));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("info")]
@@ -284,7 +284,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IGame>(array[0].AsGuid.Value).GetGameInfo(input.ClientID);
-            return Success(result?.ToParam() ?? LightMessage.Common.Messages.Param.Null());
+            return Success(result?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null());
         }
 
         protected abstract System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<SimplifiedGameInfoDTO>> GetAllGames(System.Guid clientID);
@@ -294,7 +294,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GetAllGames(input.ClientID);
-            return Success(LightMessage.Common.Messages.Param.Array(result.Select(a => a?.ToParam() ?? LightMessage.Common.Messages.Param.Null())));
+            return Success(LightMessage.Common.WireProtocol.Param.Array(result.Select(a => a?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("cgh")]
@@ -310,7 +310,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).GetAnswers(array[0].AsString);
-            return Success(LightMessage.Common.Messages.Param.Array(result.words.Select(a => LightMessage.Common.Messages.Param.String(a))), LightMessage.Common.Messages.Param.UInt(result.totalGold));
+            return Success(LightMessage.Common.WireProtocol.Param.Array(result.words.Select(a => LightMessage.Common.WireProtocol.Param.String(a))), LightMessage.Common.WireProtocol.Param.UInt(result.totalGold));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("ansad")]
@@ -318,7 +318,7 @@ namespace FLGrains
         {
             var array = input.Args;
             var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).GetAnswersByVideoAd(array[0].AsString);
-            return Success(LightMessage.Common.Messages.Param.Array(result.Select(a => LightMessage.Common.Messages.Param.String(a))));
+            return Success(LightMessage.Common.WireProtocol.Param.Array(result.Select(a => LightMessage.Common.WireProtocol.Param.String(a))));
         }
 
         protected abstract System.Threading.Tasks.Task Vote(System.Guid clientID, string category, bool up);
@@ -349,6 +349,6 @@ namespace FLGrains
         }
 
         public void Stop() => host.Stop();
-        System.Threading.Tasks.Task<System.Guid?> OnClientAuthRequest(LightMessage.Common.ProtocolMessages.AuthRequestMessage message) => onClientAuthCallback(message.Params[0].AsUEnum<HandShakeMode>().Value, message.Params[1].AsGuid, message.Params[2].AsString, message.Params[3].AsString);
+        System.Threading.Tasks.Task<System.Guid?> OnClientAuthRequest(LightMessage.Common.MessagingProtocol.AuthRequestMessage message) => onClientAuthCallback(message.Params[0].AsUEnum<HandShakeMode>().Value, message.Params[1].AsGuid, message.Params[2].AsString, message.Params[3].AsString);
     }
 }
