@@ -579,12 +579,12 @@ namespace FLGrains
 
                     var scoreGain = ScoreGainCalculator.CalculateGain(initScore0, initScore1, CompetitionResultHelper.Get(wins0, wins1), config);
 
-                    var (score0, rank0, level0, xp0, gold0) = await player0.OnGameResult(me, CompetitionResultHelper.Get(wins0, wins1), wins0, scoreGain, false, state.PlayerIDs[1]);
-                    var (score1, rank1, level1, xp1, gold1) = await player1.OnGameResult(me, CompetitionResultHelper.Get(wins1, wins0), wins1, scoreGain, false, state.PlayerIDs[0]);
+                    var (score0, rank0, level0, xp0, gold0, hasReward0) = await player0.OnGameResult(me, CompetitionResultHelper.Get(wins0, wins1), wins0, scoreGain, false, state.PlayerIDs[1]);
+                    var (score1, rank1, level1, xp1, gold1, hasReward1) = await player1.OnGameResult(me, CompetitionResultHelper.Get(wins1, wins0), wins1, scoreGain, false, state.PlayerIDs[0]);
 
-                    if (!await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(state.PlayerIDs[0], myID, wins0, wins1, score0, rank0, level0, xp0, gold0))
+                    if (!await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(state.PlayerIDs[0], myID, wins0, wins1, score0, rank0, level0, xp0, gold0, hasReward0))
                         await player0.SendGameEndedNotification(state.PlayerIDs[1]);
-                    if (!await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(state.PlayerIDs[1], myID, wins1, wins0, score1, rank1, level1, xp1, gold1))
+                    if (!await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameEnded(state.PlayerIDs[1], myID, wins1, wins0, score1, rank1, level1, xp1, gold1, hasReward1))
                         await player1.SendGameEndedNotification(state.PlayerIDs[0]);
 
                     var expiryReminder = await GetReminder("e");
@@ -669,12 +669,12 @@ namespace FLGrains
 
                 var scoreGain = ScoreGainCalculator.CalculateGain(initScore0, initScore1, expiredFor == 0 ? CompetitionResult.Loss : CompetitionResult.Win, config);
 
-                var (score0, rank0, level0, xp0, gold0) = await player0.OnGameResult(me, expiredFor == 0 ? CompetitionResult.Loss : CompetitionResult.Win, GameLogic.GetNumRoundsWon(0), scoreGain, true, state.PlayerIDs[1]);
-                var (score1, rank1, level1, xp1, gold1) = await player1.OnGameResult(me, expiredFor == 0 ? CompetitionResult.Win : CompetitionResult.Loss, GameLogic.GetNumRoundsWon(1), scoreGain, true, state.PlayerIDs[0]);
+                var (score0, rank0, level0, xp0, gold0, hasReward0) = await player0.OnGameResult(me, expiredFor == 0 ? CompetitionResult.Loss : CompetitionResult.Win, GameLogic.GetNumRoundsWon(0), scoreGain, true, state.PlayerIDs[1]);
+                var (score1, rank1, level1, xp1, gold1, hasReward1) = await player1.OnGameResult(me, expiredFor == 0 ? CompetitionResult.Win : CompetitionResult.Loss, GameLogic.GetNumRoundsWon(1), scoreGain, true, state.PlayerIDs[0]);
 
                 // No push notifications here...
-                await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameExpired(state.PlayerIDs[0], myID, expiredFor == 1, score0, rank0, level0, xp0, gold0);
-                await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameExpired(state.PlayerIDs[1], myID, expiredFor == 0, score1, rank1, level1, xp1, gold1);
+                await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameExpired(state.PlayerIDs[0], myID, expiredFor == 1, score0, rank0, level0, xp0, gold0, hasReward0);
+                await GrainFactory.GetGrain<IGameEndPoint>(0).SendGameExpired(state.PlayerIDs[1], myID, expiredFor == 0, score1, rank1, level1, xp1, gold1, hasReward1);
 
                 //!! keep game history separately, deactivate this grain
             });
@@ -875,7 +875,7 @@ namespace FLGrains
                     (botDatabase.GetByID(state.PlayerIDs[1 - index]) ?? // If the opponent isn't a bot, we get null back
                         await PlayerInfoHelper.GetInfo(GrainFactory, state.PlayerIDs[1 - index]));
 
-                var ownedCategories = await GrainFactory.GetGrain<IPlayer>(playerID).HaveAnswersForCategories(categories);
+                var (ownedCategories, rewardClaimed) = await GrainFactory.GetGrain<IPlayer>(playerID).GetCompleteGameRelatedData(this.GetPrimaryKey(), categories);
 
                 // The client is assumed to always be behind the server by ExtraTimePerRound to compensate for network delays
                 var clientNow = DateTime.Now + configReader.Config.ConfigValues.ExtraTimePerRound;
@@ -894,7 +894,8 @@ namespace FLGrains
                     expiredForMe: GameLogic.ExpiredFor == index,
                     expiryTimeRemaining: GetStateInternal(state) == GameState.InProgress && GameLogic.ExpiryTime.HasValue ? GameLogic.ExpiryTime.Value - DateTime.Now : default(TimeSpan?),
                     roundTimeExtensions: (uint)state.TimeExtensionsForEntireGame[index],
-                    myTurnTimeRemaining: GameLogic.IsTurnInProgress(index, clientNow) ? GameLogic.GetTurnEndTime(index) - clientNow : default
+                    myTurnTimeRemaining: GameLogic.IsTurnInProgress(index, clientNow) ? GameLogic.GetTurnEndTime(index) - clientNow : default,
+                    rewardClaimed: rewardClaimed
                 );
             });
 
@@ -919,12 +920,15 @@ namespace FLGrains
                     (botDatabase.GetByID(state.PlayerIDs[1 - index]) ?? // If the opponent isn't a bot, we get null back
                         await PlayerInfoHelper.GetInfo(GrainFactory, state.PlayerIDs[1 - index]));
 
+                var gameID = this.GetPrimaryKey();
+                var rewardClaimed = await GrainFactory.GetGrain<IPlayer>(playerID).GetSimplifiedGameRelatedData(gameID);
+
                 // The client is assumed to always be behind the server by ExtraTimePerRound to compensate for network delays
                 var clientNow = DateTime.Now + configReader.Config.ConfigValues.ExtraTimePerRound;
 
                 return new SimplifiedGameInfoDTO
                 (
-                    gameID: this.GetPrimaryKey(),
+                    gameID: gameID,
                     gameState: gameState,
                     otherPlayerName: otherPlayerInfo?.Name,
                     otherPlayerAvatar: otherPlayerInfo?.Avatar,
@@ -933,7 +937,8 @@ namespace FLGrains
                     theirScore: GameLogic.GetNumRoundsWon(1 - index),
                     winnerOfExpiredGame: gameState == GameState.Expired && isWinner,
                     expiryTimeRemaining: gameState == GameState.InProgress && GameLogic.ExpiryTime.HasValue ? GameLogic.ExpiryTime.Value - DateTime.Now : default(TimeSpan?),
-                    myTurnTimeRemaining: GameLogic.IsTurnInProgress(index, clientNow) ? GameLogic.GetTurnEndTime(index) - clientNow : default
+                    myTurnTimeRemaining: GameLogic.IsTurnInProgress(index, clientNow) ? GameLogic.GetTurnEndTime(index) - clientNow : default,
+                    rewardClaimed: rewardClaimed
                 );
             });
     }

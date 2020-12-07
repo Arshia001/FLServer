@@ -151,6 +151,9 @@ namespace FLGrainInterfaces
 
         [Id(32)]
         public int NextInactivityReminderIndex { get; set; }
+
+        [Id(33)]
+        public Dictionary<Guid, uint> UnclaimedGameRewards { get; set; } = new Dictionary<Guid, uint>();
     }
 
     [BondSerializationTag("@p")]
@@ -184,15 +187,15 @@ namespace FLGrainInterfaces
         Task AddStats(List<StatisticValueDTO> values);
 
         Task<Immutable<IReadOnlyList<IGame>>> GetGames();
-        Task ClearGameHistory();
-        Task ClearFinishedGames();
+        Task<ulong?> ClaimGameReward(Guid gameID);
+        Task<ulong?> ClearGameHistory();
         Task<(bool canEnter, Immutable<ISet<Guid>> activeOpponents)> CheckCanEnterGameAndGetActiveOpponents();
         Task<byte> JoinGameAsFirstPlayer(IGame game);
         Task<(Guid opponentID, byte numRounds, TimeSpan? expiryTimeRemaining)> JoinGameAsSecondPlayer(IGame game);
         Task SecondPlayerJoinedGame(IGame game, Guid playerID);
         Task OnRoundCompleted(IGame game, uint myScore);
         Task OnRoundResult(IGame game, CompetitionResult result, ushort groupID);
-        Task<(uint score, uint rank, uint level, uint xp, ulong gold)> 
+        Task<(uint score, uint rank, uint level, uint xp, ulong gold, bool hasReward)>
             OnGameResult(IGame game, CompetitionResult result, uint myScore, uint scoreGain, bool gameExpired, Guid opponentID);
 
         Task<IEnumerable<CompetitionResult>> GetMatchResultHistory(); // In order from newest to oldest, that is, index 0 is the most recent match
@@ -205,7 +208,8 @@ namespace FLGrainInterfaces
         Task<(IEnumerable<string> words, ulong? totalGold)> GetAnswers(string categoryName);
         Task<IEnumerable<string>> GetAnswersByVideoAd(string categoryName);
         Task<bool> HaveAnswersForCategory(string category);
-        Task<IReadOnlyList<bool>> HaveAnswersForCategories(IReadOnlyList<string> categories);
+        Task<(IReadOnlyList<bool> haveCategoryAnswers, bool rewardClaimed)> GetCompleteGameRelatedData(Guid gameID, IReadOnlyList<string> categories);
+        Task<bool> GetSimplifiedGameRelatedData(Guid gameID); // Only one piece of data: reward claimed
 
         Task<(IEnumerable<GroupInfoDTO>? groups, ulong totalGold)> RefreshGroups(Guid gameID);
 

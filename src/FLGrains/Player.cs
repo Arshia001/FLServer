@@ -155,7 +155,15 @@ namespace FLGrains
                 if (state.PastGames.Count > configValues.MaxGameHistoryEntries)
                 {
                     while (state.PastGames.Count > configValues.MaxGameHistoryEntries)
+                    {
+                        var game = state.PastGames[0];
+                        if (state.UnclaimedGameRewards.TryGetValue(game, out var reward))
+                        {
+                            state.UnclaimedGameRewards.Remove(game);
+                            GiveGold(reward);
+                        }
                         state.PastGames.RemoveAt(0);
+                    }
 
                     return (true, state.CoinGifts);
                 }
@@ -236,13 +244,26 @@ namespace FLGrains
                     .AsImmutable<IReadOnlyList<IGame>>()
                 ));
 
-        public Task ClearGameHistory() => state.UseStateAndPersist(state => state.PastGames.Clear());
+        public Task<ulong?> ClaimGameReward(Guid gameID) =>
+            state.UseStateAndPersist(state =>
+            {
+                if (!state.UnclaimedGameRewards.TryGetValue(gameID, out var reward))
+                    return default(ulong?);
 
-        public Task ClearFinishedGames()
-        {
-            state.UseStateAndLazyPersist(s => s.PastGames.Clear());
-            return Task.CompletedTask;
-        }
+                state.UnclaimedGameRewards.Remove(gameID);
+                return GiveGold(reward);
+            });
+
+        public Task<ulong?> ClearGameHistory() =>
+            state.UseStateAndPersist(state =>
+            {
+                state.PastGames.Clear();
+                var gold = default(ulong?);
+                foreach (var reward in state.UnclaimedGameRewards.Values)
+                    gold = GiveGold(reward);
+                state.UnclaimedGameRewards.Clear();
+                return gold;
+            });
 
         public Task<PlayerInfoDTO> GetPlayerInfo() =>
             state.UseState(async state =>
@@ -716,14 +737,25 @@ namespace FLGrains
 
         Task<ulong> GetRank() => LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).GetRank(this.GetPrimaryKey());
 
-        public Task<(uint score, uint rank, uint level, uint xp, ulong gold)>
+        bool AddUnclaimedReward(PlayerState state, Guid gameID, uint amount)
+        {
+            if (amount > 0)
+            {
+                state.UnclaimedGameRewards[gameID] = amount;
+                return true;
+            }
+
+            return false;
+        }
+
+        public Task<(uint score, uint rank, uint level, uint xp, ulong gold, bool hasReward)>
             OnGameResult(IGame game, CompetitionResult result, uint myScore, uint scoreGain, bool gameExpired, Guid opponentID) =>
             state.UseStateAndPersist(async state =>
             {
                 var gameID = game.GetPrimaryKey();
 
                 if (!state.ActiveGames.Contains(gameID))
-                    return (0u, 0u, 0u, 0u, 0ul);
+                    return (0u, 0u, 0u, 0u, 0ul, false);
 
                 activeOpponents.Remove(opponentID);
 
@@ -739,16 +771,17 @@ namespace FLGrains
                     state.MatchResultHistory.RemoveAt(state.MatchResultHistory.Count - 1);
 
                 var rank = 0UL;
-                var gold = 0UL;
                 var xp = 0U;
                 var level = 0U;
+                var gold = 0UL;
+                var hasReward = false;
 
                 switch (result)
                 {
                     case CompetitionResult.Draw:
                         rank = await GetRank();
                         (level, xp) = AddXP(config.DrawXPGain);
-                        gold = GiveGold(config.DrawGoldGain);
+                        hasReward = AddUnclaimedReward(state, gameID, config.DrawGoldGain);
 
                         AddStatImpl(1, Statistics.GamesEndedInDraw);
                         AddStatImpl(config.DrawGoldGain, Statistics.RewardMoneyEarned);
@@ -758,7 +791,7 @@ namespace FLGrains
                     case CompetitionResult.Win:
                         rank = await AddScore((int)scoreGain);
                         (level, xp) = AddXP(config.WinnerXPGain);
-                        gold = GiveGold(config.WinnerGoldGain);
+                        hasReward = AddUnclaimedReward(state, gameID, config.WinnerGoldGain);
 
                         AddStatImpl(1, Statistics.GamesWon);
                         AddStatImpl(config.WinnerGoldGain, Statistics.RewardMoneyEarned);
@@ -768,7 +801,7 @@ namespace FLGrains
                     case CompetitionResult.Loss when !gameExpired:
                         rank = await AddScore(-(int)(scoreGain * config.LoserScoreLossRatio));
                         (level, xp) = AddXP(config.LoserXPGain);
-                        gold = GiveGold(config.LoserGoldGain);
+                        hasReward = AddUnclaimedReward(state, gameID, config.LoserGoldGain);
 
                         AddStatImpl(1, Statistics.GamesLost);
                         AddStatImpl(config.LoserGoldGain, Statistics.RewardMoneyEarned);
@@ -786,7 +819,7 @@ namespace FLGrains
                         break;
                 }
 
-                return (state.Score, (uint)rank, level, xp, gold);
+                return (state.Score, (uint)rank, level, xp, gold, hasReward);
             });
 
         public Task<IEnumerable<CompetitionResult>> GetMatchResultHistory() =>
@@ -966,8 +999,14 @@ namespace FLGrains
 
         public Task<bool> HaveAnswersForCategory(string category) => state.UseState(state => Task.FromResult(state.OwnedCategoryAnswers.Contains(category)));
 
-        public Task<IReadOnlyList<bool>> HaveAnswersForCategories(IReadOnlyList<string> categories) =>
-            state.UseState(state => Task.FromResult(categories.Select(c => state.OwnedCategoryAnswers.Contains(c)).ToList() as IReadOnlyList<bool>));
+        public Task<(IReadOnlyList<bool> haveCategoryAnswers, bool rewardClaimed)> GetCompleteGameRelatedData(Guid gameID, IReadOnlyList<string> categories) =>
+            state.UseState(state => Task.FromResult((
+                categories.Select(c => state.OwnedCategoryAnswers.Contains(c)).ToList() as IReadOnlyList<bool>,
+                !state.UnclaimedGameRewards.ContainsKey(gameID)
+            )));
+
+        public Task<bool> GetSimplifiedGameRelatedData(Guid gameID) =>
+            state.UseState(state => Task.FromResult(!state.UnclaimedGameRewards.ContainsKey(gameID)));
 
         public Task<(IabPurchaseResult result, ulong totalGold)> ProcessGoldPackPurchase(string sku, string purchaseToken) =>
             state.UseStateAndMaybePersist(async state =>

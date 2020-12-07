@@ -147,14 +147,6 @@ namespace FLGrains
             return NoResult();
         }
 
-        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("cfg")]
-        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_ClearFinishedGames(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
-        {
-            var array = input.Args;
-            await GrainFactory.GetGrain<IPlayer>(input.ClientID).ClearFinishedGames();
-            return NoResult();
-        }
-
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("tutp")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_SetTutorialProgress(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
@@ -209,8 +201,8 @@ namespace FLGrains
     {
         public virtual System.Threading.Tasks.Task<bool> SendOpponentJoined(System.Guid clientID, System.Guid gameID, PlayerInfoDTO opponentInfo, System.TimeSpan? expiryTimeRemaining) => SendMessage(clientID, "opj", LightMessage.Common.WireProtocol.Param.Guid(gameID), opponentInfo?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null(), LightMessage.Common.WireProtocol.Param.TimeSpan(expiryTimeRemaining));
         public virtual System.Threading.Tasks.Task<bool> SendOpponentTurnEnded(System.Guid clientID, System.Guid gameID, byte roundNumber, System.Collections.Generic.IEnumerable<WordScorePairDTO>? wordsPlayed, System.TimeSpan? expiryTimeRemaining) => SendMessage(clientID, "opr", LightMessage.Common.WireProtocol.Param.Guid(gameID), LightMessage.Common.WireProtocol.Param.UInt(roundNumber), LightMessage.Common.WireProtocol.Param.Array(wordsPlayed?.Select(a => a?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())), LightMessage.Common.WireProtocol.Param.TimeSpan(expiryTimeRemaining));
-        public virtual System.Threading.Tasks.Task<bool> SendGameEnded(System.Guid clientID, System.Guid gameID, uint myScore, uint theirScore, uint myPlayerScore, uint myPlayerRank, uint myLevel, uint myXP, ulong myGold) => SendMessage(clientID, "gend", LightMessage.Common.WireProtocol.Param.Guid(gameID), LightMessage.Common.WireProtocol.Param.UInt(myScore), LightMessage.Common.WireProtocol.Param.UInt(theirScore), LightMessage.Common.WireProtocol.Param.UInt(myPlayerScore), LightMessage.Common.WireProtocol.Param.UInt(myPlayerRank), LightMessage.Common.WireProtocol.Param.UInt(myLevel), LightMessage.Common.WireProtocol.Param.UInt(myXP), LightMessage.Common.WireProtocol.Param.UInt(myGold));
-        public virtual System.Threading.Tasks.Task<bool> SendGameExpired(System.Guid clientID, System.Guid gameID, bool myWin, uint myPlayerScore, uint myPlayerRank, uint myLevel, uint myXP, ulong myGold) => SendMessage(clientID, "gexp", LightMessage.Common.WireProtocol.Param.Guid(gameID), LightMessage.Common.WireProtocol.Param.Boolean(myWin), LightMessage.Common.WireProtocol.Param.UInt(myPlayerScore), LightMessage.Common.WireProtocol.Param.UInt(myPlayerRank), LightMessage.Common.WireProtocol.Param.UInt(myLevel), LightMessage.Common.WireProtocol.Param.UInt(myXP), LightMessage.Common.WireProtocol.Param.UInt(myGold));
+        public virtual System.Threading.Tasks.Task<bool> SendGameEnded(System.Guid clientID, System.Guid gameID, uint myScore, uint theirScore, uint myPlayerScore, uint myPlayerRank, uint myLevel, uint myXP, ulong myGold, bool hasReward) => SendMessage(clientID, "gend", LightMessage.Common.WireProtocol.Param.Guid(gameID), LightMessage.Common.WireProtocol.Param.UInt(myScore), LightMessage.Common.WireProtocol.Param.UInt(theirScore), LightMessage.Common.WireProtocol.Param.UInt(myPlayerScore), LightMessage.Common.WireProtocol.Param.UInt(myPlayerRank), LightMessage.Common.WireProtocol.Param.UInt(myLevel), LightMessage.Common.WireProtocol.Param.UInt(myXP), LightMessage.Common.WireProtocol.Param.UInt(myGold), LightMessage.Common.WireProtocol.Param.Boolean(hasReward));
+        public virtual System.Threading.Tasks.Task<bool> SendGameExpired(System.Guid clientID, System.Guid gameID, bool myWin, uint myPlayerScore, uint myPlayerRank, uint myLevel, uint myXP, ulong myGold, bool hasReward) => SendMessage(clientID, "gexp", LightMessage.Common.WireProtocol.Param.Guid(gameID), LightMessage.Common.WireProtocol.Param.Boolean(myWin), LightMessage.Common.WireProtocol.Param.UInt(myPlayerScore), LightMessage.Common.WireProtocol.Param.UInt(myPlayerRank), LightMessage.Common.WireProtocol.Param.UInt(myLevel), LightMessage.Common.WireProtocol.Param.UInt(myXP), LightMessage.Common.WireProtocol.Param.UInt(myGold), LightMessage.Common.WireProtocol.Param.Boolean(hasReward));
         protected abstract System.Threading.Tasks.Task<(System.Guid gameID, PlayerInfoDTO? opponentInfo, byte numRounds, bool myTurnFirst, System.TimeSpan? expiryTimeRemaining)> NewGame(System.Guid clientID);
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("new")]
@@ -287,6 +279,14 @@ namespace FLGrains
             return Success(result?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null());
         }
 
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("cgr")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_ClaimGameReward(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).ClaimGameReward(array[0].AsGuid.Value);
+            return Success(LightMessage.Common.WireProtocol.Param.UInt(result));
+        }
+
         protected abstract System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<SimplifiedGameInfoDTO>> GetAllGames(System.Guid clientID);
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("all")]
@@ -301,8 +301,8 @@ namespace FLGrains
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_ClearGameHistory(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
-            await GrainFactory.GetGrain<IPlayer>(input.ClientID).ClearGameHistory();
-            return Success();
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).ClearGameHistory();
+            return Success(LightMessage.Common.WireProtocol.Param.UInt(result));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("ans")]

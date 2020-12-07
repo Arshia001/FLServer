@@ -19,8 +19,8 @@ namespace FLGrainInterfaces
     {
         System.Threading.Tasks.Task<bool> SendOpponentJoined(System.Guid clientID, System.Guid gameID, PlayerInfoDTO opponentInfo, System.TimeSpan? expiryTimeRemaining);
         System.Threading.Tasks.Task<bool> SendOpponentTurnEnded(System.Guid clientID, System.Guid gameID, byte roundNumber, System.Collections.Generic.IEnumerable<WordScorePairDTO>? wordsPlayed, System.TimeSpan? expiryTimeRemaining);
-        System.Threading.Tasks.Task<bool> SendGameEnded(System.Guid clientID, System.Guid gameID, uint myScore, uint theirScore, uint myPlayerScore, uint myPlayerRank, uint myLevel, uint myXP, ulong myGold);
-        System.Threading.Tasks.Task<bool> SendGameExpired(System.Guid clientID, System.Guid gameID, bool myWin, uint myPlayerScore, uint myPlayerRank, uint myLevel, uint myXP, ulong myGold);
+        System.Threading.Tasks.Task<bool> SendGameEnded(System.Guid clientID, System.Guid gameID, uint myScore, uint theirScore, uint myPlayerScore, uint myPlayerRank, uint myLevel, uint myXP, ulong myGold, bool hasReward);
+        System.Threading.Tasks.Task<bool> SendGameExpired(System.Guid clientID, System.Guid gameID, bool myWin, uint myPlayerScore, uint myPlayerRank, uint myLevel, uint myXP, ulong myGold, bool hasReward);
     }
 }
 #nullable enable annotations 
@@ -414,7 +414,7 @@ namespace FLGrainInterfaces
     [Orleans.Concurrency.Immutable]
     public class GameInfoDTO
     {
-        public GameInfoDTO(PlayerInfoDTO? otherPlayerInfo, byte numRounds, System.Collections.Generic.IEnumerable<string> categories, System.Collections.Generic.IEnumerable<bool> haveCategoryAnswers, System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<WordScorePairDTO>> myWordsPlayed, System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<WordScorePairDTO>>? theirWordsPlayed, bool myTurnFirst, byte numTurnsTakenByOpponent, bool expired, bool expiredForMe, System.TimeSpan? expiryTimeRemaining, uint roundTimeExtensions, System.TimeSpan? myTurnTimeRemaining)
+        public GameInfoDTO(PlayerInfoDTO? otherPlayerInfo, byte numRounds, System.Collections.Generic.IEnumerable<string> categories, System.Collections.Generic.IEnumerable<bool> haveCategoryAnswers, System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<WordScorePairDTO>> myWordsPlayed, System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<WordScorePairDTO>>? theirWordsPlayed, bool myTurnFirst, byte numTurnsTakenByOpponent, bool expired, bool expiredForMe, System.TimeSpan? expiryTimeRemaining, uint roundTimeExtensions, System.TimeSpan? myTurnTimeRemaining, bool rewardClaimed)
         {
             this.OtherPlayerInfo = otherPlayerInfo;
             this.NumRounds = numRounds;
@@ -429,6 +429,7 @@ namespace FLGrainInterfaces
             this.ExpiryTimeRemaining = expiryTimeRemaining;
             this.RoundTimeExtensions = roundTimeExtensions;
             this.MyTurnTimeRemaining = myTurnTimeRemaining;
+            this.RewardClaimed = rewardClaimed;
         }
 
         public PlayerInfoDTO? OtherPlayerInfo { get; }
@@ -444,22 +445,23 @@ namespace FLGrainInterfaces
         public System.TimeSpan? ExpiryTimeRemaining { get; }
         public uint RoundTimeExtensions { get; }
         public System.TimeSpan? MyTurnTimeRemaining { get; }
+        public bool RewardClaimed { get; }
 
-        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(OtherPlayerInfo?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null(), LightMessage.Common.WireProtocol.Param.UInt(NumRounds), LightMessage.Common.WireProtocol.Param.Array(Categories.Select(a => LightMessage.Common.WireProtocol.Param.String(a))), LightMessage.Common.WireProtocol.Param.Array(HaveCategoryAnswers.Select(a => LightMessage.Common.WireProtocol.Param.Boolean(a))), LightMessage.Common.WireProtocol.Param.Array(MyWordsPlayed.Select(a => LightMessage.Common.WireProtocol.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())))), LightMessage.Common.WireProtocol.Param.Array(TheirWordsPlayed?.Select(a => LightMessage.Common.WireProtocol.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())))), LightMessage.Common.WireProtocol.Param.Boolean(MyTurnFirst), LightMessage.Common.WireProtocol.Param.UInt(NumTurnsTakenByOpponent), LightMessage.Common.WireProtocol.Param.Boolean(Expired), LightMessage.Common.WireProtocol.Param.Boolean(ExpiredForMe), LightMessage.Common.WireProtocol.Param.TimeSpan(ExpiryTimeRemaining), LightMessage.Common.WireProtocol.Param.UInt(RoundTimeExtensions), LightMessage.Common.WireProtocol.Param.TimeSpan(MyTurnTimeRemaining));
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(OtherPlayerInfo?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null(), LightMessage.Common.WireProtocol.Param.UInt(NumRounds), LightMessage.Common.WireProtocol.Param.Array(Categories.Select(a => LightMessage.Common.WireProtocol.Param.String(a))), LightMessage.Common.WireProtocol.Param.Array(HaveCategoryAnswers.Select(a => LightMessage.Common.WireProtocol.Param.Boolean(a))), LightMessage.Common.WireProtocol.Param.Array(MyWordsPlayed.Select(a => LightMessage.Common.WireProtocol.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())))), LightMessage.Common.WireProtocol.Param.Array(TheirWordsPlayed?.Select(a => LightMessage.Common.WireProtocol.Param.Array(a.Select(b => b?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())))), LightMessage.Common.WireProtocol.Param.Boolean(MyTurnFirst), LightMessage.Common.WireProtocol.Param.UInt(NumTurnsTakenByOpponent), LightMessage.Common.WireProtocol.Param.Boolean(Expired), LightMessage.Common.WireProtocol.Param.Boolean(ExpiredForMe), LightMessage.Common.WireProtocol.Param.TimeSpan(ExpiryTimeRemaining), LightMessage.Common.WireProtocol.Param.UInt(RoundTimeExtensions), LightMessage.Common.WireProtocol.Param.TimeSpan(MyTurnTimeRemaining), LightMessage.Common.WireProtocol.Param.Boolean(RewardClaimed));
 
         public static GameInfoDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new GameInfoDTO(PlayerInfoDTO.FromParam(array[0]), (byte)array[1].AsUInt.Value, array[2].AsArray.Select(a => a.AsString).ToList(), array[3].AsArray.Select(a => a.AsBoolean.Value).ToList(), array[4].AsArray.Select(a => a.AsArray.Select(b => WordScorePairDTO.FromParam(b)).ToList()).ToList(), array[5].AsArray?.Select(a => a.AsArray.Select(b => WordScorePairDTO.FromParam(b)).ToList()).ToList(), array[6].AsBoolean.Value, (byte)array[7].AsUInt.Value, array[8].AsBoolean.Value, array[9].AsBoolean.Value, array[10].AsTimeSpan, (uint)array[11].AsUInt.Value, array[12].AsTimeSpan);
+            return new GameInfoDTO(PlayerInfoDTO.FromParam(array[0]), (byte)array[1].AsUInt.Value, array[2].AsArray.Select(a => a.AsString).ToList(), array[3].AsArray.Select(a => a.AsBoolean.Value).ToList(), array[4].AsArray.Select(a => a.AsArray.Select(b => WordScorePairDTO.FromParam(b)).ToList()).ToList(), array[5].AsArray?.Select(a => a.AsArray.Select(b => WordScorePairDTO.FromParam(b)).ToList()).ToList(), array[6].AsBoolean.Value, (byte)array[7].AsUInt.Value, array[8].AsBoolean.Value, array[9].AsBoolean.Value, array[10].AsTimeSpan, (uint)array[11].AsUInt.Value, array[12].AsTimeSpan, array[13].AsBoolean.Value);
         }
     }
 
     [Orleans.Concurrency.Immutable]
     public class SimplifiedGameInfoDTO
     {
-        public SimplifiedGameInfoDTO(System.Guid gameID, GameState gameState, string? otherPlayerName, AvatarDTO? otherPlayerAvatar, bool myTurn, byte myScore, byte theirScore, bool winnerOfExpiredGame, System.TimeSpan? expiryTimeRemaining, System.TimeSpan? myTurnTimeRemaining)
+        public SimplifiedGameInfoDTO(System.Guid gameID, GameState gameState, string? otherPlayerName, AvatarDTO? otherPlayerAvatar, bool myTurn, byte myScore, byte theirScore, bool winnerOfExpiredGame, System.TimeSpan? expiryTimeRemaining, System.TimeSpan? myTurnTimeRemaining, bool rewardClaimed)
         {
             this.GameID = gameID;
             this.GameState = gameState;
@@ -471,6 +473,7 @@ namespace FLGrainInterfaces
             this.WinnerOfExpiredGame = winnerOfExpiredGame;
             this.ExpiryTimeRemaining = expiryTimeRemaining;
             this.MyTurnTimeRemaining = myTurnTimeRemaining;
+            this.RewardClaimed = rewardClaimed;
         }
 
         public System.Guid GameID { get; }
@@ -483,15 +486,16 @@ namespace FLGrainInterfaces
         public bool WinnerOfExpiredGame { get; }
         public System.TimeSpan? ExpiryTimeRemaining { get; }
         public System.TimeSpan? MyTurnTimeRemaining { get; }
+        public bool RewardClaimed { get; }
 
-        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(LightMessage.Common.WireProtocol.Param.Guid(GameID), LightMessage.Common.WireProtocol.Param.UEnum(GameState), LightMessage.Common.WireProtocol.Param.String(OtherPlayerName), OtherPlayerAvatar?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null(), LightMessage.Common.WireProtocol.Param.Boolean(MyTurn), LightMessage.Common.WireProtocol.Param.UInt(MyScore), LightMessage.Common.WireProtocol.Param.UInt(TheirScore), LightMessage.Common.WireProtocol.Param.Boolean(WinnerOfExpiredGame), LightMessage.Common.WireProtocol.Param.TimeSpan(ExpiryTimeRemaining), LightMessage.Common.WireProtocol.Param.TimeSpan(MyTurnTimeRemaining));
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(LightMessage.Common.WireProtocol.Param.Guid(GameID), LightMessage.Common.WireProtocol.Param.UEnum(GameState), LightMessage.Common.WireProtocol.Param.String(OtherPlayerName), OtherPlayerAvatar?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null(), LightMessage.Common.WireProtocol.Param.Boolean(MyTurn), LightMessage.Common.WireProtocol.Param.UInt(MyScore), LightMessage.Common.WireProtocol.Param.UInt(TheirScore), LightMessage.Common.WireProtocol.Param.Boolean(WinnerOfExpiredGame), LightMessage.Common.WireProtocol.Param.TimeSpan(ExpiryTimeRemaining), LightMessage.Common.WireProtocol.Param.TimeSpan(MyTurnTimeRemaining), LightMessage.Common.WireProtocol.Param.Boolean(RewardClaimed));
 
         public static SimplifiedGameInfoDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new SimplifiedGameInfoDTO(array[0].AsGuid.Value, array[1].AsUEnum<GameState>().Value, array[2].AsString, AvatarDTO.FromParam(array[3]), array[4].AsBoolean.Value, (byte)array[5].AsUInt.Value, (byte)array[6].AsUInt.Value, array[7].AsBoolean.Value, array[8].AsTimeSpan, array[9].AsTimeSpan);
+            return new SimplifiedGameInfoDTO(array[0].AsGuid.Value, array[1].AsUEnum<GameState>().Value, array[2].AsString, AvatarDTO.FromParam(array[3]), array[4].AsBoolean.Value, (byte)array[5].AsUInt.Value, (byte)array[6].AsUInt.Value, array[7].AsBoolean.Value, array[8].AsTimeSpan, array[9].AsTimeSpan, array[10].AsBoolean.Value);
         }
     }
 

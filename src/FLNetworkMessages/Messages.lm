@@ -231,6 +231,7 @@ contract GameInfoDTO
 	ExpiryTimeRemaining: timespan?;
 	RoundTimeExtensions: u32;
 	MyTurnTimeRemaining: timespan?;
+	RewardClaimed: bool;
 }
 
 contract SimplifiedGameInfoDTO
@@ -245,6 +246,7 @@ contract SimplifiedGameInfoDTO
 	WinnerOfExpiredGame: bool;
 	ExpiryTimeRemaining: timespan?;
 	MyTurnTimeRemaining: timespan?;
+	RewardClaimed: bool;
 }
 
 contract ConfigValuesDTO castfrom(FLGrainInterfaces.Configuration.ConfigValues server oneway)
@@ -438,8 +440,6 @@ endpoint System sys
 
 	request RegisterFcmToken fcm via Player(clientid).SetFcmToken(token) { { token: string; } -> noresponse }
 
-	request ClearFinishedGames cfg via Player(clientid).ClearFinishedGames() { {} -> noresponse }
-
 	request SetTutorialProgress tutp via Player(clientid).SetTutorialProgress(progress) { { progress: u64; } -> {} }
 
 	request GiveVideoAdReward vadr via Player(clientid).GiveVideoAdReward() { {} -> { totalGold: u64; } }
@@ -495,6 +495,7 @@ endpoint Game gm
 		myLevel: u32;
 		myXP: u32;
 		myGold: u64;
+		hasReward: bool;
 	}
 
 	notification GameExpired gexp
@@ -506,6 +507,7 @@ endpoint Game gm
 		myLevel: u32;
 		myXP: u32;
 		myGold: u64;
+		hasReward: bool;
 	}
 
 	request NewGame new
@@ -622,6 +624,8 @@ endpoint Game gm
 			gameInfo: GameInfoDTO;
 		}
 	}
+	
+	request ClaimGameReward cgr via Player(clientid).ClaimGameReward(gameID) { { gameID: guid; } -> { gold: u64?; } }
 
 	request GetAllGames all
 	{
@@ -632,7 +636,7 @@ endpoint Game gm
 		}
 	}
 
-	request ClearGameHistory cgh via Player(clientid).ClearGameHistory() { {} -> {} }
+	request ClearGameHistory cgh via Player(clientid).ClearGameHistory() { {} -> { gold: u64?; } }
 
 	request GetAnswers ans via Player(clientid).GetAnswers(category)
 	{
