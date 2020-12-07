@@ -118,7 +118,7 @@ Target.create "Bundle" (fun p ->
     let args = p.Context.Arguments |> fixLength 4
     let config = args.[0] |> Option.defaultValue "Release"
     let runtime = args.[1] |> Option.defaultValue "linux-x64"
-    let framework = args.[2] |> Option.defaultValue "netcoreapp3.1"
+    let framework = args.[2] |> Option.defaultValue "net5.0"
     let outPath = args.[3] |> Option.defaultValue deployDir
 
     let serverDir = Path.combine outPath "Server"

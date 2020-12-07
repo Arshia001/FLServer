@@ -119,6 +119,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "!Solution Items", "!Solutio
 		build.fsx = build.fsx
 		src\Misc\category-format.json = src\Misc\category-format.json
 		Directory.Build.targets = Directory.Build.targets
+		.config\dotnet-tools.json = .config\dotnet-tools.json
+		global.json = global.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SuggestionReviewTool", "SuggestionReviewTool", "{BF1662F6-CC14-4E5B-803F-97D155F6FB83}"

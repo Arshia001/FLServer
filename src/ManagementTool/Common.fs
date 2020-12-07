@@ -128,7 +128,7 @@ let tryParseGuid (o: obj) =
         | (true, i) -> Some i
         | (false, _) -> None
 
-let exec executable arguments =
+let exec (executable: string) (arguments: string) =
     let proc = Process.Start(executable, arguments)
     proc.WaitForExit ()
     if proc.ExitCode <> 0 then

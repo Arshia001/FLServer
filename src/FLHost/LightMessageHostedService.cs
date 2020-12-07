@@ -34,7 +34,7 @@ namespace FLHost
         public Task StartAsync(CancellationToken cancellationToken)
         {
             host = new LightMessageHost();
-            return host.Start(grainFactory, new IPEndPoint(options.Value.ListenIPAddress, options.Value.ListenPort),
+            return host.Start(grainFactory, new IPEndPoint(options.Value.ListenIPAddress!, options.Value.ListenPort),
                 options.Value.ClientAuthCallback ?? throw new Exception("Client authentication callback not set"),
                 options.Value.ClientDisconnectedCallback ?? throw new Exception("Client disconnect callback not set"),
                 logProvider);

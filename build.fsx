@@ -9,7 +9,7 @@
 // Constants
 
 let buildConfig = "Release"
-let publishFramework = "netcoreapp3.1"
+let publishFramework = "net5.0"
 
 // End of constants
 
