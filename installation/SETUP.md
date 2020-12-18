@@ -117,7 +117,7 @@ cqlsh -k fl -f InitializeFLDatabase.cql
     * chown flserver DIRECTORY-NAME (for all 3 components)
     * chmod 755 EXECUTABLE-NAME (for all 3 components)
 * Register services
-    * Copy service definition files to server
+    * Copy service definition files to server, into /etc/systemd/system
     * systemctl daemon-reload
 * Enable auto-start
     * systemctl enable SERVICE-NAME
