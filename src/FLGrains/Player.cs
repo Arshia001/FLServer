@@ -133,7 +133,8 @@ namespace FLGrains
                     LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).Set(myID, 0).Ignore();
                     LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.XP).Set(myID, 0).Ignore();
 
-                    state.Name = "مهمان " + RandomHelper.GetInt32(100_000, 1_000_000).ToString();
+                    if (string.IsNullOrEmpty(state.Name))
+                        state.Name = "مهمان " + RandomHelper.GetInt32(100_000, 1_000_000).ToString();
 
                     InitializeAvatar(config);
 

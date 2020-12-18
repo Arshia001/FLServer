@@ -31,7 +31,8 @@ namespace FLGrainInterfaces
     {
         ClientID,
         EmailAndPassword,
-        RecoveryEmailRequest
+        RecoveryEmailRequest,
+        BazaarToken
     }
 
     public enum GameState

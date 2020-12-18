@@ -8,7 +8,8 @@ enum HandShakeMode
 {
 	ClientID,
 	EmailAndPassword,
-	RecoveryEmailRequest
+	RecoveryEmailRequest,
+	BazaarToken
 	//!! GFGP token
 }
 
@@ -18,6 +19,8 @@ handshake
     clientID: guid?;
 	email: string?;
 	password: string?;
+	bazaarToken: string?;
+	bazaarUserName: string?;
 }
 
 enum GameState
@@ -625,7 +628,7 @@ endpoint Game gm
 		}
 	}
 	
-	request ClaimGameReward cgr via Player(clientid).ClaimGameReward(gameID) { { gameID: guid; } -> { gold: u64?; } }
+	request ClaimGameReward clrw via Player(clientid).ClaimGameReward(gameID) { { gameID: guid; } -> { gold: u64?; } }
 
 	request GetAllGames all
 	{

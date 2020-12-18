@@ -248,6 +248,9 @@ namespace FLGrainInterfaces
         static readonly GrainIndexManager_Unique<string, IPlayer> byInviteCode =
             new GrainIndexManager_Unique<string, IPlayer>("p_ic", 16384, new StringHashGenerator());
 
+        static readonly GrainIndexManager_Unique<string, IPlayer> byBazaarToken =
+            new GrainIndexManager_Unique<string, IPlayer>("p_bt", 16384, new StringHashGenerator());
+
         public static Task<bool> UpdateUsernameIfUnique(IGrainFactory grainFactory, IPlayer player, string name) =>
             byUsername.UpdateIndexIfUnique(grainFactory, name.ToLower(), player);
 
@@ -268,6 +271,11 @@ namespace FLGrainInterfaces
             byInviteCode.UpdateIndexIfUnique(grainFactory, inviteCode, player);
 
         public static Task<IPlayer?> GetByInviteCode(IGrainFactory grainFactory, string inviteCode) => byInviteCode.GetGrain(grainFactory, inviteCode);
+
+        public static Task<bool> SetBazaarToken(IGrainFactory grainFactory, IPlayer player, string bazaarToken) =>
+            byBazaarToken.UpdateIndexIfUnique(grainFactory, bazaarToken, player);
+
+        public static Task<IPlayer?> GetByBazaarToken(IGrainFactory grainFactory, string bazaarToken) => byBazaarToken.GetGrain(grainFactory, bazaarToken);
 #pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
     }
 }

@@ -135,8 +135,8 @@ namespace FLHost
             }
         }
 
-        static Task<Guid?> OnAuth(HandShakeMode mode, Guid? clientID, string? email, string? password) =>
-            client?.GetGrain<IClientAuthenticator>(0).Authenticate(mode, clientID, email, password) ?? Task.FromResult(default(Guid?));
+        static Task<Guid?> OnAuth(HandShakeMode mode, Guid? clientID, string? email, string? password, string? bazaarToken, string? bazaarUserName) =>
+            client?.GetGrain<IClientAuthenticator>(0).Authenticate(mode, clientID, email, password, bazaarToken, bazaarUserName) ?? Task.FromResult(default(Guid?));
 
         static Task OnDisconnect(Guid clientID) =>
             client?.GetGrain<IPlayer>(clientID).PlayerDisconnected() ?? Task.CompletedTask;

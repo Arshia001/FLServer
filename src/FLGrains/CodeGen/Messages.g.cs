@@ -279,7 +279,7 @@ namespace FLGrains
             return Success(result?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null());
         }
 
-        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("cgr")]
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("clrw")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_ClaimGameReward(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
@@ -338,7 +338,7 @@ namespace FLGrains
 
         public int ConnectedClientCount => host.ConnectedClientCount;
 
-        public delegate System.Threading.Tasks.Task<System.Guid?> ClientAuthCallbackDelegate(HandShakeMode mode, System.Guid? clientID, string? email, string? password);
+        public delegate System.Threading.Tasks.Task<System.Guid?> ClientAuthCallbackDelegate(HandShakeMode mode, System.Guid? clientID, string? email, string? password, string? bazaarToken, string? bazaarUserName);
 
         ClientAuthCallbackDelegate onClientAuthCallback;
 
@@ -349,6 +349,6 @@ namespace FLGrains
         }
 
         public void Stop() => host.Stop();
-        System.Threading.Tasks.Task<System.Guid?> OnClientAuthRequest(LightMessage.Common.MessagingProtocol.AuthRequestMessage message) => onClientAuthCallback(message.Params[0].AsUEnum<HandShakeMode>().Value, message.Params[1].AsGuid, message.Params[2].AsString, message.Params[3].AsString);
+        System.Threading.Tasks.Task<System.Guid?> OnClientAuthRequest(LightMessage.Common.MessagingProtocol.AuthRequestMessage message) => onClientAuthCallback(message.Params[0].AsUEnum<HandShakeMode>().Value, message.Params[1].AsGuid, message.Params[2].AsString, message.Params[3].AsString, message.Params[4].AsString, message.Params[5].AsString);
     }
 }
