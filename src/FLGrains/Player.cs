@@ -318,7 +318,7 @@ namespace FLGrains
                     upgradedActiveGameLimitTimeRemaining: IsUpgradedActiveGameLimitActive ? UpgradedActiveGameLimitTimeRemaining : default(TimeSpan?),
                     statisticsValues: state.StatisticsValues.Where(kv => ShouldReplicateStatToClient(kv.Key.Statistic))
                         .Select(kv => new StatisticValueDTO(kv.Key.Statistic, kv.Key.Parameter, kv.Value)),
-                    isRegistered: IsRegistered(),
+                    registrationStatus: GetRegistrationStatus(),
                     notificationsEnabled: state.NotificationsEnabled,
                     coinRewardVideoNotificationsEnabled: state.CoinRewardVideoNotificationsEnabled,
                     tutorialProgress: state.TutorialProgress,
@@ -328,7 +328,14 @@ namespace FLGrains
                 );
             });
 
-        bool IsRegistered() => state.UseState(state => state.Email != null && state.PasswordHash != null);
+        RegistrationStatus GetRegistrationStatus() =>
+            state.UseState(state =>
+                !string.IsNullOrEmpty(state.BazaarToken) ? RegistrationStatus.BazaarToken :
+                state.Email != null && state.PasswordHash != null ? RegistrationStatus.EmailAndPassword :
+                RegistrationStatus.Unregistered
+            );
+
+        bool IsRegistered() => GetRegistrationStatus() != RegistrationStatus.Unregistered;
 
         public Task<PlayerLeaderBoardInfoDTO> GetLeaderBoardInfo() =>
             state.UseState(async state =>
@@ -394,7 +401,7 @@ namespace FLGrains
                 if (state.Name == username)
                     return (shouldPersist: false, result: true);
 
-                if (await PlayerIndex.UpdateUsernameIfUnique(GrainFactory, this.AsReference<IPlayer>(), username))
+                if (await PlayerIndex.UpdateUsernameIfUnique(GrainFactory, this.AsReference<IPlayer>(), state.Name, username))
                 {
                     state.Name = username;
                     return (shouldPersist: true, result: true);
@@ -415,10 +422,10 @@ namespace FLGrains
                 if (!RegistrationInfoSpecification.IsPasswordComplexEnough(password))
                     return (false, (RegistrationResult.PasswordNotComplexEnough, 0ul));
 
-                if (!await PlayerIndex.UpdateEmailIfUnique(GrainFactory, this.AsReference<IPlayer>(), email))
+                if (!await PlayerIndex.UpdateEmailIfUnique(GrainFactory, this.AsReference<IPlayer>(), state.Email, email))
                     return (false, (RegistrationResult.EmailAddressInUse, 0ul));
 
-                if (!await PlayerIndex.UpdateUsernameIfUnique(GrainFactory, this.AsReference<IPlayer>(), username))
+                if (!await PlayerIndex.UpdateUsernameIfUnique(GrainFactory, this.AsReference<IPlayer>(), state.Name, username))
                     return (false, (RegistrationResult.UsernameInUse, 0ul));
 
                 var inviter = default(IPlayer);
@@ -467,7 +474,7 @@ namespace FLGrains
                 if (!RegistrationInfoSpecification.IsEmailAddressValid(email))
                     return (false, SetEmailResult.InvalidEmailAddress);
 
-                if (!await PlayerIndex.UpdateEmailIfUnique(GrainFactory, this.AsReference<IPlayer>(), email))
+                if (!await PlayerIndex.UpdateEmailIfUnique(GrainFactory, this.AsReference<IPlayer>(), state.Email, email))
                     return (false, SetEmailResult.EmailAddressInUse);
 
                 state.Email = email;
@@ -560,6 +567,38 @@ namespace FLGrains
         bool ValidatePasswordImpl(string password) => state.UseState(state => CryptographyHelper.HashPassword(state.PasswordSalt, password).SequenceEqual(state.PasswordHash));
 
         public Task<bool> ValidatePassword(string password) => Task.FromResult(ValidatePasswordImpl(password));
+
+        public Task<(BazaarRegistrationResult result, string? username)> PerformBazaarTokenRegistration(string bazaarToken, string? bazaarUserName) =>
+            state.UseStateAndMaybePersist(async state =>
+            {
+                switch (GetRegistrationStatus())
+                {
+                    case RegistrationStatus.BazaarToken:
+                        if (state.BazaarToken == bazaarToken)
+                            return (false, (BazaarRegistrationResult.AlreadyHaveSameBazaarToken, default(string?)));
+                        else
+                            return (false, (BazaarRegistrationResult.AlreadyHaveOtherBazaarToken, null));
+
+                    case RegistrationStatus.Unregistered:
+                        var result = await PlayerIndex.SetBazaarToken(GrainFactory, this.AsReference<IPlayer>(), bazaarToken);
+                        if (result)
+                        {
+                            state.BazaarToken = bazaarToken;
+                            var setUserName = default(string?);
+                            if (!string.IsNullOrEmpty(bazaarUserName))
+                            {
+                                setUserName = bazaarUserName;
+                                await SetUsername(bazaarUserName);
+                            }
+                            return (true, (BazaarRegistrationResult.Success, setUserName));
+                        }
+                        else
+                            return (false, (BazaarRegistrationResult.AccountWithTokenExists, null));
+
+                    default:
+                        return (false, (BazaarRegistrationResult.AlreadyRegisteredWithOtherMethod, null));
+                }
+            });
 
         public Task SendPasswordRecoveryLink() => state.UseStateAndPersist(async state =>
         {

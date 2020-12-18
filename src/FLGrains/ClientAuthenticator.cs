@@ -47,9 +47,8 @@ namespace FLGrains
                         if (player == null)
                         {
                             player = GrainFactory.GetGrain<IPlayer>(Guid.NewGuid());
-                            if (!string.IsNullOrEmpty(bazaarUserName))
-                                await player.SetUsername(bazaarUserName);
-                            await PlayerIndex.SetBazaarToken(GrainFactory, player, bazaarToken);
+                            if ((await player.PerformBazaarTokenRegistration(bazaarToken, bazaarUserName)).result != BazaarRegistrationResult.Success)
+                                return null;
                         }
 
                         return player.GetPrimaryKey();

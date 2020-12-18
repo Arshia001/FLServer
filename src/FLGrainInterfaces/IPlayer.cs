@@ -154,6 +154,9 @@ namespace FLGrainInterfaces
 
         [Id(33)]
         public Dictionary<Guid, uint> UnclaimedGameRewards { get; set; } = new Dictionary<Guid, uint>();
+
+        [Id(34)]
+        public string? BazaarToken { get; set; }
     }
 
     [BondSerializationTag("@p")]
@@ -177,6 +180,7 @@ namespace FLGrainInterfaces
         Task<SetPasswordResult> UpdatePassword(string newPassword);
         Task<bool> ValidatePassword(string password);
         Task SendPasswordRecoveryLink();
+        Task<(BazaarRegistrationResult result, string? username)> PerformBazaarTokenRegistration(string bazaarToken, string? bazaarUserName);
 
         Task<(bool success, ulong totalGold)> BuyAvatarParts(IReadOnlyList<AvatarPartDTO> part);
         Task ActivateAvatar(AvatarDTO avatar);
@@ -251,11 +255,21 @@ namespace FLGrainInterfaces
         static readonly GrainIndexManager_Unique<string, IPlayer> byBazaarToken =
             new GrainIndexManager_Unique<string, IPlayer>("p_bt", 16384, new StringHashGenerator());
 
-        public static Task<bool> UpdateUsernameIfUnique(IGrainFactory grainFactory, IPlayer player, string name) =>
-            byUsername.UpdateIndexIfUnique(grainFactory, name.ToLower(), player);
+        public static async Task<bool> UpdateUsernameIfUnique(IGrainFactory grainFactory, IPlayer player, string? oldName, string name)
+        {
+            var result = await byUsername.UpdateIndexIfUnique(grainFactory, name.ToLower(), player);
+            if (result && oldName != null)
+                await byUsername.RemoveIndex(grainFactory, oldName.ToLower());
+            return result;
+        }
 
-        public static Task<bool> UpdateEmailIfUnique(IGrainFactory grainFactory, IPlayer player, string email) =>
-            byEmail.UpdateIndexIfUnique(grainFactory, email.ToLower(), player);
+        public static async Task<bool> UpdateEmailIfUnique(IGrainFactory grainFactory, IPlayer player, string? oldEmail, string email)
+        {
+            var result = await byEmail.UpdateIndexIfUnique(grainFactory, email.ToLower(), player);
+            if (result && oldEmail != null)
+                await byEmail.RemoveIndex(grainFactory, oldEmail.ToLower());
+            return result;
+        }
 
         public static Task<IPlayer?> GetByEmail(IGrainFactory grainFactory, string email) => byEmail.GetGrain(grainFactory, email.ToLower());
 

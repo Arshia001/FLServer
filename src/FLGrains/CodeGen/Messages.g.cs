@@ -89,6 +89,14 @@ namespace FLGrains
             return Success(LightMessage.Common.WireProtocol.Param.UEnum(result.result), LightMessage.Common.WireProtocol.Param.UInt(result.totalGold));
         }
 
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("regbt")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_PerformBazaarTokenRegistration(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).PerformBazaarTokenRegistration(array[0].AsString, array[1].AsString);
+            return Success(LightMessage.Common.WireProtocol.Param.UEnum(result.result), LightMessage.Common.WireProtocol.Param.String(result.username));
+        }
+
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("bap")]
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_BuyAvatarParts(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
