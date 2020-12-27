@@ -20,7 +20,6 @@ handshake
 	email: string?;
 	password: string?;
 	bazaarToken: string?;
-	bazaarUserName: string?;
 }
 
 enum GameState
@@ -445,18 +444,7 @@ endpoint System sys
 		}
 	}
 
-	request PerformBazaarTokenRegistration regbt via Player(clientid).PerformBazaarTokenRegistration(bazaarToken, bazaarUserName)
-	{
-		{
-			bazaarToken: string;
-			bazaarUserName: string?;
-		}
-		->
-		{
-			result: BazaarRegistrationResult;
-			username: string?;
-		}
-	}
+	request PerformBazaarTokenRegistration regbt via Player(clientid).PerformBazaarTokenRegistration(bazaarToken) { { bazaarToken: string; } -> { result: BazaarRegistrationResult; } }
 
 	request BuyAvatarParts bap via Player(clientid).BuyAvatarParts(parts) { { parts: AvatarPartDTO[]; } -> { success: bool; totalGold: u64; } }
 

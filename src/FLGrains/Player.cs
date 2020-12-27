@@ -568,35 +568,29 @@ namespace FLGrains
 
         public Task<bool> ValidatePassword(string password) => Task.FromResult(ValidatePasswordImpl(password));
 
-        public Task<(BazaarRegistrationResult result, string? username)> PerformBazaarTokenRegistration(string bazaarToken, string? bazaarUserName) =>
+        public Task<BazaarRegistrationResult> PerformBazaarTokenRegistration(string bazaarToken) =>
             state.UseStateAndMaybePersist(async state =>
             {
                 switch (GetRegistrationStatus())
                 {
                     case RegistrationStatus.BazaarToken:
                         if (state.BazaarToken == bazaarToken)
-                            return (false, (BazaarRegistrationResult.AlreadyHaveSameBazaarToken, default(string?)));
+                            return (false, BazaarRegistrationResult.AlreadyHaveSameBazaarToken);
                         else
-                            return (false, (BazaarRegistrationResult.AlreadyHaveOtherBazaarToken, null));
+                            return (false, BazaarRegistrationResult.AlreadyHaveOtherBazaarToken);
 
                     case RegistrationStatus.Unregistered:
                         var result = await PlayerIndex.SetBazaarToken(GrainFactory, this.AsReference<IPlayer>(), bazaarToken);
                         if (result)
                         {
                             state.BazaarToken = bazaarToken;
-                            var setUserName = default(string?);
-                            if (!string.IsNullOrEmpty(bazaarUserName))
-                            {
-                                setUserName = bazaarUserName;
-                                await SetUsername(bazaarUserName);
-                            }
-                            return (true, (BazaarRegistrationResult.Success, setUserName));
+                            return (true, BazaarRegistrationResult.Success);
                         }
                         else
-                            return (false, (BazaarRegistrationResult.AccountWithTokenExists, null));
+                            return (false, BazaarRegistrationResult.AccountWithTokenExists);
 
                     default:
-                        return (false, (BazaarRegistrationResult.AlreadyRegisteredWithOtherMethod, null));
+                        return (false, BazaarRegistrationResult.AlreadyRegisteredWithOtherMethod);
                 }
             });
 

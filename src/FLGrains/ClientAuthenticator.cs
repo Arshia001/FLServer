@@ -11,7 +11,7 @@ namespace FLGrains
     [StatelessWorker]
     public class ClientAuthenticator : Grain, IClientAuthenticator
     {
-        public async Task<Guid?> Authenticate(HandShakeMode mode, Guid? clientID, string? email, string? password, string? bazaarToken, string? bazaarUserName)
+        public async Task<Guid?> Authenticate(HandShakeMode mode, Guid? clientID, string? email, string? password, string? bazaarToken)
         {
             switch (mode)
             {
@@ -47,7 +47,7 @@ namespace FLGrains
                         if (player == null)
                         {
                             player = GrainFactory.GetGrain<IPlayer>(Guid.NewGuid());
-                            if ((await player.PerformBazaarTokenRegistration(bazaarToken, bazaarUserName)).result != BazaarRegistrationResult.Success)
+                            if ((await player.PerformBazaarTokenRegistration(bazaarToken)) != BazaarRegistrationResult.Success)
                                 return null;
                         }
 

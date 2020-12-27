@@ -93,8 +93,8 @@ namespace FLGrains
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_PerformBazaarTokenRegistration(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
-            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).PerformBazaarTokenRegistration(array[0].AsString, array[1].AsString);
-            return Success(LightMessage.Common.WireProtocol.Param.UEnum(result.result), LightMessage.Common.WireProtocol.Param.String(result.username));
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).PerformBazaarTokenRegistration(array[0].AsString);
+            return Success(LightMessage.Common.WireProtocol.Param.UEnum(result));
         }
 
         [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("bap")]
@@ -346,7 +346,7 @@ namespace FLGrains
 
         public int ConnectedClientCount => host.ConnectedClientCount;
 
-        public delegate System.Threading.Tasks.Task<System.Guid?> ClientAuthCallbackDelegate(HandShakeMode mode, System.Guid? clientID, string? email, string? password, string? bazaarToken, string? bazaarUserName);
+        public delegate System.Threading.Tasks.Task<System.Guid?> ClientAuthCallbackDelegate(HandShakeMode mode, System.Guid? clientID, string? email, string? password, string? bazaarToken);
 
         ClientAuthCallbackDelegate onClientAuthCallback;
 
@@ -357,6 +357,6 @@ namespace FLGrains
         }
 
         public void Stop() => host.Stop();
-        System.Threading.Tasks.Task<System.Guid?> OnClientAuthRequest(LightMessage.Common.MessagingProtocol.AuthRequestMessage message) => onClientAuthCallback(message.Params[0].AsUEnum<HandShakeMode>().Value, message.Params[1].AsGuid, message.Params[2].AsString, message.Params[3].AsString, message.Params[4].AsString, message.Params[5].AsString);
+        System.Threading.Tasks.Task<System.Guid?> OnClientAuthRequest(LightMessage.Common.MessagingProtocol.AuthRequestMessage message) => onClientAuthCallback(message.Params[0].AsUEnum<HandShakeMode>().Value, message.Params[1].AsGuid, message.Params[2].AsString, message.Params[3].AsString, message.Params[4].AsString);
     }
 }

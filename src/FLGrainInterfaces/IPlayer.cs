@@ -180,7 +180,7 @@ namespace FLGrainInterfaces
         Task<SetPasswordResult> UpdatePassword(string newPassword);
         Task<bool> ValidatePassword(string password);
         Task SendPasswordRecoveryLink();
-        Task<(BazaarRegistrationResult result, string? username)> PerformBazaarTokenRegistration(string bazaarToken, string? bazaarUserName);
+        Task<BazaarRegistrationResult> PerformBazaarTokenRegistration(string bazaarToken);
 
         Task<(bool success, ulong totalGold)> BuyAvatarParts(IReadOnlyList<AvatarPartDTO> part);
         Task ActivateAvatar(AvatarDTO avatar);
