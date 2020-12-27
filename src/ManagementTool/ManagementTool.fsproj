@@ -21,7 +21,9 @@
     <Compile Include="Categories\UpdateAllCommand.fs" />
     <Compile Include="Gifts\WordSuggestionGiftCommand.fs" />
     <Compile Include="Gifts\CategorySuggestionGiftCommand.fs" />
+    <Compile Include="Gifts\GenericGiftCommand.fs" />
     <Compile Include="ReadSuggestionsCommand.fs" />
+    <Compile Include="GetPlayerIDCommand.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

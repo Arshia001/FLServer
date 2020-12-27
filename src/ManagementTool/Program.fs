@@ -18,7 +18,9 @@ let parse =
         DeleteStorage,
         WordSuggestionGift,
         CategorySuggestionGift,
-        ReadSuggestions
+        ReadSuggestions,
+        GetPlayerID,
+        GenericGift
     >
 
 [<EntryPoint>]
@@ -41,6 +43,8 @@ let main argv =
             | :? WordSuggestionGift as cmd -> runWordSuggestionGift cmd
             | :? CategorySuggestionGift as cmd -> runCategorySuggestionGift cmd
             | :? ReadSuggestions as cmd -> runReadSuggestions cmd
+            | :? GetPlayerID as cmd -> runGetPlayerID cmd
+            | :? GenericGift as cmd -> runGenericGift cmd
             | _ -> printfn "Unknown command type %A" p.Value
             0
         | :? NotParsed<obj> as np ->
