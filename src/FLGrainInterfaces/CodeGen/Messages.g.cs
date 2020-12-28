@@ -348,12 +348,13 @@ namespace FLGrainInterfaces
     [Orleans.Concurrency.Immutable]
     public class OwnPlayerInfoDTO
     {
-        public OwnPlayerInfoDTO(string name, string? email, uint xp, uint level, uint nextLevelXPThreshold, uint score, uint rank, ulong gold, uint currentNumRoundsWonForReward, System.TimeSpan nextRoundWinRewardTimeRemaining, System.TimeSpan? upgradedActiveGameLimitTimeRemaining, System.Collections.Generic.IEnumerable<StatisticValueDTO> statisticsValues, RegistrationStatus registrationStatus, bool notificationsEnabled, ulong tutorialProgress, bool? coinRewardVideoNotificationsEnabled, AvatarDTO avatar, System.Collections.Generic.IEnumerable<AvatarPartDTO> ownedAvatarParts, string inviteCode)
+        public OwnPlayerInfoDTO(string name, string? email, uint xp, uint level, uint notifiedLevel, uint nextLevelXPThreshold, uint score, uint rank, ulong gold, uint currentNumRoundsWonForReward, System.TimeSpan nextRoundWinRewardTimeRemaining, System.TimeSpan? upgradedActiveGameLimitTimeRemaining, System.Collections.Generic.IEnumerable<StatisticValueDTO> statisticsValues, RegistrationStatus registrationStatus, bool notificationsEnabled, ulong tutorialProgress, bool? coinRewardVideoNotificationsEnabled, AvatarDTO avatar, System.Collections.Generic.IEnumerable<AvatarPartDTO> ownedAvatarParts, string inviteCode, bool inviteCodeEntered)
         {
             this.Name = name;
             this.Email = email;
             this.XP = xp;
             this.Level = level;
+            this.NotifiedLevel = notifiedLevel;
             this.NextLevelXPThreshold = nextLevelXPThreshold;
             this.Score = score;
             this.Rank = rank;
@@ -369,12 +370,14 @@ namespace FLGrainInterfaces
             this.Avatar = avatar;
             this.OwnedAvatarParts = ownedAvatarParts.ToList();
             this.InviteCode = inviteCode;
+            this.InviteCodeEntered = inviteCodeEntered;
         }
 
         public string Name { get; }
         public string? Email { get; }
         public uint XP { get; }
         public uint Level { get; }
+        public uint NotifiedLevel { get; }
         public uint NextLevelXPThreshold { get; }
         public uint Score { get; }
         public uint Rank { get; }
@@ -390,15 +393,16 @@ namespace FLGrainInterfaces
         public AvatarDTO Avatar { get; }
         public System.Collections.Generic.IReadOnlyList<AvatarPartDTO> OwnedAvatarParts { get; }
         public string InviteCode { get; }
+        public bool InviteCodeEntered { get; }
 
-        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(LightMessage.Common.WireProtocol.Param.String(Name), LightMessage.Common.WireProtocol.Param.String(Email), LightMessage.Common.WireProtocol.Param.UInt(XP), LightMessage.Common.WireProtocol.Param.UInt(Level), LightMessage.Common.WireProtocol.Param.UInt(NextLevelXPThreshold), LightMessage.Common.WireProtocol.Param.UInt(Score), LightMessage.Common.WireProtocol.Param.UInt(Rank), LightMessage.Common.WireProtocol.Param.UInt(Gold), LightMessage.Common.WireProtocol.Param.UInt(CurrentNumRoundsWonForReward), LightMessage.Common.WireProtocol.Param.TimeSpan(NextRoundWinRewardTimeRemaining), LightMessage.Common.WireProtocol.Param.TimeSpan(UpgradedActiveGameLimitTimeRemaining), LightMessage.Common.WireProtocol.Param.Array(StatisticsValues.Select(a => a?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())), LightMessage.Common.WireProtocol.Param.UEnum(RegistrationStatus), LightMessage.Common.WireProtocol.Param.Boolean(NotificationsEnabled), LightMessage.Common.WireProtocol.Param.UInt(TutorialProgress), LightMessage.Common.WireProtocol.Param.Boolean(CoinRewardVideoNotificationsEnabled), Avatar?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null(), LightMessage.Common.WireProtocol.Param.Array(OwnedAvatarParts.Select(a => a?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())), LightMessage.Common.WireProtocol.Param.String(InviteCode));
+        public LightMessage.Common.WireProtocol.Param ToParam() => LightMessage.Common.WireProtocol.Param.Array(LightMessage.Common.WireProtocol.Param.String(Name), LightMessage.Common.WireProtocol.Param.String(Email), LightMessage.Common.WireProtocol.Param.UInt(XP), LightMessage.Common.WireProtocol.Param.UInt(Level), LightMessage.Common.WireProtocol.Param.UInt(NotifiedLevel), LightMessage.Common.WireProtocol.Param.UInt(NextLevelXPThreshold), LightMessage.Common.WireProtocol.Param.UInt(Score), LightMessage.Common.WireProtocol.Param.UInt(Rank), LightMessage.Common.WireProtocol.Param.UInt(Gold), LightMessage.Common.WireProtocol.Param.UInt(CurrentNumRoundsWonForReward), LightMessage.Common.WireProtocol.Param.TimeSpan(NextRoundWinRewardTimeRemaining), LightMessage.Common.WireProtocol.Param.TimeSpan(UpgradedActiveGameLimitTimeRemaining), LightMessage.Common.WireProtocol.Param.Array(StatisticsValues.Select(a => a?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())), LightMessage.Common.WireProtocol.Param.UEnum(RegistrationStatus), LightMessage.Common.WireProtocol.Param.Boolean(NotificationsEnabled), LightMessage.Common.WireProtocol.Param.UInt(TutorialProgress), LightMessage.Common.WireProtocol.Param.Boolean(CoinRewardVideoNotificationsEnabled), Avatar?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null(), LightMessage.Common.WireProtocol.Param.Array(OwnedAvatarParts.Select(a => a?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())), LightMessage.Common.WireProtocol.Param.String(InviteCode), LightMessage.Common.WireProtocol.Param.Boolean(InviteCodeEntered));
 
         public static OwnPlayerInfoDTO FromParam(LightMessage.Common.WireProtocol.Param param)
         {
             if (param.IsNull)
                 return null;
             var array = param.AsArray;
-            return new OwnPlayerInfoDTO(array[0].AsString, array[1].AsString, (uint)array[2].AsUInt.Value, (uint)array[3].AsUInt.Value, (uint)array[4].AsUInt.Value, (uint)array[5].AsUInt.Value, (uint)array[6].AsUInt.Value, array[7].AsUInt.Value, (uint)array[8].AsUInt.Value, array[9].AsTimeSpan.Value, array[10].AsTimeSpan, array[11].AsArray.Select(a => StatisticValueDTO.FromParam(a)).ToList(), array[12].AsUEnum<RegistrationStatus>().Value, array[13].AsBoolean.Value, array[14].AsUInt.Value, array[15].AsBoolean, AvatarDTO.FromParam(array[16]), array[17].AsArray.Select(a => AvatarPartDTO.FromParam(a)).ToList(), array[18].AsString);
+            return new OwnPlayerInfoDTO(array[0].AsString, array[1].AsString, (uint)array[2].AsUInt.Value, (uint)array[3].AsUInt.Value, (uint)array[4].AsUInt.Value, (uint)array[5].AsUInt.Value, (uint)array[6].AsUInt.Value, (uint)array[7].AsUInt.Value, array[8].AsUInt.Value, (uint)array[9].AsUInt.Value, array[10].AsTimeSpan.Value, array[11].AsTimeSpan, array[12].AsArray.Select(a => StatisticValueDTO.FromParam(a)).ToList(), array[13].AsUEnum<RegistrationStatus>().Value, array[14].AsBoolean.Value, array[15].AsUInt.Value, array[16].AsBoolean, AvatarDTO.FromParam(array[17]), array[18].AsArray.Select(a => AvatarPartDTO.FromParam(a)).ToList(), array[19].AsString, array[20].AsBoolean.Value);
         }
     }
 

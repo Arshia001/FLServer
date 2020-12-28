@@ -129,6 +129,7 @@ namespace FLGrains
                 {
                     state.Gold = configValues.InitialGold;
                     state.Level = 1;
+                    state.NotifiedLevel = 1;
 
                     LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.Score).Set(myID, 0).Ignore();
                     LeaderBoardUtil.GetLeaderBoard(GrainFactory, LeaderBoardSubject.XP).Set(myID, 0).Ignore();
@@ -140,6 +141,9 @@ namespace FLGrains
 
                     return (true, state.CoinGifts);
                 }
+
+                if (state.NotifiedLevel == 0)
+                    state.NotifiedLevel = state.Level;
 
                 InitializeAvatarIfNeeded(config);
 
@@ -308,6 +312,7 @@ namespace FLGrains
                     name: state.Name,
                     email: state.Email,
                     level: state.Level,
+                    notifiedLevel: state.NotifiedLevel,
                     xp: state.XP,
                     nextLevelXPThreshold: GetNextLevelRequiredXP(config),
                     currentNumRoundsWonForReward: rewardStatus.numRoundsWon,
@@ -324,7 +329,8 @@ namespace FLGrains
                     tutorialProgress: state.TutorialProgress,
                     avatar: await GetAvatar(),
                     ownedAvatarParts: avatarManager!.GetOwnedPartsAsDTO(),
-                    inviteCode: state.InviteCode ?? throw new InvalidOperationException($"Invite code not set before calling {nameof(Player)}.{nameof(GetOwnPlayerInfo)}")
+                    inviteCode: state.InviteCode ?? throw new InvalidOperationException($"Invite code not set before calling {nameof(Player)}.{nameof(GetOwnPlayerInfo)}"),
+                    inviteCodeEntered: state.Inviter != null
                 );
             });
 
@@ -592,6 +598,26 @@ namespace FLGrains
                     default:
                         return (false, BazaarRegistrationResult.AlreadyRegisteredWithOtherMethod);
                 }
+            });
+
+        public Task<ulong?> RegisterInviteCode(string code) =>
+            state.UseStateAndMaybePersist(async state =>
+            {
+                if (state.Inviter != null)
+                    return (false, default);
+
+                var inviter = await PlayerIndex.GetByInviteCode(GrainFactory, code);
+                if (inviter == null || inviter.GetPrimaryKey() == this.GetPrimaryKey())
+                    return (false, default(ulong?));
+
+                var config = configReader.Config;
+
+                await inviter.ReceiveCoinGift(new CoinGiftInfo(CoinGiftSubject.FriendInvited, config.ConfigValues.InviterReward, null, null, state.Name, null, null, null));
+
+                state.Inviter = inviter;
+                state.Gold += config.ConfigValues.InviteeReward;
+
+                return (true, state.Gold);
             });
 
         public Task SendPasswordRecoveryLink() => state.UseStateAndPersist(async state =>
@@ -1030,6 +1056,8 @@ namespace FLGrains
 
                 return (await GetPlayerInfo(), ownedCategories);
             });
+
+        public Task SetNotifiedLevel(uint level) => state.UseStateAndPersist(state => state.NotifiedLevel = level);
 
         public Task<bool> HaveAnswersForCategory(string category) => state.UseState(state => Task.FromResult(state.OwnedCategoryAnswers.Contains(category)));
 

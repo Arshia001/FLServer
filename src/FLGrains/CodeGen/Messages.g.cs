@@ -178,6 +178,22 @@ namespace FLGrains
             var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).ClaimCoinGift(array[0].AsGuid.Value);
             return Success(LightMessage.Common.WireProtocol.Param.UInt(result));
         }
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("ric")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_RegisterInviteCode(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).RegisterInviteCode(array[0].AsString);
+            return Success(LightMessage.Common.WireProtocol.Param.UInt(result));
+        }
+
+        [LightMessage.OrleansUtils.GrainInterfaces.MethodNameAttribute("snl")]
+        async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_SetNotifiedLevel(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
+        {
+            var array = input.Args;
+            await GrainFactory.GetGrain<IPlayer>(input.ClientID).SetNotifiedLevel((uint)array[0].AsUInt.Value);
+            return NoResult();
+        }
     }
 
     [LightMessage.OrleansUtils.GrainInterfaces.EndPointNameAttribute("sg"), Orleans.Concurrency.StatelessWorkerAttribute(128)]

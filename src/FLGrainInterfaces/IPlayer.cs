@@ -157,6 +157,9 @@ namespace FLGrainInterfaces
 
         [Id(34)]
         public string? BazaarToken { get; set; }
+
+        [Id(35)]
+        public uint NotifiedLevel { get; set; }
     }
 
     [BondSerializationTag("@p")]
@@ -173,6 +176,7 @@ namespace FLGrainInterfaces
         Task<(uint score, uint level, bool shouldJoinTutorialMatch)> GetMatchMakingInfo();
         Task<uint> GetScore();
         Task<(PlayerInfoDTO info, bool[] haveCategoryAnswers)> GetPlayerInfoAndOwnedCategories(IReadOnlyList<string> categories);
+        Task SetNotifiedLevel(uint level);
 
         Task<bool> SetUsername(string username);
         Task<(RegistrationResult result, ulong totalGold)> PerformRegistration(string username, string email, string password, string? inviteCode);
@@ -181,6 +185,7 @@ namespace FLGrainInterfaces
         Task<bool> ValidatePassword(string password);
         Task SendPasswordRecoveryLink();
         Task<BazaarRegistrationResult> PerformBazaarTokenRegistration(string bazaarToken);
+        Task<ulong?> RegisterInviteCode(string code);
 
         Task<(bool success, ulong totalGold)> BuyAvatarParts(IReadOnlyList<AvatarPartDTO> part);
         Task ActivateAvatar(AvatarDTO avatar);

@@ -211,6 +211,7 @@ contract OwnPlayerInfoDTO
 	Email: string?;
 	XP: u32;
 	Level: u32;
+	NotifiedLevel: u32;
 	NextLevelXPThreshold: u32;
 	Score: u32;
 	Rank: u32;
@@ -226,6 +227,7 @@ contract OwnPlayerInfoDTO
 	Avatar: AvatarDTO;
 	OwnedAvatarParts: AvatarPartDTO[];
 	InviteCode: string;
+	InviteCodeEntered: bool;
 }
 
 contract WordScorePairDTO castfrom(FLGameLogic.WordScorePair)
@@ -465,6 +467,10 @@ endpoint System sys
 	request GiveVideoAdReward vadr via Player(clientid).GiveVideoAdReward() { {} -> { totalGold: u64; } }
 
 	request ClaimCoinGift ccg via Player(clientid).ClaimCoinGift(id) { { id: guid; } -> { totalGold: u64?; } }
+
+	request RegisterInviteCode ric via Player(clientid).RegisterInviteCode(code) { { code: string; } -> { gold: u64?; } }
+
+	request SetNotifiedLevel snl via Player(clientid).SetNotifiedLevel(level) { { level: u32; } -> noresponse }
 }
 
 endpoint Suggestion sg
