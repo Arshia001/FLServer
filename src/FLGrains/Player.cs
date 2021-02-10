@@ -833,7 +833,7 @@ namespace FLGrains
                 var rank = 0UL;
                 var xp = 0U;
                 var level = 0U;
-                var gold = 0UL;
+                var gold = state.Gold;
                 var hasReward = false;
 
                 switch (result)
