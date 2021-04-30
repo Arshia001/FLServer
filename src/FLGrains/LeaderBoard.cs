@@ -63,7 +63,7 @@ namespace FLGrains
     }
 
     [Schema, BondSerializationTag("#lb")]
-    class LeaderBoardState : IGenericSerializable
+    public class LeaderBoardState : IGenericSerializable
     {
         static LeaderBoardState()
         {

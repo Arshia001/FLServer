@@ -37,7 +37,6 @@
     <ProjectReference Include="..\..\libs\lightmessage\LightMessage.OrleansUtils.Host\LightMessage.OrleansUtils.Host.csproj" />
     <ProjectReference Include="..\..\libs\orleanslibraries\OrleansBondUtils.CassandraInterop\OrleansBondUtils.CassandraInterop.csproj" />
     <ProjectReference Include="..\..\libs\orleanslibraries\OrleansBondUtils\OrleansBondUtils.csproj" />
-    <ProjectReference Include="..\..\libs\orleanslibraries\OrleansCassandraUtils\OrleansCassandraUtils.csproj" />
     <ProjectReference Include="..\..\libs\orleanslibraries\OrleansIndexingGrains\OrleansIndexingGrains.csproj" />
     <ProjectReference Include="..\FLGrainInterfaces\FLGrainInterfaces.csproj" />
     <ProjectReference Include="..\FLGrains\FLGrains.csproj" />
