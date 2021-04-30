@@ -97,7 +97,7 @@ namespace FLGrains
             this.state.Persist += State_Persist;
         }
 
-        private void State_Persist(object sender, PersistStateEventArgs<GameGrainState> e) =>
+        private void State_Persist(object? sender, PersistStateEventArgs<GameGrainState> e) =>
             e.State.GameData = gameLogic?.Serialize();
 
         int NumJoinedPlayers => state.UseState(state => state.PlayerIDs.Length == 0 ? 0 : state.PlayerIDs[1] == Guid.Empty ? 1 : 2);

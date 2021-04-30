@@ -46,7 +46,7 @@ namespace FLGrains
             return Game?.GetPrimaryKey().GetHashCode() ?? 0;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (!(obj is MatchMakingEntry entry))
                 return false;
@@ -86,7 +86,7 @@ namespace FLGrains
             detailedLog = new CachedValue<bool>(() => Environment.GetEnvironmentVariable("FLSERVER_DETAILED_MATCHMAKING_LOG") == "yes", TimeSpan.FromMinutes(1));
         }
 
-        private void State_Persist(object sender, PersistStateEventArgs<MatchMakingGrainState> e) =>
+        private void State_Persist(object? sender, PersistStateEventArgs<MatchMakingGrainState> e) =>
             e.State.Entries = new List<MatchMakingEntry>(entries);
 
         public override Task OnActivateAsync() => state.UseState(state =>

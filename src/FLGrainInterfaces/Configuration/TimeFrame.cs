@@ -67,7 +67,7 @@ namespace FLGrainInterfaces.Configuration
                 return new Interval(latestStart, bestMatch.End);
         }
 
-        public int CompareTo(TimeFrame other) => StartTime.CompareTo(other.StartTime);
+        public int CompareTo(TimeFrame? other) => StartTime.CompareTo(other?.StartTime);
 
         public class Interval
         {

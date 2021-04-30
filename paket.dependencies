@@ -45,14 +45,14 @@ group Main
     nuget MailKit 2.4.1
     nuget Microsoft.Extensions.Hosting 3.0.0
     nuget Microsoft.Extensions.Logging.Console 3.0.0
-    nuget Microsoft.Orleans.Client 3.4.1
-    nuget Microsoft.Orleans.Core 3.4.1
-    nuget Microsoft.Orleans.CodeGenerator.MSBuild 3.4.1
-    nuget Microsoft.Orleans.OrleansProviders 3.4.1
-    nuget Microsoft.Orleans.OrleansTelemetryConsumers.Counters 3.4.1
-    nuget Microsoft.Orleans.OrleansTelemetryConsumers.Linux 3.4.1
-    nuget Microsoft.Orleans.Runtime.Abstractions 3.4.1
-    nuget Microsoft.Orleans.Server 3.4.1
+    nuget Microsoft.Orleans.Client 3.4.2
+    nuget Microsoft.Orleans.Core 3.4.2
+    nuget Microsoft.Orleans.CodeGenerator.MSBuild 3.4.2
+    nuget Microsoft.Orleans.OrleansProviders 3.4.2
+    nuget Microsoft.Orleans.OrleansTelemetryConsumers.Counters 3.4.2
+    nuget Microsoft.Orleans.OrleansTelemetryConsumers.Linux 3.4.2
+    nuget Microsoft.Orleans.Runtime.Abstractions 3.4.2
+    nuget Microsoft.Orleans.Server 3.4.2
     nuget Newtonsoft.Json 12.0.2
     nuget RazorEngine.NetCore-LinuxDockerFix 2.2.5
     nuget System.Runtime.Caching 4.5.0

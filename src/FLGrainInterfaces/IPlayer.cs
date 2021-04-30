@@ -35,7 +35,7 @@ namespace FLGrainInterfaces
         [Id(0)] public Statistics Statistic { get; set; }
         [Id(1)] public int Parameter { get; set; }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is StatisticWithParameter parameter &&
                    Statistic == parameter.Statistic &&

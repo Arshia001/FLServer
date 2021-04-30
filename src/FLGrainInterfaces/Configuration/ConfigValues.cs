@@ -68,8 +68,8 @@ namespace FLGrainInterfaces.Configuration
         public VideoAdLimitConfig CoinRewardVideo { get; private set; }
         public VideoAdLimitConfig GetCategoryAnswersVideo { get; private set; }
 
-        IReadOnlyList<TimeFrame>? notificationTimeFrames;
-        public IReadOnlyList<TimeFrame>? NotificationTimeFrames
+        IReadOnlyList<TimeFrame> notificationTimeFrames = Array.Empty<TimeFrame>();
+        public IReadOnlyList<TimeFrame> NotificationTimeFrames
         {
             get => notificationTimeFrames;
             private set => notificationTimeFrames = value.OrderBy(x => x).ToList();

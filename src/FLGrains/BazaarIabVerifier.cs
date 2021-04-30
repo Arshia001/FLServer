@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Orleans;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,7 +42,7 @@ namespace FLGrains
                     { "client_secret", conf.BazaarClientSecret },
                     { "refresh_token", conf.BazaarRefreshToken }
                 };
-                var content = new FormUrlEncodedContent(values);
+                var content = new FormUrlEncodedContent(values.Cast<KeyValuePair<string?, string?>>());
 
                 var response = await httpClient.PostAsync("https://pardakht.cafebazaar.ir/devapi/v2/auth/token/", content);
                 var resultJson = await response.Content.ReadAsStringAsync();

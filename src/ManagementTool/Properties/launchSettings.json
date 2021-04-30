@@ -2,7 +2,7 @@
   "profiles": {
     "ManagementTool": {
       "commandName": "Project",
-      "commandLineArgs": "read-suggestions -c -f \"!!categories\" -k fl_server_dev"
+      "commandLineArgs": "update-all -k fl_server_dev -f .\\categories.json"
     }
   }
 }

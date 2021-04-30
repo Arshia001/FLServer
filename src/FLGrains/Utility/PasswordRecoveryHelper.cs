@@ -16,7 +16,7 @@ namespace FLGrains.Utility
         public static string GenerateNewToken()
         {
             var bytes = new byte[24];
-            random.Value.GetBytes(bytes);
+            random.Value!.GetBytes(bytes);
             return ToUrlSafeBase64String(bytes);
         }
     }

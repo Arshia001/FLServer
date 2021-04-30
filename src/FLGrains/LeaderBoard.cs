@@ -43,6 +43,9 @@ namespace FLGrains
             if (value.Count == 0)
                 return new SkipList<Guid, ulong>();
 
+            if (value.Array is null)
+                throw new ArgumentNullException("value.Array");
+
             var result = new SkipList<Guid, ulong>();
             using (var stream = new MemoryStream(value.Array, value.Offset, value.Count))
             {

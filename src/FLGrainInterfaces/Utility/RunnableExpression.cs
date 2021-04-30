@@ -18,13 +18,13 @@ namespace FLGrainInterfaces.Util
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             var typeParam = objectType.GetGenericArguments()[0];
-            return Activator.CreateInstance(typeof(RunnableNonNullExpression<>).MakeGenericType(typeParam), reader.Value.ToString());
+            return Activator.CreateInstance(typeof(RunnableNonNullExpression<>).MakeGenericType(typeParam), reader.Value.ToString())!;
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             var expField = value.GetType().GetField("expressionString", BindingFlags.NonPublic | BindingFlags.Instance);
-            writer.WriteValue(expField.GetValue(value) as string);
+            writer.WriteValue(expField!.GetValue(value) as string);
         }
     }
 

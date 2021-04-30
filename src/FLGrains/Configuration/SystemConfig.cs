@@ -74,7 +74,7 @@ namespace FLGrains.Configuration
         static async Task<string> ReadDatabaseConfigEntry(ISession session, Queries queries, string key)
         {
             var rows = await session.ExecuteAsync(queries["fl_readConfig"].Bind(new { key = key }));
-            return Convert.ToString(rows.FirstOrDefault()?["data"]);
+            return Convert.ToString(rows.FirstOrDefault()?["data"])!;
         }
 
         static Task WriteDatabaseConfigEntry(ISession session, Queries queries, string key, string value) =>
@@ -99,7 +99,7 @@ namespace FLGrains.Configuration
             foreach (var row in rows)
                 result.Add(new GroupConfig(
                     Convert.ToUInt16(row["id"]),
-                    Convert.ToString(row["name"])
+                    Convert.ToString(row["name"])!
                     ));
 
             return result;
@@ -123,13 +123,13 @@ namespace FLGrains.Configuration
             foreach (var row in rows)
                 try
                 {
-                    if (row["words"] == null)
+                    if (row["words"] == null || row["name"] == null)
                     {
-                        logger.LogError($"Found category with no words: {row["name"]}");
+                        logger.LogError($"Found category with no words or name: {row["name"]}");
                         continue;
                     }
 
-                    var name = Convert.ToString(row["name"]);
+                    var name = Convert.ToString(row["name"])!;
 
                     var groupID = Convert.ToUInt16(row["group_id"]);
                     if (!groupsByID.TryGetValue(groupID, out var group))

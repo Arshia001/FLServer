@@ -11,7 +11,7 @@ namespace FLGrainInterfaces.Configuration
         {
             this.data = data;
 
-            GroupsByID = data.Groups.ToDictionary(g => g.ID);
+            GroupsByID = data.Groups!.ToDictionary(g => g.ID);
 
             CategoriesByName = data.Categories!.ToDictionary(c => c.Name);
             CategoryNamesByGroupID = data.Categories!.GroupBy(c => c.Group.ID).ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(c => c.Name).ToList());
@@ -22,7 +22,7 @@ namespace FLGrainInterfaces.Configuration
 
             RenamedCategoriesByOldName = data.RenamedCategories!.ToDictionary(r => r.OldName, r => r.NewName);
 
-            PlayerLevels = data.PlayerLevels.ToDictionary(l => l.Level);
+            PlayerLevels = data.PlayerLevels!.ToDictionary(l => l.Level);
 
             GoldPacks = data.GoldPacks?.ToDictionary(c => c.Sku ?? throw new Exception("Null SKU not allowed"))
                 ?? throw new Exception("Groups not specified in config");
@@ -71,9 +71,7 @@ namespace FLGrainInterfaces.Configuration
 
         public FLGameLogicServer.WordCategory? GetCategory(string nameNewOrOld)
         {
-            FLGameLogicServer.WordCategory category;
-
-            if (CategoriesAsGameLogicFormatByName.TryGetValue(nameNewOrOld, out category))
+            if (CategoriesAsGameLogicFormatByName.TryGetValue(nameNewOrOld, out var category))
                 return category;
 
             // We may accidentally introduce loops into the system by undoing a rename and forgetting to
@@ -105,7 +103,7 @@ namespace FLGrainInterfaces.Configuration
             Validation.CheckList(data.TutorialGameCategories, "tutorial game categories");
             foreach (var (tgc, index) in data.TutorialGameCategories!.Select((x, i) => (x, i)))
                 tgc.Validate(index, data.Groups!, data.Categories!);
-            var group = data.Groups.FirstOrDefault(g => !data.TutorialGameCategories.Any(tgc => tgc.GroupID == g.ID));
+            var group = data.Groups!.FirstOrDefault(g => !data.TutorialGameCategories!.Any(tgc => tgc.GroupID == g.ID));
             if (group != null)
                 Validation.FailWith($"No tutorial game categories found for group {group.ID}");
 

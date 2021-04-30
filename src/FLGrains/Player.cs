@@ -74,7 +74,7 @@ namespace FLGrains
             getCategoryAnswersAdTracker = new VideoAdLimitTracker(() => configReader.Config.ConfigValues.GetCategoryAnswersVideo);
         }
 
-        private void State_Persist(object sender, PersistStateEventArgs<PlayerState> e)
+        private void State_Persist(object? sender, PersistStateEventArgs<PlayerState> e)
         {
             e.State.CoinRewardVideoTrackerState = coinRewardAdTracker.Serialize();
             e.State.GetCategoryAnswersVideoTrackerState = getCategoryAnswersAdTracker.Serialize();
@@ -570,7 +570,10 @@ namespace FLGrains
             }
         });
 
-        bool ValidatePasswordImpl(string password) => state.UseState(state => CryptographyHelper.HashPassword(state.PasswordSalt, password).SequenceEqual(state.PasswordHash));
+        bool ValidatePasswordImpl(string password) =>
+            state.UseState(state =>
+                state.PasswordHash != null && CryptographyHelper.HashPassword(state.PasswordSalt, password).SequenceEqual(state.PasswordHash)
+            );
 
         public Task<bool> ValidatePassword(string password) => Task.FromResult(ValidatePasswordImpl(password));
 
