@@ -165,12 +165,13 @@ namespace FLGrains
                 state.PlayerIDs[0] == playerID ? 0 : (state.PlayerIDs[1] == playerID ? 1 : throw new Exception("Unknown player ID " + playerID.ToString()))
             );
 
-        public Task<byte> StartNew(Guid playerOneID)
-        {
-            return state.UseStateAndPersist(state =>
+        public Task<byte> StartNew(Guid playerOneID) =>
+            state.UseStateAndPersist(async state =>
             {
                 if (GetStateInternal(state) != GameState.New)
                     throw new VerbatimException("Game already started");
+
+                await GrainFactory.GetGrain<IPlayer>(playerOneID).JoinGameAsFirstPlayer(this.AsReference<IGame>());
 
                 var config = configReader.Config;
 
@@ -180,9 +181,8 @@ namespace FLGrains
 
                 return (byte)gameLogic.NumRounds;
             });
-        }
 
-        public Task<(Guid opponentID, byte numRounds, TimeSpan? expiryTimeRemaining)> AddSecondPlayer(PlayerInfoDTO playerTwo) =>
+        public Task<(Guid opponentID, byte numRounds, TimeSpan? expiryTimeRemaining)> AddSecondPlayer(Guid playerTwoID) =>
             state.UseStateAndPersist(async state =>
             {
                 var gameState = GetStateInternal(state);
@@ -192,18 +192,20 @@ namespace FLGrains
                 if (gameState != GameState.WaitingForSecondPlayer)
                     return (Guid.Empty, default(byte), default(TimeSpan?));
 
-                if (state.PlayerIDs[0] == playerTwo.ID)
+                if (state.PlayerIDs[0] == playerTwoID)
                     throw new VerbatimException("Player cannot join game with self");
+
+                var playerTwo = await GrainFactory.GetGrain<IPlayer>(playerTwoID).JoinGameAsSecondPlayer(this.AsReference<IGame>());
 
                 GameLogic.SecondPlayerJoined();
 
-                state.PlayerIDs[1] = playerTwo.ID;
+                state.PlayerIDs[1] = playerTwoID;
 
                 await RegisterExpiryReminderIfNecessary();
 
                 var timeRemaining = GetExpiryTimeRemaining();
 
-                await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentJoined(state.PlayerIDs[0], (this).GetPrimaryKey(), playerTwo, timeRemaining);
+                await GrainFactory.GetGrain<IGameEndPoint>(0).SendOpponentJoined(state.PlayerIDs[0], this.GetPrimaryKey(), playerTwo, timeRemaining);
 
                 return (state.PlayerIDs[0], (byte)GameLogic.NumRounds, timeRemaining);
             });
@@ -819,13 +821,18 @@ namespace FLGrains
                 return (true, (gold, word, score));
             });
 
-        public Task<List<GroupConfig>?> RefreshGroups(Guid guid) =>
-            state.UseStateAndMaybePersist(state =>
+        public Task<(IEnumerable<GroupInfoDTO>? groups, ulong totalGold)> RefreshGroups(Guid playerID) =>
+            state.UseStateAndMaybePersist(async state =>
             {
-                var index = Index(guid);
+                var index = Index(playerID);
 
                 if (state.GroupChooser != index || state.GroupChoices == null || state.NumGroupRefreshesRemainingForThisRound <= 0)
-                    return (false, default(List<GroupConfig>));
+                    return (false, (default(IEnumerable<GroupInfoDTO>), 0ul));
+
+                var playerTotalGold = await GrainFactory.GetGrain<IPlayer>(playerID).OnRefreshGroups(this.GetPrimaryKey());
+
+                if (!playerTotalGold.HasValue)
+                    return (false, (default(IEnumerable<GroupInfoDTO>), 0ul));
 
                 --state.NumGroupRefreshesRemainingForThisRound;
 
@@ -835,7 +842,7 @@ namespace FLGrains
                         i => state.GroupChoices.Contains(config.Groups[i].ID), state.GroupChoices.Count)
                     .Select(i => config.Groups[i].ID).ToList();
 
-                return (true, state.GroupChoices.Select(i => config.GroupsByID[i]).ToList());
+                return (true, (state.GroupChoices.Select(i => (GroupInfoDTO)config.GroupsByID[i]).ToList().AsEnumerable(), playerTotalGold.Value));
             });
 
         GameState GetStateInternal(GameGrainState state)

@@ -257,7 +257,7 @@ namespace FLGrains
         async System.Threading.Tasks.Task<LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionResult> EndPoint_RefreshGroups(LightMessage.OrleansUtils.GrainInterfaces.EndPointFunctionParams input)
         {
             var array = input.Args;
-            var result = await GrainFactory.GetGrain<IPlayer>(input.ClientID).RefreshGroups(array[0].AsGuid.Value);
+            var result = await GrainFactory.GetGrain<IGame>(array[0].AsGuid.Value).RefreshGroups(input.ClientID);
             return Success(LightMessage.Common.WireProtocol.Param.Array(result.groups?.Select(a => a?.ToParam() ?? LightMessage.Common.WireProtocol.Param.Null())), LightMessage.Common.WireProtocol.Param.UInt(result.totalGold));
         }
 
@@ -366,10 +366,10 @@ namespace FLGrains
 
         ClientAuthCallbackDelegate onClientAuthCallback;
 
-        public System.Threading.Tasks.Task Start(Orleans.IGrainFactory grainFactory, System.Net.IPEndPoint ipEndPoint, ClientAuthCallbackDelegate onClientAuthCallback, System.Func<System.Guid, System.Threading.Tasks.Task> onClientDisconnected, LightMessage.Common.Util.ILogProvider logProvider = null)
+        public System.Threading.Tasks.Task Start(Orleans.IGrainFactory grainFactory, System.Net.IPEndPoint ipEndPoint, ClientAuthCallbackDelegate onClientAuthCallback, System.Func<System.Guid, System.Threading.Tasks.Task> onClientDisconnected, LightMessage.Host.HostConfiguration hostConfiguration, LightMessage.Common.Util.ILogProvider logProvider = null)
         {
             this.onClientAuthCallback = onClientAuthCallback;
-            return host.Start(grainFactory, ipEndPoint, OnClientAuthRequest, onClientDisconnected, logProvider);
+            return host.Start(grainFactory, ipEndPoint, OnClientAuthRequest, onClientDisconnected, hostConfiguration, logProvider);
         }
 
         public void Stop() => host.Stop();

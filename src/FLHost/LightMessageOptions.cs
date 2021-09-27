@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using LightMessage.Host;
 using static FLGrains.LightMessageHost;
 
 namespace FLHost
@@ -13,5 +14,6 @@ namespace FLHost
         public int ListenPort { get; set; }
         public ClientAuthCallbackDelegate? ClientAuthCallback { get; set; }
         public Func<Guid, Task>? ClientDisconnectedCallback { get; set; }
+        public HostConfiguration? HostConfiguration { get; set; }
     }
 }

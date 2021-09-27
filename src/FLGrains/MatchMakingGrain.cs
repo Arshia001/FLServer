@@ -143,7 +143,7 @@ namespace FLGrains
                     gameToEnter = GrainFactory.GetGrain<IGame>(Guid.NewGuid());
                 while (await gameToEnter.GetState() != GameState.New);
 
-                var numRounds = await player.JoinGameAsFirstPlayer(gameToEnter);
+                var numRounds = await gameToEnter.StartNew(playerID);
 
                 await gameToEnter.SetupTutorialMatch();
 
@@ -168,7 +168,7 @@ namespace FLGrains
                         continue;
                     }
 
-                    var (opponentID, numRounds, expiryTimeRemaining) = await player.JoinGameAsSecondPlayer(game);
+                    var (opponentID, numRounds, expiryTimeRemaining) = await game.AddSecondPlayer(playerID);
 
                     if (opponentID == Guid.Empty)
                     {
@@ -191,7 +191,7 @@ namespace FLGrains
                         gameToEnter = GrainFactory.GetGrain<IGame>(Guid.NewGuid());
                     while (await gameToEnter.GetState() != GameState.New);
 
-                    var numRounds = await player.JoinGameAsFirstPlayer(gameToEnter);
+                    var numRounds = await gameToEnter.StartNew(playerID);
 
                     return (gameToEnter.GetPrimaryKey(), null, numRounds, true, default);
                 }

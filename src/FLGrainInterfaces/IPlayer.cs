@@ -198,9 +198,9 @@ namespace FLGrainInterfaces
         Task<Immutable<IReadOnlyList<IGame>>> GetGames();
         Task<ulong?> ClaimGameReward(Guid gameID);
         Task<ulong?> ClearGameHistory();
-        Task<(bool canEnter, Immutable<ISet<Guid>> activeOpponents)> CheckCanEnterGameAndGetActiveOpponents();
-        Task<byte> JoinGameAsFirstPlayer(IGame game);
-        Task<(Guid opponentID, byte numRounds, TimeSpan? expiryTimeRemaining)> JoinGameAsSecondPlayer(IGame game);
+        Task<(bool canEnter, Immutable<IEnumerable<Guid>> activeGames)> CheckCanEnterGameAndGetActiveGames();
+        Task JoinGameAsFirstPlayer(IGame game);
+        Task<PlayerInfoDTO> JoinGameAsSecondPlayer(IGame game);
         Task SecondPlayerJoinedGame(IGame game, Guid playerID);
         Task OnRoundCompleted(IGame game, uint myScore);
         Task OnRoundResult(IGame game, CompetitionResult result, ushort groupID);
@@ -220,7 +220,7 @@ namespace FLGrainInterfaces
         Task<(IReadOnlyList<bool> haveCategoryAnswers, bool rewardClaimed)> GetCompleteGameRelatedData(Guid gameID, IReadOnlyList<string> categories);
         Task<bool> GetSimplifiedGameRelatedData(Guid gameID); // Only one piece of data: reward claimed
 
-        Task<(IEnumerable<GroupInfoDTO>? groups, ulong totalGold)> RefreshGroups(Guid gameID);
+        Task<ulong?> OnRefreshGroups(Guid gameID);
 
         Task<(ulong totalGold, TimeSpan timeUntilNextReward)> TakeRewardForWinningRounds();
 

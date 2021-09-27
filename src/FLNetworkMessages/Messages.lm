@@ -578,7 +578,7 @@ endpoint Game gm
 		}
 	}
 
-	request RefreshGroups rgr via Player(clientid).RefreshGroups(gameID)
+	request RefreshGroups rgr via Game(gameID).RefreshGroups(clientid)
 	{
 		{
 			gameID: guid;

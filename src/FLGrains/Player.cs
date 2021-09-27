@@ -47,8 +47,6 @@ namespace FLGrains
 
         AvatarManager? avatarManager;
 
-        HashSet<Guid> activeOpponents = new HashSet<Guid>();
-
         ISystemEndPoint? systemEndPoint;
 
         bool playerLoggedInDuringThisActivation = false;
@@ -146,16 +144,6 @@ namespace FLGrains
                     state.NotifiedLevel = state.Level;
 
                 InitializeAvatarIfNeeded(config);
-
-                foreach (var game in state.ActiveGames)
-                {
-                    var opponentID =
-                        (await GrainFactory.GetGrain<IGame>(game).GetPlayerIDs())
-                        .Where(id => id != myID)
-                        .FirstOrDefault();
-                    if (opponentID != Guid.Empty)
-                        activeOpponents.Add(opponentID);
-                }
 
                 if (state.PastGames.Count > configValues.MaxGameHistoryEntries)
                 {
@@ -706,7 +694,7 @@ namespace FLGrains
             return Task.CompletedTask;
         }
 
-        public Task<(bool canEnter, Immutable<ISet<Guid>> activeOpponents)> CheckCanEnterGameAndGetActiveOpponents() =>
+        public Task<(bool canEnter, Immutable<IEnumerable<Guid>> activeGames)> CheckCanEnterGameAndGetActiveGames() =>
             state.UseState(state =>
             {
                 var canEnter = state.ActiveGames.Count < (
@@ -714,37 +702,21 @@ namespace FLGrains
                     configReader.Config.ConfigValues.MaxActiveGamesWhenUpgraded :
                     configReader.Config.ConfigValues.MaxActiveGames
                 );
-                return Task.FromResult((canEnter, activeOpponents.AsImmutable<ISet<Guid>>()));
+
+                return Task.FromResult((canEnter, state.ActiveGames.AsImmutable<IEnumerable<Guid>>()));
             });
 
-        public Task<byte> JoinGameAsFirstPlayer(IGame game) =>
+        public Task JoinGameAsFirstPlayer(IGame game) =>
+            state.UseStateAndPersist(state => state.ActiveGames.Add(game.GetPrimaryKey()));
+
+        public Task<PlayerInfoDTO> JoinGameAsSecondPlayer(IGame game) =>
             state.UseStateAndPersist(async state =>
             {
-                var result = await game.StartNew(this.GetPrimaryKey());
                 state.ActiveGames.Add(game.GetPrimaryKey());
-                return result;
+                return await GetPlayerInfo();
             });
 
-        public Task<(Guid opponentID, byte numRounds, TimeSpan? expiryTimeRemaining)> JoinGameAsSecondPlayer(IGame game) =>
-            state.UseStateAndPersist(async state =>
-            {
-                var result = await game.AddSecondPlayer(await GetPlayerInfo());
-                if (result.opponentID != Guid.Empty)
-                {
-                    activeOpponents.Add(result.opponentID);
-                    state.ActiveGames.Add(game.GetPrimaryKey());
-                }
-                return result;
-            });
-
-        public Task SecondPlayerJoinedGame(IGame game, Guid playerID) =>
-            state.UseState(state =>
-            {
-                if (state.ActiveGames.Contains(game.GetPrimaryKey()))
-                    activeOpponents.Add(playerID);
-
-                return Task.CompletedTask;
-            });
+        public Task SecondPlayerJoinedGame(IGame game, Guid playerID) => Task.CompletedTask;
 
         public Task OnRoundCompleted(IGame game, uint myScore)
         {
@@ -819,8 +791,6 @@ namespace FLGrains
 
                 if (!state.ActiveGames.Contains(gameID))
                     return (0u, 0u, 0u, 0u, 0ul, false);
-
-                activeOpponents.Remove(opponentID);
 
                 var config = configReader.Config.ConfigValues;
 
@@ -914,22 +884,18 @@ namespace FLGrains
                 return Task.FromResult((ulong?)state.Gold);
             });
 
-        public Task<(IEnumerable<GroupInfoDTO>? groups, ulong totalGold)> RefreshGroups(Guid gameID) =>
-            state.UseStateAndLazyPersist(async state =>
+        public Task<ulong?> OnRefreshGroups(Guid gameID) =>
+            state.UseStateAndLazyPersist(state =>
             {
                 var price = configReader.Config.ConfigValues.PriceToRefreshGroups;
                 if (state.Gold < price)
-                    throw new VerbatimException("Insufficient gold");
-
-                var result = await GrainFactory.GetGrain<IGame>(gameID).RefreshGroups(this.GetPrimaryKey());
-                if (result == null)
-                    return (null, 0ul);
+                    return Task.FromResult(default(ulong?));
 
                 AddStatImpl(price, Statistics.MoneySpentGroupChange);
                 AddStatImpl(1, Statistics.GroupChangeUsed);
 
                 state.Gold -= price;
-                return (result.Select(g => (GroupInfoDTO)g).ToList().AsEnumerable().AsNullable(), state.Gold);
+                return Task.FromResult((ulong?)state.Gold);
             });
 
         (bool inCoolDown, TimeSpan coolDownTimeRemaining, bool enoughRoundsWon, uint numRoundsWon) GetRoundWinRewardStatus() =>

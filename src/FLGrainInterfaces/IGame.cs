@@ -15,7 +15,7 @@ namespace FLGrainInterfaces
     {
         Task<GameState> GetState();
         Task<byte> StartNew(Guid playerOneID); // Returns number of rounds
-        Task<(Guid opponentID, byte numRounds, TimeSpan? expiryTimeRemaining)> AddSecondPlayer(PlayerInfoDTO playerTwo);
+        Task<(Guid opponentID, byte numRounds, TimeSpan? expiryTimeRemaining)> AddSecondPlayer(Guid playerTwoID);
         Task AddBotAsSecondPlayer();
         Task SetupTutorialMatch();
         Task<(string? category, bool? haveAnswers, TimeSpan? roundTime, bool mustChooseGroup, IEnumerable<GroupInfoDTO> groups)> StartRound(Guid id);
@@ -26,7 +26,7 @@ namespace FLGrainInterfaces
         Task<(ulong? gold, TimeSpan? remainingTime)> IncreaseRoundTime(Guid playerID);
         Task<(ulong? gold, string? word, byte? wordScore)> RevealWord(Guid playerID);
 
-        Task<List<GroupConfig>?> RefreshGroups(Guid guid);
+        Task<(IEnumerable<GroupInfoDTO>? groups, ulong totalGold)> RefreshGroups(Guid playerID);
 
         Task<Guid[]> GetPlayerIDs();
         Task<GameInfoDTO> GetGameInfo(Guid playerID);

@@ -13,6 +13,12 @@
       "commands": [
         "fake"
       ]
+    },
+    "lightmessage.compiler": {
+      "version": "1.0.1",
+      "commands": [
+        "lmc"
+      ]
     }
   }
 }

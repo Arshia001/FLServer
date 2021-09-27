@@ -47,6 +47,7 @@ namespace FLHost
                             o.ListenPort = 7510;
                             o.ClientAuthCallback = OnAuth;
                             o.ClientDisconnectedCallback = OnDisconnect;
+                            o.HostConfiguration = new LightMessage.Host.HostConfiguration();
                         })
                         .AddSingleton<ILogProvider>(new ConsoleLogProvider(LightMessage.Common.Util.LogLevel.Info))
                         .AddSingleton<LightMessageHostedService>()
