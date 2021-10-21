@@ -495,10 +495,13 @@ namespace FLGrains
 
             var categories = isTutorialGame ? config.TutorialGameCategories[groupID] : config.CategoryNamesByGroupID[groupID];
             var currentCategories = GameLogic.CategoryNames;
-            string categoryName;
-            do
+            string categoryName = "";
+            for (int i = 0; i < 20; ++i)
+            {
                 categoryName = categories[RandomHelper.GetInt32(categories.Count)];
-            while (currentCategories.Contains(categoryName));
+                if (!currentCategories.Contains(categoryName))
+                    break;
+            }
 
             var result = GameLogic.SetCategory(roundIndex, config.CategoriesAsGameLogicFormatByName[categoryName]);
 
