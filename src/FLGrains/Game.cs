@@ -799,7 +799,9 @@ namespace FLGrains
                 var category = GameLogic.Categories[turnIndex];
                 var answers = GameLogic.GetPlayerAnswers(index, turnIndex);
 
-                if (answers.Count == category.Answers.Count)
+                var possibleWordsToReveal = category.Answers.Where(x => !answers.Any(y => y.word == x)).ToList();
+
+                if (!possibleWordsToReveal.Any())
                     return (false, (default(ulong?), default(string), default(byte?)));
 
                 var prices = config.ConfigValues.RevealWordPrices!;
@@ -812,10 +814,7 @@ namespace FLGrains
                 if (!gold.HasValue)
                     return (false, (default(ulong?), default(string), default(byte?)));
 
-                string word;
-                do
-                    word = category.Answers[RandomHelper.GetInt32(category.Answers.Count)];
-                while (answers.Any(a => a.word == word));
+                var word = possibleWordsToReveal[RandomHelper.GetInt32(possibleWordsToReveal.Count)];
 
                 var (score, _) = await PlayWord(playerID, word);
 
